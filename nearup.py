@@ -17,7 +17,7 @@ if os.path.exists(main_script):
     subprocess.run(args)
 else:
     p = subprocess.Popen(
-        ['git', 'clone', 'https://github.com/nearprotocol/nearup', os.path.expanduser('~/.nearup')])
+        ['git', 'clone', 'https://github.com/nearprotocol/nearup', os.path.expanduser('~/.nearup/src')], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     _stdout, _stderr = p.communicate()
     if p.returncode != 0:
         sys.stderr.write('Failed to obtain nearup source code. Please retry')
