@@ -29,5 +29,15 @@ else:
         sys.stderr.write('Failed to obtain nearup. Please retry')
         subprocess.check_output(['rm', '-rf', os.path.expanduser('~/.nearup')])
         exit(1)
-    args = ['python3', main_script] + sys.argv[1:]
-    subprocess.run(args)
+
+    in_path = False
+    with open(os.path.expanduser('~/.nearup'), 'r') as f:
+        if 'source $HOME/.nearup/env' not in f.read():
+            in_path = True
+    if not in_path:
+        with open(os.path.expanduser('~/.profile'), 'a') as f:
+            f.write('\nsource $HOME/.nearup/env\n')
+            print('''To get started you need Nearup's directory ($HOME/.nearup) in your PATH
+environment variable. Next time you log in this will be done automatically.
+
+To configure your current shell run `source $HOME/.nearup/env`''')
