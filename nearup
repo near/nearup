@@ -31,7 +31,7 @@ else:
         exit(1)
 
     in_path = False
-    with open(os.path.expanduser('~/.nearup'), 'r') as f:
+    with open(os.path.expanduser('~/.profile'), 'r') as f:
         if 'source $HOME/.nearup/env' not in f.read():
             in_path = True
     if not in_path:
