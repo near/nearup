@@ -127,3 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Near binary release
+near
+# Near source code
+nearcore

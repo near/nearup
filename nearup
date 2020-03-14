@@ -18,7 +18,7 @@ if os.path.exists(main_script):
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     _stdout, _stderr = p.communicate()
     if p.returncode != 0:
-        sys.stderr.write('Warning: Failed to update nearup.')
+        sys.stderr.write('Warning: Failed to update nearup.\n')
     args = ['python3', main_script] + sys.argv[1:]
     subprocess.run(args)
 else:
@@ -26,7 +26,7 @@ else:
         ['git', 'clone', 'https://github.com/nearprotocol/nearup', os.path.expanduser('~/.nearup')], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     _stdout, _stderr = p.communicate()
     if p.returncode != 0:
-        sys.stderr.write('Failed to obtain nearup. Please retry')
+        sys.stderr.write('Failed to obtain nearup. Please retry\n')
         subprocess.check_output(['rm', '-rf', os.path.expanduser('~/.nearup')])
         exit(1)
 
@@ -36,7 +36,7 @@ else:
             in_path = True
     if not in_path:
         with open(os.path.expanduser('~/.profile'), 'a') as f:
-            f.write('\nsource $HOME/.nearup/env\n')
+            f.write('\n\nsource $HOME/.nearup/env\n\n')
         print('''To get started you need Nearup's directory ($HOME/.nearup) in your PATH
 environment variable. Next time you log in this will be done automatically.
 
