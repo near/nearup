@@ -30,6 +30,7 @@ else:
         subprocess.check_output(['rm', '-rf', os.path.expanduser('~/.nearup')])
         exit(1)
 
+    print('Nearup is installed to ~/.nearup!\n')
     in_path = False
     with open(os.path.expanduser('~/.profile'), 'r') as f:
         if 'source $HOME/.nearup/env' in f.read():

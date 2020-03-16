@@ -282,10 +282,30 @@ def setup_and_run(nodocker, is_release, image, home_dir, init_flags, boot_nodes,
         run_docker(image, home_dir, boot_nodes, telemetry_url, verbose)
 
 
+def stop():
+    out = subprocess.check_output(
+        ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True).strip()
+    if out != '':
+        stop_docker()
+    else:
+        stop_native()
+
+
 def stop_docker():
     """Stops docker for Nearcore and watchtower if they are running."""
     docker_stop_if_exists('watchtower')
+    print('Stopping docker near')
     docker_stop_if_exists('nearcore')
+
+
+def stop_native():
+    try:
+        out = subprocess.check_output(['pgrep', 'near']).strip()
+        if out != '':
+            print(f'Stopping native near with PID {out}')
+            subprocess.call(['kill', out])
+    except subprocess.CalledProcessError:
+        pass
 
 
 def generate_node_key(home, is_release, nodocker, image):

@@ -5,7 +5,7 @@ import os
 def create_net_argparser(*, description):
     TELEMETRY_URL = 'https://explorer.nearprotocol.com/api/nodes'
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--local', action='store_true',
                         help='deprecated: use --nodocker')
     parser.add_argument('--nodocker', action='store_true',

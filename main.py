@@ -1,7 +1,7 @@
 import argparse
 import sys
 from nearuplib.net_argparser import create_net_argparser
-from nearuplib.nodelib import setup_and_run
+from nearuplib.nodelib import setup_and_run, stop
 
 
 TELEMETRY_URL = 'https://explorer.nearprotocol.com/api/nodes'
@@ -18,6 +18,7 @@ Commands are:
     testnet    Run a testnet node
     betanet    Run a betanet node
     devnet     Run a devnet node
+    stop       Stop the currently running node
 
 Run nearup <command> --help to see help for specific command
 ''')
@@ -42,8 +43,14 @@ Run nearup <command> --help to see help for specific command
         parser = create_net_argparser(description='Run a devnet node')
         self.args = parser.parse_args(sys.argv[2:])
 
+    def stop(self):
+        parser = argparse.ArgumentParser(
+            description='Stop the currently running node')
+        self.args = parser.parse_args(sys.argv[2:])
+
 
 if __name__ == '__main__':
+    sys.argv[0] = 'nearup'
     nearup_arg_parser = NearupArgParser()
     command, args = nearup_arg_parser.command, nearup_arg_parser.args
     if command in ['devnet', 'betanet', 'testnet']:
@@ -55,3 +62,5 @@ if __name__ == '__main__':
                       boot_nodes=args.boot_nodes,
                       telemetry_url=TELEMETRY_URL,
                       verbose=args.verbose)
+    elif command == 'stop':
+        stop()

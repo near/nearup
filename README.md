@@ -11,7 +11,13 @@ curl -sL up.nearprotocol.com | python3
 ```
 nearup devnet
 nearup betanet
-nearup testnet
+# WIP
+# nearup testnet
+```
+
+## Stop a running node
+```
+nearup stop
 ```
 
 ## Additional options
