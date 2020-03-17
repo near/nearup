@@ -6,6 +6,7 @@ Public scripts to launch near devnet, betanet and testnet node
 ```
 curl -sL up.nearprotocol.com | python3
 ```
+Nearup automatically add itself to PATH and self update to latest version
 
 ## Start devnet, betanet, testnet
 ```

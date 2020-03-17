@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-import argparse
 import json
 import os
 import subprocess
@@ -146,10 +143,14 @@ def net_to_branch(net):
         raise Exception(f'Unknown net {net}')
 
 
-def download_binary(net, uname):
+def latest_deployed_version(net):
     r = urllib.request.urlopen(
         f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/{net}/latest_deploy')
-    latest_deploy_version = r.read().decode('utf-8').strip()
+    return r.read().decode('utf-8').strip()
+
+
+def download_binary(net, uname):
+    latest_deploy_version = latest_deployed_version(net)
     if os.path.exists(os.path.expanduser('~/.nearup/near/version')):
         with open(os.path.expanduser('~/.nearup/near/version')) as f:
             version = f.read().strip()
@@ -254,6 +255,15 @@ def run_nodocker(home_dir, binary_path, boot_nodes, telemetry_url, verbose):
         print("\nStopping NEARCore.")
 
 
+def check_binary_version(binary_path, chain_id):
+    latest_deploy_version = latest_deployed_version(chain_id)
+    version = subprocess.check_output(
+        [f'{binary_path}/near', '--version'], universal_newlines=True).split('(build ')[1].split(')')[0]
+    if not latest_deploy_version.startswith(version):
+        print(
+            f'Warning: current deployed version on {chain_id} is {latest_deploy_version}, but local binary is {version}. It might not work')
+
+
 def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes, telemetry_url, verbose=False, no_gas_price=False):
     chain_id = get_chain_id_from_flags(init_flags)
     if nodocker:
@@ -268,6 +278,7 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
             download_binary(chain_id, uname)
         else:
             print(f'Using local binary at {binary_path}')
+            check_binary_version(binary_path, chain_id)
     else:
         if image == 'auto':
             if chain_id == 'betanet':
