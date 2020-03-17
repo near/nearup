@@ -11,8 +11,18 @@ curl -sL up.nearprotocol.com | python3
 ```
 nearup devnet
 nearup betanet
-# WIP
-# nearup testnet
+nearup testnet
+```
+
+## Start devnet, betanet, testnet with officially compiled binary
+Currently Linux only:
+```
+nearup {devnet, betanet, testnet} --nodocker
+```
+
+## Start devnet, betanet, testnet with local nearcore
+```
+nearup {devnet, betanet, testnet} --nodocker --binary-path path/to/nearcore/target/{debug, release}
 ```
 
 ## Stop a running node
