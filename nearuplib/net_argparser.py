@@ -10,8 +10,8 @@ def create_net_argparser(*, description):
                         help='deprecated: use --nodocker')
     parser.add_argument('--nodocker', action='store_true',
                         help='If set, compiles and runs the node on the machine directly (not inside the docker).')
-    parser.add_argument('--debug', action='store_true',
-                        help='If set, compiles local nearcore in debug mode')
+    parser.add_argument('--binary-path', default='',
+                        help='near binary path, set to nearcore/target/debug or nearcore/target/release to use locally compiled binary')
     parser.add_argument('--verbose', action='store_true',
                         help='If set, prints verbose logs')
     parser.add_argument('--home', default=os.path.expanduser('~/.near/'),

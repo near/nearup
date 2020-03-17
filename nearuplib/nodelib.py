@@ -11,22 +11,6 @@ import shutil
 USER = str(os.getuid())+':'+str(os.getgid())
 
 
-def clone_repo():
-    """Clone nearcore repo"""
-    raise NotImplementedError()
-
-
-def install_cargo():
-    """Installs cargo/Rust."""
-    try:
-        subprocess.call(
-            [os.path.expanduser('~/.cargo/bin/cargo'), '--version'])
-    except OSError:
-        print("Installing Rust...")
-        subprocess.check_output(
-            'curl https://sh.rustup.rs -sSf | sh -s -- -y', shell=True)
-
-
 def docker_init(image, home_dir, init_flags):
     """Inits the node configuration using docker."""
     subprocess.check_output(['mkdir', '-p', home_dir])
@@ -43,10 +27,10 @@ def docker_init_official(chain_id, image, home_dir, account_id):
     download_config(chain_id, home_dir)
 
 
-def nodocker_init(home_dir, is_release, init_flags):
+def nodocker_init(home_dir, binary_path, init_flags):
     """Inits the node configuration using local build."""
     raise NotImplementedError()
-    target = './target/%s/near' % ('release' if is_release else 'debug')
+    target = './target/%s/near' % ('release' if binary_path else 'debug')
     subprocess.call([target,
                      '--home=%s' % home_dir, 'init'] + init_flags)
 
@@ -59,23 +43,11 @@ def get_chain_id_from_flags(flags):
     return ''
 
 
-def compile_package(package_name, is_release):
-    """Compile given package using cargo"""
-    flags = ['-p', package_name]
-    if is_release:
-        flags = ['--release'] + flags
-    code = subprocess.call(
-        [os.path.expanduser('~/.cargo/bin/cargo'), 'build'] + flags)
-    if code != 0:
-        print("Compilation failed, aborting")
-        exit(code)
-
-
-def check_and_setup(nodocker, is_release, image, home_dir, init_flags, no_gas_price=False):
+def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_price=False):
     """Checks if there is already everything setup on this machine, otherwise sets up NEAR node."""
     if nodocker:
         raise NotImplementedError()
-        compile_package('near', is_release)
+        compile_package('near', binary_path)
 
     chain_id = get_chain_id_from_flags(init_flags)
     if os.path.exists(os.path.join(home_dir)):
@@ -128,20 +100,9 @@ def check_and_setup(nodocker, is_release, image, home_dir, init_flags, no_gas_pr
         account_id = input(prompt)
         init_flags.append('--account-id=%s' % account_id)
 
-    if chain_id == 'testnet':
-        raise NotImplementedError()
-        testnet_genesis_hash = open('near/res/testnet_genesis_hash').read()
-        testnet_genesis_records = 'near/res/testnet_genesis_records_%s.json' % testnet_genesis_hash
-        if not os.path.exists(testnet_genesis_records):
-            print('Downloading testnet genesis records')
-            url = 'https://s3-us-west-1.amazonaws.com/testnet.nearprotocol.com/testnet_genesis_records_%s.json' % testnet_genesis_hash
-            urllib.urlretrieve(url, testnet_genesis_records)
-        init_flags.extend(['--genesis-config', 'near/res/testnet_genesis_config.json', '--genesis-records', testnet_genesis_records,
-                           '--genesis-hash', testnet_genesis_hash])
-
     if nodocker:
         raise NotImplementedError()
-        nodocker_init(home_dir, is_release, init_flags)
+        nodocker_init(home_dir, binary_path, init_flags)
     else:
         if chain_id in ['devnet', 'betanet', 'testnet']:
             docker_init_official(chain_id, image, home_dir, account_id)
@@ -166,6 +127,38 @@ def download_config(net, home_dir):
 def download_genesis(net, home_dir):
     urllib.request.urlretrieve(
         f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/{net}/genesis.json', os.path.join(home_dir, 'genesis.json'))
+
+
+def net_to_branch(net):
+    if net == 'testnet':
+        return 'stable'
+    elif net == 'betanet':
+        return 'beta'
+    elif net == 'devnet':
+        return 'master'
+    else:
+        raise Exception(f'Unknown net {net}')
+
+
+def download_binary(net, uname):
+    r = urllib.request.urlopen(
+        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/{net}/latest_deploy')
+    latest_deploy_version = r.read().decode('utf-8').strip()
+    if os.path.exists(os.path.expanduser('~/.nearup/near/version')):
+        with open(os.path.expanduser('~/.nearup/near/version')) as f:
+            version = f.read().strip()
+            if version == latest_deploy_version:
+                print('Local binary version is up to date')
+                return
+    print(f'Downloading latest deployed version for {net}')
+    urllib.request.urlretrieve(
+        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/near', os.expanduser('~/.nearup/near/near'))
+    urllib.request.urlretrieve(
+        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/keypair-generator', os.expanduser('~/.nearup/near/keypair-generator'))
+    urllib.request.urlretrieve(
+        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/genesis-csv-to-json', os.expanduser('~/.nearup/near/genesis-csv-to-json'))
+    with open(os.path.expanduser('~/.nearup/near/version'), 'w') as f:
+        f.write(latest_deploy_version)
 
 
 def get_genesis_time(net):
@@ -232,11 +225,11 @@ def run_docker(image, home_dir, boot_nodes, telemetry_url, verbose):
     print("Node is running! \nTo check logs call: docker logs --follow nearcore")
 
 
-def run_nodocker(home_dir, is_release, boot_nodes, telemetry_url, verbose):
+def run_nodocker(home_dir, binary_path, boot_nodes, telemetry_url, verbose):
     """Runs NEAR core outside of docker."""
     print("Starting NEAR client...")
     print("Autoupdate is not supported at the moment for runs outside of docker")
-    cmd = ['./target/%s/near' % ('release' if is_release else 'debug')]
+    cmd = ['./target/%s/near' % ('release' if binary_path else 'debug')]
     cmd.extend(['--home', home_dir])
     if verbose:
         cmd += ['--verbose', '']
@@ -250,14 +243,22 @@ def run_nodocker(home_dir, is_release, boot_nodes, telemetry_url, verbose):
         print("\nStopping NEARCore.")
 
 
-def setup_and_run(nodocker, is_release, image, home_dir, init_flags, boot_nodes, telemetry_url, verbose=False, no_gas_price=False):
+def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes, telemetry_url, verbose=False, no_gas_price=False):
+    chain_id = get_chain_id_from_flags(init_flags)
     if nodocker:
-        raise NotImplementedError()
-        clone_repo()
-        install_cargo()
+        if binary_path == '':
+            print(f'Using officially compiled binary')
+            uname = os.uname()[0]
+            if uname != 'Linux':
+                print(
+                    'Sorry your Operating System does not have officially compiled binary now, please compile nearcore locally and set --binary-path')
+            binary_path = os.expanduser('~/.nearup/near')
+            os.check_output(['mkdir', '-p', binary_path])
+            download_binary(chain_id, uname)
+        else:
+            print(f'Using locally compiled binary at {binary_path}')
     else:
         if image == 'auto':
-            chain_id = get_chain_id_from_flags(init_flags)
             if chain_id == 'betanet':
                 image = 'nearprotocol/nearcore:beta'
             elif chain_id == 'devnet':
@@ -271,13 +272,13 @@ def setup_and_run(nodocker, is_release, image, home_dir, init_flags, boot_nodes,
             print("Failed to fetch docker containers: %s" % exc)
             exit(1)
 
-    check_and_setup(nodocker, is_release, image,
+    check_and_setup(nodocker, binary_path, image,
                     home_dir, init_flags, no_gas_price)
 
     print_staking_key(home_dir)
 
     if nodocker:
-        run_nodocker(home_dir, is_release, boot_nodes, telemetry_url, verbose)
+        run_nodocker(home_dir, binary_path, boot_nodes, telemetry_url, verbose)
     else:
         run_docker(image, home_dir, boot_nodes, telemetry_url, verbose)
 
@@ -308,11 +309,11 @@ def stop_native():
         pass
 
 
-def generate_node_key(home, is_release, nodocker, image):
+def generate_node_key(home, binary_path, nodocker, image):
     print("Generating node key...")
     if nodocker:
         cmd = ['./target/%s/keypair-generator' %
-               ('release' if is_release else 'debug')]
+               ('release' if binary_path else 'debug')]
         cmd.extend(['--home', home])
         cmd.extend(['--generate-config'])
         cmd.extend(['node-key'])
@@ -327,11 +328,11 @@ def generate_node_key(home, is_release, nodocker, image):
     print("Node key generated")
 
 
-def generate_validator_key(home, is_release, nodocker, image, account_id):
+def generate_validator_key(home, binary_path, nodocker, image, account_id):
     print("Generating validator key...")
     if nodocker:
         cmd = ['./target/%s/keypair-generator' %
-               ('release' if is_release else 'debug')]
+               ('release' if binary_path else 'debug')]
         cmd.extend(['--home', home])
         cmd.extend(['--generate-config'])
         cmd.extend(['--account-id', account_id])
@@ -347,11 +348,11 @@ def generate_validator_key(home, is_release, nodocker, image, account_id):
     print("Validator key generated")
 
 
-def generate_signer_key(home, is_release, nodocker, image, account_id):
+def generate_signer_key(home, binary_path, nodocker, image, account_id):
     print("Generating signer keys...")
     if nodocker:
         cmd = ['./target/%s/keypair-generator' %
-               ('release' if is_release else 'debug')]
+               ('release' if binary_path else 'debug')]
         cmd.extend(['--home', home])
         cmd.extend(['--generate-config'])
         cmd.extend(['--account-id', account_id])
@@ -367,10 +368,10 @@ def generate_signer_key(home, is_release, nodocker, image, account_id):
     print("Signer keys generated")
 
 
-def initialize_keys(home, is_release, nodocker, image, account_id, generate_signer_keys):
+def initialize_keys(home, binary_path, nodocker, image, account_id, generate_signer_keys):
     if nodocker:
         install_cargo()
-        compile_package('keypair-generator', is_release)
+        compile_package('keypair-generator', binary_path)
     else:
         try:
             subprocess.check_output(['docker', 'pull', image])
@@ -378,13 +379,13 @@ def initialize_keys(home, is_release, nodocker, image, account_id, generate_sign
             print("Failed to fetch docker containers: %s" % exc)
             exit(1)
     if generate_signer_keys:
-        generate_signer_key(home, is_release, nodocker, image, account_id)
-    generate_node_key(home, is_release, nodocker, image)
+        generate_signer_key(home, binary_path, nodocker, image, account_id)
+    generate_node_key(home, binary_path, nodocker, image)
     if account_id:
-        generate_validator_key(home, is_release, nodocker, image, account_id)
+        generate_validator_key(home, binary_path, nodocker, image, account_id)
 
 
-def create_genesis(home, is_release, nodocker, image, chain_id, tracked_shards):
+def create_genesis(home, binary_path, nodocker, image, chain_id, tracked_shards):
     if os.path.exists(os.path.join(home, 'genesis.json')):
         print("Genesis already exists")
         return
@@ -394,7 +395,7 @@ def create_genesis(home, is_release, nodocker, image, chain_id, tracked_shards):
             "Failed to generate genesis: accounts.csv does not exist")
     if nodocker:
         cmd = ['./target/%s/genesis-csv-to-json' %
-               ('release' if is_release else 'debug')]
+               ('release' if binary_path else 'debug')]
         cmd.extend(['--home', home])
         cmd.extend(['--chain-id', chain_id])
         if len(tracked_shards) > 0:
@@ -410,21 +411,21 @@ def create_genesis(home, is_release, nodocker, image, chain_id, tracked_shards):
     print("Genesis created")
 
 
-def start_stakewars(home, is_release, nodocker, image, telemetry_url, verbose, tracked_shards):
+def start_stakewars(home, binary_path, nodocker, image, telemetry_url, verbose, tracked_shards):
     if nodocker:
         install_cargo()
-        compile_package('genesis-csv-to-json', is_release)
-        compile_package('near', is_release)
+        compile_package('genesis-csv-to-json', binary_path)
+        compile_package('near', binary_path)
     else:
         try:
             subprocess.check_output(['docker', 'pull', image])
         except subprocess.CalledProcessError as exc:
             print("Failed to fetch docker containers: %s" % exc)
             exit(1)
-    create_genesis(home, is_release, nodocker, image,
+    create_genesis(home, binary_path, nodocker, image,
                    'stakewars', tracked_shards)
     if nodocker:
-        run_nodocker(home, is_release, boot_nodes='',
+        run_nodocker(home, binary_path, boot_nodes='',
                      telemetry_url=telemetry_url, verbose=verbose)
     else:
         run_docker(image, home, boot_nodes='',
