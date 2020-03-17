@@ -1,4 +1,4 @@
-# nearup
+om# nearup
 Public scripts to launch near devnet, betanet and testnet node
 
 # Usage
@@ -23,6 +23,7 @@ nearup {devnet, betanet, testnet} --nodocker
 
 ## Start devnet, betanet, testnet with local nearcore
 ```
+# compile in nearcore/ with `make release` or `make debug` first
 nearup {devnet, betanet, testnet} --nodocker --binary-path path/to/nearcore/target/{debug, release}
 ```
 
