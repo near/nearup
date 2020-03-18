@@ -53,7 +53,7 @@ def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_p
     chain_id = get_chain_id_from_flags(init_flags)
     if os.path.exists(os.path.join(home_dir)):
         missing = []
-        for file in ['node_key.json', 'validator_key.json', 'config.json', 'genesis.json']:
+        for file in ['node_key.json', 'config.json', 'genesis.json']:
             if not os.path.exists(os.path.join(home_dir, file)):
                 missing.append(file)
         if missing:
