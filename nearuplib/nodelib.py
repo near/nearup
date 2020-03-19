@@ -68,7 +68,7 @@ def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_p
                   f"You want to run {chain_id}, either specify different --home or remove {home_dir} to start from scratch.", file=sys.stderr)
             exit(1)
 
-        if chain_id in ['devnet', 'betanet', 'testnet']:
+        if chain_id == 'devnet':
             genesis_time = get_genesis_time(chain_id)
             if genesis_time == genesis_config['genesis_time']:
                 print(f'Our genesis version up to date')
@@ -81,10 +81,22 @@ def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_p
                 download_genesis('devnet', home_dir)
                 if os.path.exists(os.path.join(home_dir, 'data')):
                     shutil.rmtree(os.path.join(home_dir, 'data'))
-                if chain_id == 'devnet':
-                    print(f'Update devnet config for new boot nodes')
-                    os.remove(os.path.join(home_dir, 'config.json'))
-                    download_config('devnet', home_dir)
+                print(f'Update devnet config for new boot nodes')
+                os.remove(os.path.join(home_dir, 'config.json'))
+                download_config('devnet', home_dir)
+        elif chain_id in ['betanet', 'testnet']:
+            protocol_version = get_genesis_protocol_version(chain_id)
+            if protocol_version == genesis_config['protocol_version']:
+                print(f'Our genesis version up to date')
+            else:
+                print(
+                    f'Remote genesis protocol version {protocol_version}, ours is {genesis_config["protocol_version"]}')
+                print(
+                    f'Update genesis config and remove stale data for {chain_id}')
+                os.remove(os.path.join(home_dir, 'genesis.json'))
+                download_genesis(chain_id, home_dir)
+                if os.path.exists(os.path.join(home_dir, 'data')):
+                    shutil.rmtree(os.path.join(home_dir, 'data'))
         else:
             print(f'Start {chain_id}')
             print("Using existing node configuration from %s for %s" %
@@ -179,6 +191,14 @@ def get_genesis_time(net):
         f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/{net}/genesis_time')
     data = response.read()
     return data.decode('utf-8').strip()
+
+
+def get_genesis_protocol_version(net):
+    response = urllib.request.urlopen(
+        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/{net}/protocol_version'
+    )
+    data = response.read()
+    return int(data.decode('utf-8').strip())
 
 
 def print_staking_key(home_dir):
