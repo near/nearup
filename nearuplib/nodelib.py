@@ -293,6 +293,7 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
             if uname != 'Linux':
                 print(
                     'Sorry your Operating System does not have officially compiled binary now, please compile nearcore locally and set --binary-path')
+                exit(1)
             binary_path = os.path.expanduser('~/.nearup/near')
             subprocess.check_output(['mkdir', '-p', binary_path])
             download_binary(chain_id, uname)
