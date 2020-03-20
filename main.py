@@ -2,6 +2,7 @@ import argparse
 import sys
 from nearuplib.net_argparser import create_net_argparser
 from nearuplib.nodelib import setup_and_run, stop
+import os
 
 
 TELEMETRY_URL = 'https://explorer.nearprotocol.com/api/nodes'
@@ -52,11 +53,12 @@ Run nearup <command> --help to see help for specific command
 if __name__ == '__main__':
     sys.argv[0] = 'nearup'
     nearup_arg_parser = NearupArgParser()
-    command, args = nearup_arg_parser.command, nearup_arg_parser.args
+    command, args = nearup_arg_parser.command, nearup_arg_parser.arg
     if command in ['devnet', 'betanet', 'testnet']:
         if args.local:
             print("Flag --local deprecated, please use --nodocker")
         nodocker = args.nodocker or args.local
+        args.home_dir = os.path.abspath(args.home_dir)
         setup_and_run(nodocker, args.binary_path, args.image, args.home,
                       init_flags=[f'--chain-id={command}'],
                       boot_nodes=args.boot_nodes,
