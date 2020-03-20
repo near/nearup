@@ -53,7 +53,7 @@ Run nearup <command> --help to see help for specific command
 if __name__ == '__main__':
     sys.argv[0] = 'nearup'
     nearup_arg_parser = NearupArgParser()
-    command, args = nearup_arg_parser.command, nearup_arg_parser.arg
+    command, args = nearup_arg_parser.command, nearup_arg_parser.args
     if command in ['devnet', 'betanet', 'testnet']:
         if args.local:
             print("Flag --local deprecated, please use --nodocker")
