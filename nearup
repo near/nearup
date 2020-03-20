@@ -32,9 +32,10 @@ else:
 
     print('Nearup is installed to ~/.nearup!\n')
     in_path = False
-    with open(os.path.expanduser('~/.profile'), 'r') as f:
-        if 'source $HOME/.nearup/env' in f.read():
-            in_path = True
+    if os.path.exists(os.path.expanduser('~/.profile')):
+        with open(os.path.expanduser('~/.profile'), 'r') as f:
+            if 'source $HOME/.nearup/env' in f.read():
+                in_path = True
     if not in_path:
         with open(os.path.expanduser('~/.profile'), 'a') as f:
             f.write('\n\nsource $HOME/.nearup/env\n\n')
