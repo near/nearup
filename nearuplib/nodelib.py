@@ -1,7 +1,7 @@
 import json
 import os
 import subprocess
-import urllib.request
+from nearuplib.util import download_near_s3
 import sys
 import shutil
 
@@ -135,13 +135,13 @@ def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_p
 
 
 def download_config(net, home_dir):
-    urllib.request.urlretrieve(
-        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/{net}/config.json', os.path.join(home_dir, 'config.json'))
+    download_near_s3(
+        f'nearcore-deploy/{net}/config.json', os.path.join(home_dir, 'config.json'))
 
 
 def download_genesis(net, home_dir):
-    urllib.request.urlretrieve(
-        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/{net}/genesis.json', os.path.join(home_dir, 'genesis.json'))
+    download_near_s3(
+        f'nearcore-deploy/{net}/genesis.json', os.path.join(home_dir, 'genesis.json'))
 
 
 def net_to_branch(net):
@@ -156,9 +156,7 @@ def net_to_branch(net):
 
 
 def latest_deployed_version(net):
-    r = urllib.request.urlopen(
-        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/{net}/latest_deploy')
-    return r.read().decode('utf-8').strip()
+    return download_near_s3('nearcore-deploy/{net}/latest_deploy')
 
 
 def download_binary(net, uname):
@@ -170,12 +168,12 @@ def download_binary(net, uname):
                 print('Downloaded binary version is up to date')
                 return
     print(f'Downloading latest deployed version for {net}')
-    urllib.request.urlretrieve(
-        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/near', os.path.expanduser('~/.nearup/near/near'))
-    urllib.request.urlretrieve(
-        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/keypair-generator', os.path.expanduser('~/.nearup/near/keypair-generator'))
-    urllib.request.urlretrieve(
-        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/genesis-csv-to-json', os.path.expanduser('~/.nearup/near/genesis-csv-to-json'))
+    download_near_s3(
+        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/near', os.path.expanduser('~/.nearup/near/near'))
+    download_near_s3(
+        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/keypair-generator', os.path.expanduser('~/.nearup/near/keypair-generator'))
+    download_near_s3(
+        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/genesis-csv-to-json', os.path.expanduser('~/.nearup/near/genesis-csv-to-json'))
     subprocess.check_output(
         ['chmod', '+x', os.path.expanduser('~/.nearup/near/near')])
     subprocess.check_output(
@@ -187,18 +185,11 @@ def download_binary(net, uname):
 
 
 def get_genesis_time(net):
-    response = urllib.request.urlopen(
-        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/{net}/genesis_time')
-    data = response.read()
-    return data.decode('utf-8').strip()
+    return download_near_s3(f'nearcore-deploy/{net}/genesis_time')
 
 
 def get_genesis_protocol_version(net):
-    response = urllib.request.urlopen(
-        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/{net}/protocol_version'
-    )
-    data = response.read()
-    return int(data.decode('utf-8').strip())
+    return int(download_near_s3(f'nearcore-deploy/{net}/protocol_version').strip())
 
 
 def print_staking_key(home_dir):
