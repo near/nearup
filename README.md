@@ -39,10 +39,10 @@ nearup {devnet, betanet, testnet} --help
 
 ## OSx Instructions to test NEAR Betanet on your Macbook Pro
 Nearup runs also on Apple OSx. Requirements:
-	- At least 40GB of HDD space available
-	- [Install Python3 by clicking here](https://www.python.org/downloads/)
-	- [Install Docker for Mac by clicking here](https://hub.docker.com/editions/community/docker-ce-desktop-mac/)
-	- Xcode (installation starts automatically)
+- At least 40GB of HDD space available
+- [Install Python3 by clicking here](https://www.python.org/downloads/){:target="_blank"}
+- [Install Docker for Mac by clicking here](https://hub.docker.com/editions/community/docker-ce-desktop-mac/){:target="_blank"}
+- Xcode (installation will start automatically when you issue the `curl` command below)
 
 1. Be sure that you installed the latest version of Python3 and Docker, by opening the links in the requirements above
 2.  **Important:** first launch `Docker` from your Applications folder, or your Launchpad. No worries: you won't require a Docker Hub account to use it, so feel free to skip the login part (we simply need Docker installed on your laptop)
