@@ -6,32 +6,33 @@ Public scripts to launch near devnet, betanet and testnet node
 ```
 curl --proto '=https' --tlsv1.2 -sSfL https://up.near.dev | python3
 ```
-Nearup automatically add itself to PATH. And on each run, it self updates to latest version.
+Nearup automatically add itself to PATH: restart the terminal, or issue the command `source ~/.profile`.
+On each run, nearup self-updates to the latest version.
 
 ## Start devnet, betanet, testnet
 ```
-./nearup devnet
-./nearup betanet
-./nearup testnet
+nearup devnet
+nearup betanet
+nearup testnet
 ```
-Where `devnet` is the nightly release; `betanet` is the weekly release; `testnet` the stable release with monthly releases.
+Where `devnet` is the nightly release; `betanet` is the weekly release; `testnet` is the stable release.
 
 ## Start devnet, betanet, testnet with officially compiled binary
 Currently Linux only:
 ```
-./nearup betanet --nodocker
+nearup betanet --nodocker
 ```
-Replace `betanet` with the network you want to use
+Replace `betanet` with `devnet` or `testnet` if you want to use a different network
 
 ## Start devnet, betanet, testnet with local nearcore
 ```
 # compile in nearcore/ with `make release` or `make debug` first
-./nearup {devnet, betanet, testnet} --nodocker --binary-path path/to/nearcore/target/{debug, release}
+nearup {devnet, betanet, testnet} --nodocker --binary-path path/to/nearcore/target/{debug, release}
 ```
 
 ## Stop a running node
 ```
-./nearup stop
+nearup stop
 ```
 
 ## Additional options
@@ -59,7 +60,7 @@ Nearup runs also on Apple macOS. Requirements:
 
 3. Restart the terminal, or issue the command `source ~/.profile`
 
-4. Launch the nearup with the command `./nearup betanet --verbose`:
+4. Launch the nearup with the command `nearup betanet --verbose`:
 	```
 	Nearkats-MacBook-Pro:.nearup nearkat$ ./nearup betanet --verbose
 	Pull docker image nearprotocol/nearcore:beta
@@ -102,13 +103,13 @@ Nearup runs also on Apple macOS. Requirements:
 ### Cleaning up:
 In order to remove NEAR Betanet node and reclaim disk space, you have to:
 
-1. Stop nearup `./nearup stop`:
+1. Stop nearup `nearup stop`:
 	```
 	Nearkats-MacBook-Pro:.nearup nearkat$ ./nearup stop
 	Stopping docker near
 	```
 2. Be sure to open the correct directory: `cd $HOME`
-3. Reclaim disk space by removing .near folder, by typing the command `rm -ri .near`. Press `yes` or `y` to confirm that you want to delete the files:
+3. Reclaim disk space by removing .near folder with the command `rm -ri .near`:
 	```
 	Nearkats-MacBook-Pro:.nearup nearkat$ rm -ri $HOME/.near
 	examine files in directory /Users/nearkat/.near? yes
