@@ -10,26 +10,28 @@ Nearup automatically add itself to PATH. And on each run, it self updates to lat
 
 ## Start devnet, betanet, testnet
 ```
-nearup devnet
-nearup betanet
-nearup testnet
+./nearup devnet
+./nearup betanet
+./nearup testnet
 ```
+Where `devnet` is the nightly release; `betanet` is the weekly release; `testnet` the stable release with monthly releases.
 
 ## Start devnet, betanet, testnet with officially compiled binary
 Currently Linux only:
 ```
-nearup {devnet, betanet, testnet} --nodocker
+./nearup betanet --nodocker
 ```
+Replace `betanet` with the network you want to use
 
 ## Start devnet, betanet, testnet with local nearcore
 ```
 # compile in nearcore/ with `make release` or `make debug` first
-nearup {devnet, betanet, testnet} --nodocker --binary-path path/to/nearcore/target/{debug, release}
+./nearup {devnet, betanet, testnet} --nodocker --binary-path path/to/nearcore/target/{debug, release}
 ```
 
 ## Stop a running node
 ```
-nearup stop
+./nearup stop
 ```
 
 ## Additional options
@@ -37,40 +39,27 @@ nearup stop
 nearup {devnet, betanet, testnet} --help
 ```
 
-## OSx Instructions to test NEAR Betanet on your Macbook Pro
-Nearup runs also on Apple OSx. Requirements:
+## macOS Instructions to test NEAR Betanet on your MacBook Pro
+Nearup runs also on Apple macOS. Requirements:
 - At least 40GB of HDD space available
-- [Install Python3 by using this link](https://www.python.org/downloads/)
 - [Install Docker for Mac by using this link](https://hub.docker.com/editions/community/docker-ce-desktop-mac/)
-- Xcode (installation will start automatically during the installation process)
+- Xcode Command Line Tools (installation will start automatically during the process)
+- If you are not using macOS 10.15 Catalina, [install Python3 from this link](https://www.python.org/downloads/)
 
 ### Step by step Guide:
-1. Be sure that you installed the latest version of Python3 and Docker, by opening the links in the requirements above
 
-2. **Important:** first launch `Docker` from your Applications folder, or your Launchpad. No worries: you won't require a Docker Hub account to use it, so feel free to skip the login part (we simply need Docker installed on your laptop)
+1. **Important:** first launch `Docker` from your Applications folder. You don't need a Docker Hub account to run nearup
 
-3. Open Spotlight by pressing `⌘command` and `spacebar` buttons together
-
-4. Type `terminal` and press `enter`. You should see a new window with text similar to this one:
-	```
-	Last login: Tue Mar 24 18:06:46 2020
-	Nearkats-MacBook-Pro:~ nearkat$ 
-	```
-	Alternatively, you can ask Siri `open terminal`, it works too!
-
-5. In the Terminal screen, type `curl --proto '=https' --tlsv1.2 -sSfL https://up.near.dev | python3` (feel free to copy and paste, by using the usual copy&paste `⌘c` and `⌘v`):
+2. Issue the command `curl --proto '=https' --tlsv1.2 -sSfL https://up.near.dev | python3`
 	```
 	Nearkats-MacBook-Pro:~ nearkat$ curl --proto '=https' --tlsv1.2 -sSfL https://up.near.dev | python3
 	Nearup is installed to ~/.nearup!
 	```
-	You may receive an alert to install Xcode. Follow the steps. Once completed, try again to copy and paste the command above.
+	You may receive an alert to install Xcode Command Line Tools. Follow the steps. Once completed, try again to copy and paste the command above.
 
-6. Open the Nearup folder: `cd $HOME/.nearup`:
-	```
-	Nearkats-MacBook-Pro:.nearup nearkat$ 
-	```
+3. Restart the terminal, or issue the command `source ~/.profile`
 
-7. Start the node by typing the command `./nearup betanet --verbose`:
+4. Launch the nearup with the command `./nearup betanet --verbose`:
 	```
 	Nearkats-MacBook-Pro:.nearup nearkat$ ./nearup betanet --verbose
 	Pull docker image nearprotocol/nearcore:beta
@@ -85,9 +74,9 @@ Nearup runs also on Apple OSx. Requirements:
 	Node is running! 
 	To check logs call: docker logs --follow nearcore
 	```
-	Nearup will ask your `account ID`, but you can leave it empty by now. If you have already a wallet on https://wallet.betanet.nearprotocol.com, feel free to use your existing account ID - for future use as a validator.
+	Nearup will ask your `account ID`, you can leave it empty by now. If you have already a wallet on https://wallet.betanet.nearprotocol.com, feel free to use your account ID for future use as a validator.
 
-9. Check if your node is running correctly: `docker logs --follow nearcore`
+5. Check if your node is running correctly: `docker logs --follow nearcore`
 	```
 	Nearkats-MacBook-Pro:.nearup nearkat$ docker logs --follow nearcore
 	Telemetry: https://explorer.nearprotocol.com/api/nodes
@@ -109,23 +98,17 @@ Nearup runs also on Apple OSx. Requirements:
 	Mar 25 01:41:13.008  INFO stats: #       0 Downloading headers 11% -/4  5/5/40 peers ⬇ 348.1kiB/s ⬆ 0.3kiB/s 0.00 bps 0 gas/s CPU: 59%, Mem: 120.1 MiB    
 	Mar 25 01:41:23.013  INFO stats: #       0 Downloading headers 12% -/4  5/5/40 peers ⬇ 358.0kiB/s ⬆ 0.4kiB/s 0.00 bps 0 gas/s CPU: 51%, Mem: 125.8 MiB
 	```
-	If you want to exit, just press `⌃control` and `c` together, and close your terminal window
 
 ### Cleaning up:
 In order to remove NEAR Betanet node and reclaim disk space, you have to:
 
-1. Open again a `terminal` window (ask again to Siri, or use Spotlight)
-2. Type again the command:
-	```
-	cd $HOME/.nearup
-	```
-3. Stop nearup `./nearup stop`:
+1. Stop nearup `./nearup stop`:
 	```
 	Nearkats-MacBook-Pro:.nearup nearkat$ ./nearup stop
 	Stopping docker near
 	```
-4. Open the folder `cd $HOME`
-5. Reclaim disk space by removing .near folder, by typing the command `rm -ri .near`. Press `yes` or `y` to confirm that you want to delete the files:
+2. Be sure to open the correct directory: `cd $HOME`
+3. Reclaim disk space by removing .near folder, by typing the command `rm -ri .near`. Press `yes` or `y` to confirm that you want to delete the files:
 	```
 	Nearkats-MacBook-Pro:.nearup nearkat$ rm -ri $HOME/.near
 	examine files in directory /Users/nearkat/.near? yes
@@ -145,7 +128,7 @@ In order to remove NEAR Betanet node and reclaim disk space, you have to:
 	remove /Users/nearkat/.near/validator_key.json? y
 	remove /Users/nearkat/.near? y
 	```
-	WARNING: `rm` command is an **extremely powerful** and **dangerous** command to delete files, so you don't really want to use it unless you know what you are doing. Please DOUBLE CHECK that you are deleting `.near` folder, and not something else!
-6. Remove `Docker`, by simply moving it from your applications folder to the trash
+	You may save the LOG directory for future use. As a faster alternative, you can use `rm -rf .near`
+4. Remove `Docker`, by simply moving it from your applications folder to the trash
 
 
