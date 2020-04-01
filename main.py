@@ -33,15 +33,18 @@ Run nearup <command> --help to see help for specific command
         getattr(self, args.command)()
 
     def testnet(self):
-        parser = create_net_argparser(description='Run a testnet node')
+        parser = create_net_argparser(
+            netname='testnet', description='Run a testnet node')
         self.args = parser.parse_args(sys.argv[2:])
 
     def betanet(self):
-        parser = create_net_argparser(description='Run a betanet node')
+        parser = create_net_argparser(
+            netname='betanet', description='Run a betanet node')
         self.args = parser.parse_args(sys.argv[2:])
 
     def devnet(self):
-        parser = create_net_argparser(description='Run a devnet node')
+        parser = create_net_argparser(
+            netname='devnet', description='Run a devnet node')
         self.args = parser.parse_args(sys.argv[2:])
 
     def stop(self):

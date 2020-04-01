@@ -161,26 +161,26 @@ def latest_deployed_version(net):
 
 def download_binary(net, uname):
     latest_deploy_version = latest_deployed_version(net)
-    if os.path.exists(os.path.expanduser('~/.nearup/near/version')):
-        with open(os.path.expanduser('~/.nearup/near/version')) as f:
+    if os.path.exists(os.path.expanduser(f'~/.nearup/near/{net}/version')):
+        with open(os.path.expanduser(f'~/.nearup/near/{net}/version')) as f:
             version = f.read().strip()
             if version == latest_deploy_version:
                 print('Downloaded binary version is up to date')
                 return
     print(f'Downloading latest deployed version for {net}')
     download_near_s3(
-        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/near', os.path.expanduser('~/.nearup/near/near'))
+        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/near', os.path.expanduser(f'~/.nearup/near/{net}/near'))
     download_near_s3(
-        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/keypair-generator', os.path.expanduser('~/.nearup/near/keypair-generator'))
+        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/keypair-generator', os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator'))
     download_near_s3(
-        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/genesis-csv-to-json', os.path.expanduser('~/.nearup/near/genesis-csv-to-json'))
+        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/genesis-csv-to-json', os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json'))
     subprocess.check_output(
-        ['chmod', '+x', os.path.expanduser('~/.nearup/near/near')])
+        ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/near')])
     subprocess.check_output(
-        ['chmod', '+x', os.path.expanduser('~/.nearup/near/keypair-generator')])
+        ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator')])
     subprocess.check_output(
-        ['chmod', '+x', os.path.expanduser('~/.nearup/near/genesis-csv-to-json')])
-    with open(os.path.expanduser('~/.nearup/near/version'), 'w') as f:
+        ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json')])
+    with open(os.path.expanduser(f'~/.nearup/near/{net}/version'), 'w') as f:
         f.write(latest_deploy_version)
 
 
@@ -285,7 +285,7 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
                 print(
                     'Sorry your Operating System does not have officially compiled binary now.\nPlease compile locally by `make debug` or `make release` in nearcore and set --binary-path')
                 exit(1)
-            binary_path = os.path.expanduser('~/.nearup/near')
+            binary_path = os.path.expanduser(f'~/.nearup/near/{chain_id}')
             subprocess.check_output(['mkdir', '-p', binary_path])
             download_binary(chain_id, uname)
         else:
