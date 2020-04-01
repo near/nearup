@@ -55,9 +55,15 @@ nearup stop
 nearup betanet --help
 ```
 
-## Get Started Guides
+# Contributions
+To change code and run local version of nearup:
+1. fork/clone this repo and checkout to your branch
+2. change code
+3. run `python3 main.py <net> ...`. If your changes merge to master branch, this will be equivalent to `nearup <net> ...`
 
-### Run NEAR betanet on macOS
+# Get Started Guides
+
+## Run NEAR betanet on macOS
 
 nearup runs also on Apple macOS. Requirements:
 * At least 40GB of storage space available
@@ -65,7 +71,7 @@ nearup runs also on Apple macOS. Requirements:
 * Xcode Command Line Tools (installation will start automatically during the process)
 * If you are not using macOS 10.15 Catalina or newer, install Python3 from this [link](https://www.python.org/downloads/)
 
-#### Start a Node
+### Start a Node
 
 1. **Important:** launch `Docker` from your Applications folder. You don't need a Docker Hub account to run nearup
 
@@ -139,7 +145,7 @@ nearup runs also on Apple macOS. Requirements:
     Mar 25 01:41:23.013  INFO stats: #       0 Downloading headers 12% -/4  5/5/40 peers ⬇ 358.0kiB/s ⬆ 0.4kiB/s 0.00 bps 0 gas/s CPU: 51%, Mem: 125.8 MiB
     ```
 
-#### Cleaning up
+### Cleaning up
 
 This is the step-by-step guide to remove nearup from your macOS system:
 
