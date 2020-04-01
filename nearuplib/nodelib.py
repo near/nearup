@@ -254,6 +254,7 @@ def run_docker(image, home_dir, boot_nodes, verbose):
 def run_nodocker(home_dir, binary_path, boot_nodes, verbose):
     """Runs NEAR core outside of docker."""
     print("Starting NEAR client...")
+    os.environ['RUST_BACKTRACE'] = '1'
     cmd = [f'{binary_path}/near']
     cmd.extend(['--home', home_dir])
     if verbose:
