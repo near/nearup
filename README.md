@@ -125,8 +125,6 @@ nearup runs also on Apple macOS. Requirements:
     The output will look like this:
 
     ```
-    Telemetry: https://explorer.nearprotocol.com/api/nodes
-    Bootnodes: 
     Mar 25 01:38:59.607  INFO near: Did not find "/srv/near/data" path, will be creating new store database
     Mar 25 01:39:00.161  INFO stats: Server listening at ed25519:AWDhVpfVDvV85tem2ZUa6CmZQwmPawFuzR1wnoiLirRa@0.0.0.0:24567
     Mar 25 01:39:10.598  INFO stats: #       0 Downloading headers 0% -/4  5/5/40 peers ⬇ 57.9kiB/s ⬆ 0.8kiB/s 0.00 bps 0 gas/s CPU: 42%, Mem: 39.2 MiB
