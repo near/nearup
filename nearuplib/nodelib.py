@@ -226,38 +226,40 @@ def get_port(home_dir, net):
     return p + ":" + p
 
 
-def run_docker(image, home_dir, boot_nodes, telemetry_url, verbose):
+def run_docker(image, home_dir, boot_nodes, verbose):
     """Runs NEAR core inside the docker container"""
     print("Starting NEAR client docker...")
     docker_stop_if_exists('watchtower')
     docker_stop_if_exists('nearcore')
     # Start nearcore container, mapping home folder and ports.
-    envs = [*(['-e', 'BOOT_NODES=%s' % boot_nodes] if boot_nodes else []),
-            '-e', 'TELEMETRY_URL=%s' % telemetry_url,
-            '-e', 'RUST_BACKTRACE=1']
+    envs = ['-e', 'RUST_BACKTRACE=1']
     rpc_port = get_port(home_dir, 'rpc')
     network_port = get_port(home_dir, 'network')
+    cmd = ['near', '--home', '/srv/near']
     if verbose:
-        envs.extend(['-e', 'VERBOSE=1'])
+        cmd += ['--verbose', '']
+    cmd.append('run')
+    if boot_nodes:
+        cmd.append('--boot-nodes=%s' % boot_nodes)
     subprocess.check_output(['mkdir', '-p', home_dir])
     subprocess.check_output(['docker', 'run', '-u', USER,
                              '-d', '-p', rpc_port, '-p', network_port, '-v', '%s:/srv/near' % home_dir,
                              '-v', '/tmp:/tmp',
                              '--ulimit', 'core=-1',
                              '--name', 'nearcore', '--restart', 'unless-stopped'] +
-                            envs + [image])
+                            envs + [image] + cmd)
     print("Node is running! \nTo check logs call: docker logs --follow nearcore")
 
 
-def run_nodocker(home_dir, binary_path, boot_nodes, telemetry_url, verbose):
+def run_nodocker(home_dir, binary_path, boot_nodes, verbose):
     """Runs NEAR core outside of docker."""
     print("Starting NEAR client...")
+    os.environ['RUST_BACKTRACE'] = '1'
     cmd = [f'{binary_path}/near']
     cmd.extend(['--home', home_dir])
     if verbose:
         cmd += ['--verbose', '']
     cmd.append('run')
-    cmd.append('--telemetry-url=%s' % telemetry_url)
     if boot_nodes:
         cmd.append('--boot-nodes=%s' % boot_nodes)
     try:
@@ -275,7 +277,7 @@ def check_binary_version(binary_path, chain_id):
             f'Warning: current deployed version on {chain_id} is {latest_deploy_version}, but local binary is {version}. It might not work')
 
 
-def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes, telemetry_url, verbose=False, no_gas_price=False):
+def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes, verbose=False, no_gas_price=False):
     chain_id = get_chain_id_from_flags(init_flags)
     if nodocker:
         if binary_path == '':
@@ -312,9 +314,9 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
     print_staking_key(home_dir)
 
     if nodocker:
-        run_nodocker(home_dir, binary_path, boot_nodes, telemetry_url, verbose)
+        run_nodocker(home_dir, binary_path, boot_nodes, verbose)
     else:
-        run_docker(image, home_dir, boot_nodes, telemetry_url, verbose)
+        run_docker(image, home_dir, boot_nodes, verbose)
 
 
 def stop():
@@ -432,12 +434,10 @@ def create_genesis(home, binary_path, nodocker, image, chain_id, tracked_shards)
     print("Genesis created")
 
 
-def start_stakewars(home, binary_path, nodocker, image, telemetry_url, verbose, tracked_shards):
+def start_stakewars(home, binary_path, nodocker, image, verbose, tracked_shards):
     create_genesis(home, binary_path, nodocker, image,
                    'stakewars', tracked_shards)
     if nodocker:
-        run_nodocker(home, binary_path, boot_nodes='',
-                     telemetry_url=telemetry_url, verbose=verbose)
+        run_nodocker(home, binary_path, boot_nodes='', verbose=verbose)
     else:
-        run_docker(image, home, boot_nodes='',
-                   telemetry_url=telemetry_url, verbose=verbose)
+        run_docker(image, home, boot_nodes='', verbose=verbose)

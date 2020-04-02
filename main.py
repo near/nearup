@@ -5,9 +5,6 @@ from nearuplib.nodelib import setup_and_run, stop
 import os
 
 
-TELEMETRY_URL = 'https://explorer.nearprotocol.com/api/nodes'
-
-
 class NearupArgParser(object):
 
     def __init__(self):
@@ -65,7 +62,6 @@ if __name__ == '__main__':
         setup_and_run(nodocker, args.binary_path, args.image, args.home,
                       init_flags=[f'--chain-id={command}'],
                       boot_nodes=args.boot_nodes,
-                      telemetry_url=TELEMETRY_URL,
                       verbose=args.verbose)
     elif command == 'stop':
         stop()
