@@ -49,6 +49,24 @@ Replace `betanet` with `devnet` or `testnet` if you want to use a different netw
 nearup stop
 ```
 
+## Spawn Localnetwork
+
+Clone and compile nearcore with `make release` or `make debug` first.
+
+```
+nearup localnet --binary-path path/to/nearcore/target/{debug, release}
+```
+
+By default it will spawn 4 nodes validating in 1 shard.
+RPC ports of each nodes will be consecutive starting from 3030.
+Access one node status using http://localhost:3030/status
+
+### Stop Localnetwork
+
+```
+nearup localnet --stop
+```
+
 ## Additional Options
 
 ```
@@ -81,10 +99,10 @@ nearup runs also on Apple macOS. Requirements:
     curl --proto '=https' --tlsv1.2 -sSfL https://up.near.dev | python3
     ```
 
-    The output shoud be `Nearup is installed to ~/.nearup!`. 
+    The output shoud be `Nearup is installed to ~/.nearup!`.
     Otherwise, you may receive an alert to install Xcode Command Line Tools. Follow the steps. Once completed, try again to copy and paste the command above.
 
-3. Restart the terminal, or issue the command 
+3. Restart the terminal, or issue the command
 
     ```
     source ~/.profile
@@ -154,10 +172,11 @@ This is the step-by-step guide to remove nearup from your macOS system:
     ```
 
     The output will be `Stopping docker near`
+
 2. Prune Docker
 
     **warning:** you may want to skip this step if you have other containers on your system
-    
+
     ```
     docker system prune --volumes
     ```
@@ -173,11 +192,13 @@ This is the step-by-step guide to remove nearup from your macOS system:
     - all dangling build cache
     Are you sure you want to continue? [y/N]
     ```
+
 3. Open your `$HOME` directory
 
     ```
     cd $HOME
     ```
+
 4. Remove `.near` folder with the command
 
     ```
@@ -207,4 +228,5 @@ This is the step-by-step guide to remove nearup from your macOS system:
     ```
 
     You may save the LOG directory for future use. Alternatively, you can use `rm -rf .near` to skip any confirmation.
+
 5. Uninstall `Docker`, by moving it from applications folder to the trash

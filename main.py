@@ -1,6 +1,7 @@
 import argparse
 import sys
 from nearuplib.net_argparser import create_net_argparser
+from nearuplib.localnet import entry
 from nearuplib.nodelib import setup_and_run, stop
 import os
 
@@ -16,6 +17,7 @@ Commands are:
     testnet    Run a testnet node
     betanet    Run a betanet node
     devnet     Run a devnet node
+    localnet   Run a network with several nodes locally
     stop       Stop the currently running node
 
 Run nearup <command> --help to see help for specific command
@@ -28,6 +30,9 @@ Run nearup <command> --help to see help for specific command
             exit(2)
         self.command = args.command
         getattr(self, args.command)()
+
+    def localnet(self):
+        self.args = None
 
     def testnet(self):
         parser = create_net_argparser(
@@ -63,5 +68,7 @@ if __name__ == '__main__':
                       init_flags=[f'--chain-id={command}'],
                       boot_nodes=args.boot_nodes,
                       verbose=args.verbose)
+    elif command == 'localnet':
+        entry()
     elif command == 'stop':
         stop()
