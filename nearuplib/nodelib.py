@@ -4,6 +4,7 @@ import subprocess
 from nearuplib.util import download_near_s3
 import sys
 import shutil
+import hashlib
 
 USER = str(os.getuid())+':'+str(os.getgid())
 
@@ -85,12 +86,14 @@ def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_p
                 os.remove(os.path.join(home_dir, 'config.json'))
                 download_config('devnet', home_dir)
         elif chain_id in ['betanet', 'testnet']:
-            protocol_version = get_genesis_protocol_version(chain_id)
-            if protocol_version == genesis_config['protocol_version']:
+            genesis_md5sum = get_genesis_md5sum(chain_id)
+            local_genesis_md5sum = hashlib.md5(open(os.path.join(
+                os.path.join(home_dir, 'genesis.json')), 'rb').read()).hexdigest()
+            if genesis_md5sum == local_genesis_md5sum:
                 print(f'Our genesis version up to date')
             else:
                 print(
-                    f'Remote genesis protocol version {protocol_version}, ours is {genesis_config["protocol_version"]}')
+                    f'Remote genesis protocol version md5 {genesis_md5sum}, ours is {local_genesis_md5sum}')
                 print(
                     f'Update genesis config and remove stale data for {chain_id}')
                 os.remove(os.path.join(home_dir, 'genesis.json'))
@@ -190,6 +193,10 @@ def get_genesis_time(net):
 
 def get_genesis_protocol_version(net):
     return int(download_near_s3(f'nearcore-deploy/{net}/protocol_version').strip())
+
+
+def get_genesis_md5sum(net):
+    return download_near_s3(f'nearcore-deploy/{net}/genesis_md5sum').strip()
 
 
 def print_staking_key(home_dir):
