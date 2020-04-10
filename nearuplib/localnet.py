@@ -1,7 +1,7 @@
 import sys
 import argparse
 import configparser
-from subprocess import Popen
+from subprocess import Popen, PIPE
 from shutil import rmtree
 from os import mkdir, kill, unlink
 from signal import SIGTERM
@@ -29,6 +29,14 @@ def run_binary(path, home, action, shards=None, validators=None, non_validators=
 
     return Popen(command, stdout=stdout, stderr=stderr)
 
+def proc_name_from_pid(pid):
+    proc = Popen(["ps", "-p", str(pid), "-o", "command="], stdout=PIPE)
+
+    if proc.wait() != 0:
+        # No process with this pid
+        return ""
+    else:
+        return proc.stdout.read().decode().strip()
 
 def run(args):
     if args.overwrite:
@@ -64,7 +72,8 @@ def run(args):
     for i in range(0, args.num_nodes):
         proc = run_binary(args.binary_path, join(args.home, f'node{i}'), 'run',
                           boot_nodes=f'{pk}@127.0.0.1:24567' if i > 0 else None, output=f'logs/node{i}')
-        print(proc.pid, file=pid_fd)
+        proc_name = proc_name_from_pid(proc.pid)
+        print(proc.pid, "|", proc_name, file=pid_fd)
     pid_fd.close()
 
 
@@ -80,22 +89,24 @@ def entry():
 
     args = parser.parse_args(sys.argv[2:])
 
-    if args.binary_path is None:
-        parser.print_usage()
-        exit(0)
-
-    args.binary_path = join(args.binary_path, 'near')
-
     path = 'node.pid'
     if args.stop:
         if exists(path):
             with open(path) as f:
-                for x in f.readlines():
-                    pid = int(x.strip(' \n'))
-                    print("Killing:", pid)
-                    kill(pid, SIGTERM)
+                for line in f.readlines():
+                    pid, proc_name = map(str.strip, line.strip(' \n').split("|"))
+                    pid = int(pid)
+                    if proc_name in proc_name_from_pid(pid):
+                        print("Killing:", pid)
+                        kill(pid, SIGTERM)
             unlink(path)
     else:
+        if args.binary_path is None:
+            parser.print_usage()
+            exit(0)
+
+        args.binary_path = join(args.binary_path, 'near')
+
         if exists(path):
             print("There is already a test running. Stop it using:")
             print("nearup localnet --stop")
