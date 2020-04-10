@@ -98,7 +98,7 @@ def entry():
     else:
         if exists(path):
             print("There is already a test running. Stop it using:")
-            print("python3 start_localnet.py -k")
+            print("nearup localnet --stop")
             print("If this is a mistake, remove node.pid")
             exit(1)
 
