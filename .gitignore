@@ -132,3 +132,10 @@ dmypy.json
 near
 # Near source code
 nearcore
+
+# IDE
+.vscode/
+
+# Localnet
+*.pid
+logs/
