@@ -1,44 +1,85 @@
 # nearup
+
 Public scripts to launch near devnet, betanet and testnet node
 
 # Usage
+
 ## Install
+
 ```
 curl --proto '=https' --tlsv1.2 -sSfL https://up.near.dev | python3
 ```
+
 Nearup automatically adds itself to PATH: restart the terminal, or issue the command `source ~/.profile`.
 On each run, nearup self-updates to the latest version.
 
-## Start devnet, betanet, testnet
-```
-nearup devnet
-nearup betanet
-nearup testnet
-```
-Where `devnet` is the nightly release; `betanet` is the weekly release; `testnet` is the stable release.
+## Start
 
-## Start devnet, betanet, testnet with officially compiled binary
-Currently Linux only:
+### Using Docker (recommended for fast onboarding)
+
+```
+nearup betanet
+```
+
+Where `betanet` is the weekly release; use `devnet` for the nightly releases, or `testnet` for the stable releases.
+
+### Using Officially Compiled Binary (recommended for running on servers)
+
+Currently, officially compiled binaries are only available for Linux:
+
 ```
 nearup betanet --nodocker
 ```
-Replace `betanet` with `devnet` or `testnet` if you want to use a different network
 
-## Start devnet, betanet, testnet with local nearcore
-Compile in nearcore/ with `make release` or `make debug` first
+Replace `betanet` with `devnet` or `testnet` if you want to use a different network.
+
+### Using Locally Compiled Binary (recommended for security critical validators or development needs)
+
+Clone and compile nearcore with `make release` or `make debug` first.
+
 ```
-nearup {devnet, betanet, testnet} --nodocker --binary-path path/to/nearcore/target/{debug, release}
+nearup betanet --nodocker --binary-path path/to/nearcore/target/{debug, release}
 ```
 
-## Stop a running node
+Replace `betanet` with `devnet` or `testnet` if you want to use a different network.
+
+## Stop a Running Node
+
 ```
 nearup stop
 ```
 
-## Additional options
+## Spawn Localnetwork
+
+Clone and compile nearcore with `make release` or `make debug` first.
+
 ```
-nearup {devnet, betanet, testnet} --help
+nearup localnet --binary-path path/to/nearcore/target/{debug, release}
 ```
+
+By default it will spawn 4 nodes validating in 1 shard.
+RPC ports of each nodes will be consecutive starting from 3030.
+Access one node status using http://localhost:3030/status
+
+### Stop Localnetwork
+
+```
+nearup localnet --stop
+```
+
+## Additional Options
+
+```
+nearup betanet --help
+```
+
+# Contributions
+To change code and run local version of nearup:
+1. fork/clone this repo and checkout to your branch
+2. change code
+3. run `python3 main.py <net> ...`. If your changes merge to master branch, this will be equivalent to `nearup <net> ...`
+
+# Get Started Guides
 
 ## Run nearup on macOS
 nearup runs also on Apple macOS. Requirements:
