@@ -4,6 +4,7 @@ import subprocess
 from nearuplib.util import download_near_s3
 import sys
 import shutil
+import hashlib
 
 USER = str(os.getuid())+':'+str(os.getgid())
 
@@ -85,12 +86,14 @@ def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_p
                 os.remove(os.path.join(home_dir, 'config.json'))
                 download_config('devnet', home_dir)
         elif chain_id in ['betanet', 'testnet']:
-            protocol_version = get_genesis_protocol_version(chain_id)
-            if protocol_version == genesis_config['protocol_version']:
+            genesis_md5sum = get_genesis_md5sum(chain_id)
+            local_genesis_md5sum = hashlib.md5(open(os.path.join(
+                os.path.join(home_dir, 'genesis.json')), 'rb').read()).hexdigest()
+            if genesis_md5sum == local_genesis_md5sum:
                 print(f'Our genesis version up to date')
             else:
                 print(
-                    f'Remote genesis protocol version {protocol_version}, ours is {genesis_config["protocol_version"]}')
+                    f'Remote genesis protocol version md5 {genesis_md5sum}, ours is {local_genesis_md5sum}')
                 print(
                     f'Update genesis config and remove stale data for {chain_id}')
                 os.remove(os.path.join(home_dir, 'genesis.json'))
@@ -161,26 +164,26 @@ def latest_deployed_version(net):
 
 def download_binary(net, uname):
     latest_deploy_version = latest_deployed_version(net)
-    if os.path.exists(os.path.expanduser('~/.nearup/near/version')):
-        with open(os.path.expanduser('~/.nearup/near/version')) as f:
+    if os.path.exists(os.path.expanduser(f'~/.nearup/near/{net}/version')):
+        with open(os.path.expanduser(f'~/.nearup/near/{net}/version')) as f:
             version = f.read().strip()
             if version == latest_deploy_version:
                 print('Downloaded binary version is up to date')
                 return
     print(f'Downloading latest deployed version for {net}')
     download_near_s3(
-        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/near', os.path.expanduser('~/.nearup/near/near'))
+        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/near', os.path.expanduser(f'~/.nearup/near/{net}/near'))
     download_near_s3(
-        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/keypair-generator', os.path.expanduser('~/.nearup/near/keypair-generator'))
+        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/keypair-generator', os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator'))
     download_near_s3(
-        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/genesis-csv-to-json', os.path.expanduser('~/.nearup/near/genesis-csv-to-json'))
+        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/genesis-csv-to-json', os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json'))
     subprocess.check_output(
-        ['chmod', '+x', os.path.expanduser('~/.nearup/near/near')])
+        ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/near')])
     subprocess.check_output(
-        ['chmod', '+x', os.path.expanduser('~/.nearup/near/keypair-generator')])
+        ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator')])
     subprocess.check_output(
-        ['chmod', '+x', os.path.expanduser('~/.nearup/near/genesis-csv-to-json')])
-    with open(os.path.expanduser('~/.nearup/near/version'), 'w') as f:
+        ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json')])
+    with open(os.path.expanduser(f'~/.nearup/near/{net}/version'), 'w') as f:
         f.write(latest_deploy_version)
 
 
@@ -190,6 +193,10 @@ def get_genesis_time(net):
 
 def get_genesis_protocol_version(net):
     return int(download_near_s3(f'nearcore-deploy/{net}/protocol_version').strip())
+
+
+def get_genesis_md5sum(net):
+    return download_near_s3(f'nearcore-deploy/{net}/genesis_md5sum').strip()
 
 
 def print_staking_key(home_dir):
@@ -226,38 +233,40 @@ def get_port(home_dir, net):
     return p + ":" + p
 
 
-def run_docker(image, home_dir, boot_nodes, telemetry_url, verbose):
+def run_docker(image, home_dir, boot_nodes, verbose):
     """Runs NEAR core inside the docker container"""
     print("Starting NEAR client docker...")
     docker_stop_if_exists('watchtower')
     docker_stop_if_exists('nearcore')
     # Start nearcore container, mapping home folder and ports.
-    envs = [*(['-e', 'BOOT_NODES=%s' % boot_nodes] if boot_nodes else []),
-            '-e', 'TELEMETRY_URL=%s' % telemetry_url,
-            '-e', 'RUST_BACKTRACE=1']
+    envs = ['-e', 'RUST_BACKTRACE=1']
     rpc_port = get_port(home_dir, 'rpc')
     network_port = get_port(home_dir, 'network')
+    cmd = ['near', '--home', '/srv/near']
     if verbose:
-        envs.extend(['-e', 'VERBOSE=1'])
+        cmd += ['--verbose', '']
+    cmd.append('run')
+    if boot_nodes:
+        cmd.append('--boot-nodes=%s' % boot_nodes)
     subprocess.check_output(['mkdir', '-p', home_dir])
     subprocess.check_output(['docker', 'run', '-u', USER,
                              '-d', '-p', rpc_port, '-p', network_port, '-v', '%s:/srv/near' % home_dir,
                              '-v', '/tmp:/tmp',
                              '--ulimit', 'core=-1',
                              '--name', 'nearcore', '--restart', 'unless-stopped'] +
-                            envs + [image])
+                            envs + [image] + cmd)
     print("Node is running! \nTo check logs call: docker logs --follow nearcore")
 
 
-def run_nodocker(home_dir, binary_path, boot_nodes, telemetry_url, verbose):
+def run_nodocker(home_dir, binary_path, boot_nodes, verbose):
     """Runs NEAR core outside of docker."""
     print("Starting NEAR client...")
+    os.environ['RUST_BACKTRACE'] = '1'
     cmd = [f'{binary_path}/near']
     cmd.extend(['--home', home_dir])
     if verbose:
         cmd += ['--verbose', '']
     cmd.append('run')
-    cmd.append('--telemetry-url=%s' % telemetry_url)
     if boot_nodes:
         cmd.append('--boot-nodes=%s' % boot_nodes)
     try:
@@ -275,7 +284,7 @@ def check_binary_version(binary_path, chain_id):
             f'Warning: current deployed version on {chain_id} is {latest_deploy_version}, but local binary is {version}. It might not work')
 
 
-def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes, telemetry_url, verbose=False, no_gas_price=False):
+def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes, verbose=False, no_gas_price=False):
     chain_id = get_chain_id_from_flags(init_flags)
     if nodocker:
         if binary_path == '':
@@ -285,7 +294,7 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
                 print(
                     'Sorry your Operating System does not have officially compiled binary now.\nPlease compile locally by `make debug` or `make release` in nearcore and set --binary-path')
                 exit(1)
-            binary_path = os.path.expanduser('~/.nearup/near')
+            binary_path = os.path.expanduser(f'~/.nearup/near/{chain_id}')
             subprocess.check_output(['mkdir', '-p', binary_path])
             download_binary(chain_id, uname)
         else:
@@ -312,9 +321,9 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
     print_staking_key(home_dir)
 
     if nodocker:
-        run_nodocker(home_dir, binary_path, boot_nodes, telemetry_url, verbose)
+        run_nodocker(home_dir, binary_path, boot_nodes, verbose)
     else:
-        run_docker(image, home_dir, boot_nodes, telemetry_url, verbose)
+        run_docker(image, home_dir, boot_nodes, verbose)
 
 
 def stop():
@@ -432,12 +441,10 @@ def create_genesis(home, binary_path, nodocker, image, chain_id, tracked_shards)
     print("Genesis created")
 
 
-def start_stakewars(home, binary_path, nodocker, image, telemetry_url, verbose, tracked_shards):
+def start_stakewars(home, binary_path, nodocker, image, verbose, tracked_shards):
     create_genesis(home, binary_path, nodocker, image,
                    'stakewars', tracked_shards)
     if nodocker:
-        run_nodocker(home, binary_path, boot_nodes='',
-                     telemetry_url=telemetry_url, verbose=verbose)
+        run_nodocker(home, binary_path, boot_nodes='', verbose=verbose)
     else:
-        run_docker(image, home, boot_nodes='',
-                   telemetry_url=telemetry_url, verbose=verbose)
+        run_docker(image, home, boot_nodes='', verbose=verbose)

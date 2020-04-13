@@ -88,7 +88,7 @@ nearup runs also on Apple macOS. Requirements:
 - Xcode Command Line Tools
 - [Python3](https://www.python.org/downloads/) *No need to install with macOS 10.15 Catalina*
 
-### Step by step Guide
+### Start a Node
 
 1. **Important:** launch `Docker` from your Applications folder. You don't need a Docker Hub account to run nearup
 
@@ -174,8 +174,7 @@ Update genesis nearkat with 'ed25519:A5DL4iByp1EbYYpRVrpoKwBBA5YKkPdK6L1hLsTmcQr
 Starting NEAR client...
 ```
 
-If the process is completed without errors, the node will be back in sync within a few minutes.
-
+If the process is completed without errors, the node will be in sync within a few minutes.
 
 ### Cleaning up
 This is the step-by-step guide to remove nearup from your macOS system:
@@ -235,5 +234,3 @@ This is the step-by-step guide to remove nearup from your macOS system:
 
 5. Eventually uninstall `Docker`, by moving it from applications folder to the trash
 6. Eventually uninstall Xcode Command Line Tools by removing the folder `/Library/Developer/CommandLineTools` - from the [official Apple guide](https://developer.apple.com/library/archive/technotes/tn2339/_index.html#//apple_ref/doc/uid/DTS40014588-CH1-HOW_CAN_I_UNINSTALL_THE_COMMAND_LINE_TOOLS_)
-
-
