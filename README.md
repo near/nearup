@@ -71,7 +71,7 @@ nearup runs also on Apple macOS. Requirements:
 
 4. Launch the nearup with the command
 	```
-	nearup betanet --verbose
+	nearup betanet
 	```
 	The output will look like this:
 	```
@@ -87,11 +87,11 @@ nearup runs also on Apple macOS. Requirements:
 	Node is running! 
 	To check logs call: docker logs --follow nearcore
 	```
-	Nearup will ask your `account ID`, for now you can leave it empty. If you already have a wallet on https://wallet.betanet.nearprotocol.com, feel free to use your `account ID` for future use as a validator.
+	Nearup will ask your `account ID`, for now you can leave it empty. If you already have a wallet on https://wallet.betanet.nearprotocol.com, feel free to input your `account ID` for future use as a validator.
 
 5. Check if your node is running correctly by issuing the command
 	```
-	docker logs --follow nearcore
+	docker logs --follow nearcore --tail 100
 	```
 	The output will look like this:
 	```
@@ -102,18 +102,39 @@ nearup runs also on Apple macOS. Requirements:
 	Mar 25 01:39:10.598  INFO stats: #       0 Downloading headers 0% -/4  5/5/40 peers ⬇ 57.9kiB/s ⬆ 0.8kiB/s 0.00 bps 0 gas/s CPU: 42%, Mem: 39.2 MiB    
 	Mar 25 01:39:20.798  INFO stats: #       0 Downloading headers 2% -/4  5/5/40 peers ⬇ 144.0kiB/s ⬆ 0.9kiB/s 0.00 bps 0 gas/s CPU: 49%, Mem: 50.5 MiB    
 	Mar 25 01:39:30.800  INFO stats: #       0 Downloading headers 3% -/4  5/5/40 peers ⬇ 239.9kiB/s ⬆ 0.9kiB/s 0.00 bps 0 gas/s CPU: 46%, Mem: 58.8 MiB    
-	Mar 25 01:39:40.804  INFO stats: #       0 Downloading headers 4% -/4  5/5/40 peers ⬇ 335.6kiB/s ⬆ 1.0kiB/s 0.00 bps 0 gas/s CPU: 56%, Mem: 68.1 MiB    
-	Mar 25 01:39:50.807  INFO stats: #       0 Downloading headers 5% -/4  5/5/40 peers ⬇ 421.9kiB/s ⬆ 1.1kiB/s 0.00 bps 0 gas/s CPU: 47%, Mem: 75.3 MiB    
-	Mar 25 01:40:00.810  INFO stats: #       0 Downloading headers 6% -/4  5/5/40 peers ⬇ 508.3kiB/s ⬆ 1.2kiB/s 0.00 bps 0 gas/s CPU: 48%, Mem: 81.7 MiB    
-	Mar 25 01:40:10.810  INFO stats: #       0 Downloading headers 7% -/4  5/5/40 peers ⬇ 479.8kiB/s ⬆ 0.8kiB/s 0.00 bps 0 gas/s CPU: 33%, Mem: 86.4 MiB    
-	Mar 25 01:40:20.814  INFO stats: #       0 Downloading headers 7% -/4  5/5/40 peers ⬇ 442.0kiB/s ⬆ 0.4kiB/s 0.00 bps 0 gas/s CPU: 33%, Mem: 91.0 MiB    
-	Mar 25 01:40:31.570  INFO stats: #       0 Downloading headers 8% -/4  5/5/40 peers ⬇ 394.8kiB/s ⬆ 0.4kiB/s 0.00 bps 0 gas/s CPU: 38%, Mem: 96.4 MiB    
-	Mar 25 01:40:42.122  INFO stats: #       0 Downloading headers 9% -/4  5/5/40 peers ⬇ 348.0kiB/s ⬆ 0.4kiB/s 0.00 bps 0 gas/s CPU: 41%, Mem: 101.8 MiB    
-	Mar 25 01:40:52.124  INFO stats: #       0 Downloading headers 9% -/4  5/5/40 peers ⬇ 329.1kiB/s ⬆ 0.4kiB/s 0.00 bps 0 gas/s CPU: 49%, Mem: 107.5 MiB    
-	Mar 25 01:41:03.005  INFO stats: #       0 Downloading headers 10% -/4  5/5/40 peers ⬇ 319.7kiB/s ⬆ 0.3kiB/s 0.00 bps 0 gas/s CPU: 52%, Mem: 113.7 MiB    
-	Mar 25 01:41:13.008  INFO stats: #       0 Downloading headers 11% -/4  5/5/40 peers ⬇ 348.1kiB/s ⬆ 0.3kiB/s 0.00 bps 0 gas/s CPU: 59%, Mem: 120.1 MiB    
-	Mar 25 01:41:23.013  INFO stats: #       0 Downloading headers 12% -/4  5/5/40 peers ⬇ 358.0kiB/s ⬆ 0.4kiB/s 0.00 bps 0 gas/s CPU: 51%, Mem: 125.8 MiB
+	Mar 25 01:39:40.804  INFO stats: #       0 Downloading headers 4% -/4  5/5/40 peers ⬇ 335.6kiB/s ⬆ 1.0kiB/s 0.00 
 	```
+
+	If you need to export the logs for troubleshooting, issue the command:
+	```
+	docker logs nearcore --tail 5000 2>&1 | tee nearcore$(date +"%Y%m%d%H%M").log
+	```
+	This command will generate a file in your current folder called 'nearcoreYYYYMMDDHHMM.log' containing the last 5,000 lines of nearcore logs. You can change the switch `--tail 5000` to any other number to export more or less data.
+
+### Updating the node
+Nearup provides an automated process to verify that your node is using the current network, by analyzing `genesis.json`. If your node is not up to date, it will not be able to dowload new blocks, and will disconnect automatically:
+```
+Apr 10 18:10:15.873 ERROR network: Attempting to connect to a node (ed25519:GkDv7nSMS3xcqA45cpMvFmfV1o4fRF6zYo1JRR6mNqg5@0.0.0.0:24567@node2) with a different genesis block. Our genesis: GenesisId { chain_id: "betanet", hash: `BAtdJLUtNabWVJnnvYUuot7TfRf9VcqKh4b8FKAXbXSD` }, their genesis: GenesisId { chain_id: "betanet", hash: `3MKug5MgUnBYBeymCL8P9KXYSJoAhTfcKJzhPKPo8iXQ` }
+```
+
+To automatically update your node, stop nearup:
+```
+nearup stop
+```
+Wait a few seconds, and restart nearup:
+```
+nearup betanet
+```
+The output will show a new genesis checksum:
+```
+Warning: current deployed version on betanet is 650b69863207ac6be5b55d2b2f8761dc89821b49, but local binary is 56622f45. It might not work
+Remote genesis protocol version md5 997a44a7b94fdb680d87548d7dd9a572, ours is 309f5819133d4399f4a0bab054fa3c38
+Update genesis nearkat with 'ed25519:A5DL4iByp1EbYYpRVrpoKwBBA5YKkPdK6L1hLsTmcQrv'
+Starting NEAR client...
+```
+
+If the process is completed without errors, the node will be back in sync within a few minutes.
+
 
 ### Cleaning up
 This is the step-by-step guide to remove nearup from your macOS system:
