@@ -25,7 +25,7 @@ Where `betanet` is the weekly release; use `devnet` for the nightly releases, or
 
 ### Using Officially Compiled Binary (recommended for running on servers)
 
-Currently, officially compiled binaries are only available for Linux:
+Currently, officially compiled binaries are available for Linux and Mac OS X
 
 ```
 nearup betanet --nodocker
