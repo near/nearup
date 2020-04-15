@@ -2,7 +2,7 @@ import argparse
 import sys
 from nearuplib.net_argparser import create_net_argparser
 from nearuplib.localnet import entry
-from nearuplib.nodelib import setup_and_run, stop
+from nearuplib.nodelib import setup_and_run, stop, show_logs
 import os
 
 
@@ -19,6 +19,7 @@ Commands are:
     devnet     Run a devnet node
     localnet   Run a network with several nodes locally
     stop       Stop the currently running node
+    logs       Show logs of currently running non docker node
 
 Run nearup <command> --help to see help for specific command
 ''')
@@ -54,6 +55,9 @@ Run nearup <command> --help to see help for specific command
             description='Stop the currently running node')
         self.args = parser.parse_args(sys.argv[2:])
 
+    def logs(self):
+        self.args = sys.argv[2:]
+
 
 if __name__ == '__main__':
     sys.argv[0] = 'nearup'
@@ -72,3 +76,6 @@ if __name__ == '__main__':
         entry()
     elif command == 'stop':
         stop()
+    elif command == 'logs':
+        show_logs(len(args) > 0 and (
+            args[0] == '-f' or args[0] == '--follow'))

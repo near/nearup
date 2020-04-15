@@ -3,47 +3,10 @@ import argparse
 import configparser
 from subprocess import Popen, PIPE
 from shutil import rmtree
-from os import mkdir, kill, unlink
-from signal import SIGTERM
+from os import mkdir
 from os.path import exists, expanduser, join
 import json
-
-NODE_PID = expanduser('~/.nearup/node.pid')
-
-
-def run_binary(path, home, action, *, verbose=None, shards=None, validators=None, non_validators=None, boot_nodes=None, output=None):
-    command = [path, '--home', home]
-
-    if verbose:
-        command.extend(['--verbose', verbose])
-
-    command.append(action)
-
-    if shards:
-        command.extend(['--shards', str(shards)])
-    if validators:
-        command.extend(['--v', str(validators)])
-    if non_validators:
-        command.extend(['--n', str(non_validators)])
-    if boot_nodes:
-        command.extend(['--boot-nodes', boot_nodes])
-
-    if output:
-        stderr = open(f'{output}.err', 'w')
-    else:
-        stderr = None
-
-    return Popen(command, stderr=stderr)
-
-
-def proc_name_from_pid(pid):
-    proc = Popen(["ps", "-p", str(pid), "-o", "command="], stdout=PIPE)
-
-    if proc.wait() != 0:
-        # No process with this pid
-        return ""
-    else:
-        return proc.stdout.read().decode().strip()
+from nearuplib.nodelib import run_binary, NODE_PID, proc_name_from_pid
 
 
 def run(args):
@@ -102,35 +65,21 @@ def entry():
         '--num-shards', help="Number of shards", default=1, type=int)
     parser.add_argument('--overwrite', default=False, action='store_true',
                         help="Overwrite previous node data if exists.")
-    parser.add_argument('--stop', default=False, action='store_true',
-                        help="Stop localnet if it is running.")
     parser.add_argument('--verbose', help="Show debug from selected target.")
 
     args = parser.parse_args(sys.argv[2:])
 
-    if args.stop:
-        if exists(NODE_PID):
-            with open(NODE_PID) as f:
-                for line in f.readlines():
-                    pid, proc_name = map(
-                        str.strip, line.strip(' \n').split("|"))
-                    pid = int(pid)
-                    if proc_name in proc_name_from_pid(pid):
-                        print("Stopping process with pid", pid)
-                        kill(pid, SIGTERM)
-            unlink(NODE_PID)
-    else:
-        if args.binary_path is None:
-            parser.print_usage()
-            print("nearup: error: the following arguments are required: --binary-path")
-            exit(0)
+    if args.binary_path is None:
+        parser.print_usage()
+        print("nearup: error: the following arguments are required: --binary-path")
+        exit(0)
 
-        args.binary_path = join(args.binary_path, 'neard')
+    args.binary_path = join(args.binary_path, 'neard')
 
-        if exists(NODE_PID):
-            print("There is already a test running. Stop it using:")
-            print("nearup localnet --stop")
-            print(f"If this is a mistake, remove {NODE_PID}")
-            exit(1)
+    if exists(NODE_PID):
+        print("There is already a test running. Stop it using:")
+        print("nearup stop")
+        print(f"If this is a mistake, remove {NODE_PID}")
+        exit(1)
 
-        run(args)
+    run(args)
