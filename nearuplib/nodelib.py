@@ -290,7 +290,7 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
         if binary_path == '':
             print(f'Using officially compiled binary')
             uname = os.uname()[0]
-            if uname != 'Linux':
+            if uname not in ['Linux', 'Darwin']:
                 print(
                     'Sorry your Operating System does not have officially compiled binary now.\nPlease compile locally by `make debug` or `make release` in nearcore and set --binary-path')
                 exit(1)
