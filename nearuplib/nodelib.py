@@ -239,7 +239,8 @@ def run_docker(image, home_dir, boot_nodes, verbose):
     docker_stop_if_exists('watchtower')
     docker_stop_if_exists('nearcore')
     # Start nearcore container, mapping home folder and ports.
-    envs = ['-e', 'RUST_BACKTRACE=1']
+    envs = ['-e', 'RUST_BACKTRACE=1', '-e', 'RUST_LOG=%s' %
+            os.environ.get('RUST_LOG', '')]
     rpc_port = get_port(home_dir, 'rpc')
     network_port = get_port(home_dir, 'network')
     cmd = ['near', '--home', '/srv/near']
