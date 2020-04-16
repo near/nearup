@@ -341,7 +341,7 @@ def show_logs(follow):
         command += ['-f']
     command += [os.path.expanduser(f'~/.nearup/logs/{net}.log')]
     try:
-        subprocess.run(command)
+        subprocess.run(command, start_new_session=True)
     except KeyboardInterrupt:
         exit(0)
 
