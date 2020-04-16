@@ -56,7 +56,7 @@ def run(args):
 def entry():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--binary-path', help="near binary path, set to nearcore/target/debug or nearcore/target/release to use locally compiled binary")
+        '--binary-path', help="near binary path, set to nearcore/target/debug or nearcore/target/release to use locally compiled binary", required=True)
     parser.add_argument('--home', default=expanduser('~/.near/localnet'),
                         help='Home path for storing configs, keys and chain data (Default: ~/.near/localnet)')
     parser.add_argument(
@@ -68,11 +68,6 @@ def entry():
     parser.add_argument('--verbose', help="Show debug from selected target.")
 
     args = parser.parse_args(sys.argv[2:])
-
-    if args.binary_path is None:
-        parser.print_usage()
-        print("nearup: error: the following arguments are required: --binary-path")
-        exit(0)
 
     args.binary_path = join(args.binary_path, 'neard')
 
