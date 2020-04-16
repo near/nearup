@@ -5,6 +5,10 @@ from nearuplib.util import download_near_s3
 import sys
 import shutil
 import hashlib
+from subprocess import Popen, PIPE
+from os import unlink, kill
+from signal import SIGTERM
+
 
 USER = str(os.getuid())+':'+str(os.getgid())
 
@@ -259,21 +263,88 @@ def run_docker(image, home_dir, boot_nodes, verbose):
     print("Node is running! \nTo check logs call: docker logs --follow nearcore")
 
 
-def run_nodocker(home_dir, binary_path, boot_nodes, verbose):
+NODE_PID = os.path.expanduser('~/.nearup/node.pid')
+
+
+def run_binary(path, home, action, *, verbose=None, shards=None, validators=None, non_validators=None, boot_nodes=None, output=None):
+    command = [path, '--home', home]
+
+    if verbose or verbose == '':
+        command.extend(['--verbose', verbose])
+
+    command.append(action)
+
+    if shards:
+        command.extend(['--shards', str(shards)])
+    if validators:
+        command.extend(['--v', str(validators)])
+    if non_validators:
+        command.extend(['--n', str(non_validators)])
+    if boot_nodes:
+        command.extend(['--boot-nodes', boot_nodes])
+
+    if output:
+        output = open(f'{output}.log', 'w')
+
+    return Popen(command, stderr=output, stdout=output)
+
+
+def proc_name_from_pid(pid):
+    proc = Popen(["ps", "-p", str(pid), "-o", "command="], stdout=PIPE)
+
+    if proc.wait() != 0:
+        # No process with this pid
+        return ""
+    else:
+        return proc.stdout.read().decode().strip()
+
+
+def run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id):
     """Runs NEAR core outside of docker."""
     print("Starting NEAR client...")
     os.environ['RUST_BACKTRACE'] = '1'
-    cmd = [f'{binary_path}/near']
-    cmd.extend(['--home', home_dir])
+    pid_fd = open(NODE_PID, 'w')
+    # convert verbose = True to --verbose '' command line argument
     if verbose:
-        cmd += ['--verbose', '']
-    cmd.append('run')
-    if boot_nodes:
-        cmd.append('--boot-nodes=%s' % boot_nodes)
+        verbose = ''
+    else:
+        verbose = None
+    LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
+    subprocess.check_output(['mkdir', '-p', LOGS_FOLDER])
+    proc = run_binary(os.path.join(binary_path, 'near'), home_dir, 'run', verbose=verbose,
+                      boot_nodes=boot_nodes, output=os.path.join(LOGS_FOLDER, chain_id))
+    proc_name = proc_name_from_pid(proc.pid)
+    print(proc.pid, "|", proc_name, file=pid_fd)
+    pid_fd.close()
+    print("Node is running! \nTo check logs call: `nearup logs` or `nearup logs --follow`")
+
+
+def show_logs(follow):
+    LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
+    if not os.path.exists(NODE_PID):
+        print('Node is not running')
+        exit(1)
+
+    pid_info = open(NODE_PID).read()
+    if 'devnet' in pid_info:
+        net = 'devnet'
+    elif 'betanet' in pid_info:
+        net = 'betanet'
+    elif 'testnet' in pid_info:
+        net = 'testnet'
+    else:
+        # TODO: localnet could have several logs, not showing them all but list log files here
+        # Maybe better to support `nearup logs node0` usage.
+        print(f'You are running local net. Logs are in: ~/.nearup/localnet-logs/')
+        exit(0)
+    command = ['tail']
+    if follow:
+        command += ['-f']
+    command += [os.path.expanduser(f'~/.nearup/logs/{net}.log')]
     try:
-        subprocess.call(cmd)
+        subprocess.run(command, start_new_session=True)
     except KeyboardInterrupt:
-        print("\nStopping NEARCore.")
+        exit(0)
 
 
 def check_binary_version(binary_path, chain_id):
@@ -322,7 +393,7 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
     print_staking_key(home_dir)
 
     if nodocker:
-        run_nodocker(home_dir, binary_path, boot_nodes, verbose)
+        run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id)
     else:
         run_docker(image, home_dir, boot_nodes, verbose)
 
@@ -344,13 +415,16 @@ def stop_docker():
 
 
 def stop_native():
-    try:
-        out = subprocess.check_output(['pgrep', 'near']).strip()
-        if out != '':
-            print(f'Stopping native near with PID {out}')
-            subprocess.call(['kill', out])
-    except subprocess.CalledProcessError:
-        pass
+    if os.path.exists(NODE_PID):
+        with open(NODE_PID) as f:
+            for line in f.readlines():
+                pid, proc_name = map(
+                    str.strip, line.strip(' \n').split("|"))
+                pid = int(pid)
+                if proc_name in proc_name_from_pid(pid):
+                    print(f"Stopping process {proc_name} with pid", pid)
+                    kill(pid, SIGTERM)
+        unlink(NODE_PID)
 
 
 def generate_node_key(home, binary_path, nodocker, image):
@@ -446,6 +520,7 @@ def start_stakewars(home, binary_path, nodocker, image, verbose, tracked_shards)
     create_genesis(home, binary_path, nodocker, image,
                    'stakewars', tracked_shards)
     if nodocker:
-        run_nodocker(home, binary_path, boot_nodes='', verbose=verbose)
+        run_nodocker(home, binary_path, boot_nodes='',
+                     verbose=verbose, chain_id='stakewars')
     else:
         run_docker(image, home, boot_nodes='', verbose=verbose)

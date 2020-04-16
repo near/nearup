@@ -136,6 +136,7 @@ nearcore
 # IDE
 .vscode/
 
-# Localnet
+# binary node
 *.pid
 logs/
+localnet-logs/
