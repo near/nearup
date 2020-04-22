@@ -314,7 +314,7 @@ def run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id):
     proc = run_binary(os.path.join(binary_path, 'near'), home_dir, 'run', verbose=verbose,
                       boot_nodes=boot_nodes, output=os.path.join(LOGS_FOLDER, chain_id))
     proc_name = proc_name_from_pid(proc.pid)
-    print(proc.pid, "|", proc_name, file=pid_fd)
+    print(proc.pid, "|", proc_name, "|", chain_id, file=pid_fd)
     pid_fd.close()
     print("Node is running! \nTo check logs call: `nearup logs` or `nearup logs --follow`")
 
@@ -399,10 +399,13 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
 
 
 def stop():
-    out = subprocess.check_output(
-        ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True).strip()
-    if out != '':
-        stop_docker()
+    if shutil.which('docker') is not None:
+        out = subprocess.check_output(
+            ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True).strip()
+        if out != '':
+            stop_docker()
+        else:
+            stop_native()
     else:
         stop_native()
 
@@ -418,7 +421,7 @@ def stop_native():
     if os.path.exists(NODE_PID):
         with open(NODE_PID) as f:
             for line in f.readlines():
-                pid, proc_name = map(
+                pid, proc_name, _ = map(
                     str.strip, line.strip(' \n').split("|"))
                 pid = int(pid)
                 if proc_name in proc_name_from_pid(pid):
