@@ -4,6 +4,22 @@ Public scripts to launch near devnet, betanet and testnet node
 
 # Usage
 
+## Prerequisite
+
+Before you proceed, make sure you have the following software installed:
+
+* Python 3
+* git (used for updates)
+* cURL (installation only)
+
+### Ubuntu Prerequisite Installation
+
+Here is the installation command:
+
+```
+sudo apt install python3 git curl
+```
+
 ## Install
 
 ```
@@ -16,6 +32,21 @@ On each run, nearup self-updates to the latest version.
 ## Start
 
 ### Using Docker (recommended for fast onboarding)
+
+> Heads up, you need [Docker](https://docs.docker.com/get-docker/) installed before you proceed.
+> Ubuntu users can install it with the following command:
+>
+> ```
+> sudo apt install docker.io
+> ```
+>
+> Also, you need to make sure that your user belongs to `docker` group:
+>
+> ```
+> sudo usermod -aG docker your-user
+> ```
+
+Once all the prerequisites are met, just run:
 
 ```
 nearup betanet
