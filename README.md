@@ -34,8 +34,19 @@ On each run, nearup self-updates to the latest version.
 ### Using Docker (recommended for fast onboarding)
 
 > Heads up, you need [Docker](https://docs.docker.com/get-docker/) installed before you proceed.
+> Ubuntu users can install it with the following command:
 >
-> Ubuntu users can install it with `sudo apt install docker.io`.
+> ```
+> sudo apt install docker.io
+> ```
+>
+> Also, you need to make sure that your user belongs to `docker` group:
+>
+> ```
+> sudo usermod -aG docker your-user
+> ```
+
+Once all the prerequisites are met, just run:
 
 ```
 nearup betanet
