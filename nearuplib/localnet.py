@@ -45,7 +45,7 @@ def run(args):
         proc = run_binary(args.binary_path, join(args.home, f'node{i}'), 'run', verbose=args.verbose,
                           boot_nodes=f'{pk}@127.0.0.1:24567' if i > 0 else None, output=join(LOGS_FOLDER, f'node{i}'))
         proc_name = proc_name_from_pid(proc.pid)
-        print(proc.pid, "|", proc_name, file=pid_fd)
+        print(proc.pid, "|", proc_name, "|", 'localnet', file=pid_fd)
     pid_fd.close()
 
     print("Local network was spawned successfully.")
