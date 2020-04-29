@@ -74,13 +74,7 @@ nearup betanet --nodocker --binary-path path/to/nearcore/target/{debug, release}
 
 Replace `betanet` with `devnet` or `testnet` if you want to use a different network.
 
-## Stop a Running Node
-
-```
-nearup stop
-```
-
-## Spawn Localnetwork
+## Spawn Local network
 
 Clone and compile nearcore with `make release` or `make debug` first.
 
@@ -92,10 +86,10 @@ By default it will spawn 4 nodes validating in 1 shard.
 RPC ports of each nodes will be consecutive starting from 3030.
 Access one node status using http://localhost:3030/status
 
-### Stop Localnetwork
+## Stop a Running Node or all running nodes in local network
 
 ```
-nearup localnet --stop
+nearup stop
 ```
 
 ## Additional Options
