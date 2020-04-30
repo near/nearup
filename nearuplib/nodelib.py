@@ -311,6 +311,11 @@ def run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id):
         verbose = None
     LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
     subprocess.check_output(['mkdir', '-p', LOGS_FOLDER])
+    if os.path.exists(NODE_PID):
+        print("There is already nodes running. Stop it using:")
+        print("nearup stop")
+        print(f"If this is a mistake, remove {NODE_PID}")
+        exit(1)
     proc = run_binary(os.path.join(binary_path, 'near'), home_dir, 'run', verbose=verbose,
                       boot_nodes=boot_nodes, output=os.path.join(LOGS_FOLDER, chain_id))
     proc_name = proc_name_from_pid(proc.pid)
