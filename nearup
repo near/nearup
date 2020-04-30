@@ -39,6 +39,8 @@ else:
     if not in_path:
         with open(os.path.expanduser('~/.profile'), 'a') as f:
             f.write('\n\nsource $HOME/.nearup/env\n\n')
+        with open(os.path.expanduser('~/.zprofile'), 'a') as f:
+            f.write('\n\nsource $HOME/.nearup/env\n\n')
         print('''To get started you need Nearup's directory ($HOME/.nearup) in your PATH
 environment variable. Next time you log in this will be done automatically.
 
