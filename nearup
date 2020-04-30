@@ -41,6 +41,9 @@ else:
             f.write('\n\nsource $HOME/.nearup/env\n\n')
         with open(os.path.expanduser('~/.zprofile'), 'a') as f:
             f.write('\n\nsource $HOME/.nearup/env\n\n')
+        if os.path.exists(os.path.expanduser('~/.config/fish')):
+            with open(os.path.expanduser('~/.config/fish/config.fish'), 'a') as f:
+                f.write('\n\nsource $HOME/.nearup/env\n\n')
         print('''To get started you need Nearup's directory ($HOME/.nearup) in your PATH
 environment variable. Next time you log in this will be done automatically.
 
