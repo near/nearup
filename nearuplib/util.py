@@ -1,8 +1,10 @@
 import subprocess
-
+import os
 
 def download(url, filepath=None):
     if filepath:
+        if os.path.exists(filepath):
+            os.remove(filepath)
         subprocess.check_output(
             ['curl', '--proto', '=https', '--tlsv1.2', '-sSfL', url, '-o', filepath])
     else:
