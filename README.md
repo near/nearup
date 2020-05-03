@@ -74,6 +74,8 @@ nearup betanet --nodocker --binary-path path/to/nearcore/target/{debug, release}
 
 Replace `betanet` with `devnet` or `testnet` if you want to use a different network.
 
+_Note that `betanet` requires that you compile nearcore off the `beta` branch while all other networks expect a build off the `master` branch of nearcore._
+
 ## Spawn Local network
 
 Clone and compile nearcore with `make release` or `make debug` first.
