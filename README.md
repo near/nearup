@@ -45,6 +45,10 @@ On each run, nearup self-updates to the latest version.
 > ```
 > sudo usermod -aG docker your-user
 > ```
+> 
+> Replace `your-user` with your username (you can learn it by running `whoami` command).
+>
+> You will need to re-login to the system so the group changes get effective.
 
 Once all the prerequisites are met, just run:
 
