@@ -43,10 +43,8 @@ On each run, nearup self-updates to the latest version.
 > Also, you need to make sure that your user belongs to `docker` group:
 >
 > ```
-> sudo usermod -aG docker your-user
+> sudo usermod -aG docker `whoami`
 > ```
-> 
-> Replace `your-user` with your username (you can learn it by running `whoami` command).
 >
 > You will need to re-login to the system so the group changes get effective.
 
