@@ -16,7 +16,7 @@ USER = str(os.getuid())+':'+str(os.getgid())
 def docker_init(image, home_dir, init_flags):
     """Inits the node configuration using docker."""
     subprocess.check_output(['mkdir', '-p', home_dir])
-    subprocess.check_output(['docker', 'run', '-u', USER,
+    subprocess.check_output(['docker', 'run', '-u', USER, '--rm',
                              '-v', '%s:/srv/near' % home_dir,
                              '-v', os.path.abspath('near/res') + ':/near/res',
                              image, 'near', '--home=/srv/near', 'init'] + init_flags)
@@ -237,14 +237,14 @@ def get_port(home_dir, net):
     return p + ":" + p
 
 
-def run_docker(image, home_dir, boot_nodes, verbose):
+def run_docker(image, home_dir, boot_nodes, verbose, container_name='nearcore', host_network=False):
     """Runs NEAR core inside the docker container"""
     print("Starting NEAR client docker...")
-    docker_stop_if_exists('watchtower')
-    docker_stop_if_exists('nearcore')
+    docker_stop_if_exists(container_name)
     # Start nearcore container, mapping home folder and ports.
     envs = ['-e', 'RUST_BACKTRACE=1', '-e', 'RUST_LOG=%s' %
             os.environ.get('RUST_LOG', '')]
+    home_dir = os.path.abspath(home_dir)
     rpc_port = get_port(home_dir, 'rpc')
     network_port = get_port(home_dir, 'network')
     cmd = ['near', '--home', '/srv/near']
@@ -253,14 +253,33 @@ def run_docker(image, home_dir, boot_nodes, verbose):
     cmd.append('run')
     if boot_nodes:
         cmd.append('--boot-nodes=%s' % boot_nodes)
+    if host_network:
+        network_flags = ['--network', 'host']
+    else:
+        network_flags = ['-p', rpc_port, '-p', network_port]
     subprocess.check_output(['mkdir', '-p', home_dir])
     subprocess.check_output(['docker', 'run', '-u', USER,
-                             '-d', '-p', rpc_port, '-p', network_port, '-v', '%s:/srv/near' % home_dir,
+                             '-d', '-v', '%s:/srv/near' % home_dir,
+                             *network_flags,
                              '-v', '/tmp:/tmp',
                              '--ulimit', 'core=-1',
-                             '--name', 'nearcore', '--restart', 'unless-stopped'] +
+                             '--name', container_name, '--restart', 'unless-stopped'] +
                             envs + [image] + cmd)
-    print("Node is running! \nTo check logs call: docker logs --follow nearcore")
+
+
+def run_docker_testnet(image, home, *, shards=None, validators=None, non_validators=None):
+    subprocess.check_output(['mkdir', '-p', home])
+    home = os.path.abspath(home)
+    command = ['docker', 'run', '-u', USER,
+               '--rm', '-v', '%s:/srv/near' % home,
+               image, 'near', '--home', '/srv/near', 'testnet']
+    if shards:
+        command.extend(['--shards', str(shards)])
+    if validators:
+        command.extend(['--v', str(validators)])
+    if non_validators:
+        command.extend(['--n', str(non_validators)])
+    subprocess.check_output(command)
 
 
 NODE_PID = os.path.expanduser('~/.nearup/node.pid')
@@ -401,25 +420,26 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
         run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id)
     else:
         run_docker(image, home_dir, boot_nodes, verbose)
+        print("Node is running! \nTo check logs call: docker logs --follow nearcore")
 
 
 def stop():
     if shutil.which('docker') is not None:
         out = subprocess.check_output(
             ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True).strip()
-        if out != '':
-            stop_docker()
+        if out:
+            stop_docker(out.split('\n'))
         else:
             stop_native()
     else:
         stop_native()
 
 
-def stop_docker():
-    """Stops docker for Nearcore and watchtower if they are running."""
-    docker_stop_if_exists('watchtower')
+def stop_docker(containers):
+    """Stops docker for Nearcore if they are running."""
     print('Stopping docker near')
-    docker_stop_if_exists('nearcore')
+    for c in containers:
+        docker_stop_if_exists(c)
 
 
 def stop_native():
@@ -532,3 +552,4 @@ def start_stakewars(home, binary_path, nodocker, image, verbose, tracked_shards)
                      verbose=verbose, chain_id='stakewars')
     else:
         run_docker(image, home, boot_nodes='', verbose=verbose)
+        print("Node is running! \nTo check logs call: docker logs --follow nearcore")
