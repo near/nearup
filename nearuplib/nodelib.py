@@ -322,15 +322,25 @@ def proc_name_from_pid(pid):
         return proc.stdout.read().decode().strip()
 
 
+def check_exist_neard():
+    if os.path.exists(NODE_PID):
+        print("There is already binary nodes running. Stop it using:")
+        print("nearup stop")
+        print(f"If this is a mistake, remove {NODE_PID}")
+        exit(1)
+    if shutil.which('docker') is not None:
+        out = subprocess.check_output(
+            ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True).strip()
+        if out:
+            print("There is already docker node running. Stop it using:")
+            print("nearup stop")
+            exit(1)
+
+
 def run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id):
     """Runs NEAR core outside of docker."""
     print("Starting NEAR client...")
     os.environ['RUST_BACKTRACE'] = '1'
-    if os.path.exists(NODE_PID):
-        print("There is already nodes running. Stop it using:")
-        print("nearup stop")
-        print(f"If this is a mistake, remove {NODE_PID}")
-        exit(1)
     pid_fd = open(NODE_PID, 'w')
     # convert verbose = True to --verbose '' command line argument
     if verbose:
@@ -385,6 +395,7 @@ def check_binary_version(binary_path, chain_id):
 
 
 def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes, verbose=False, no_gas_price=False):
+    check_exist_neard()
     chain_id = get_chain_id_from_flags(init_flags)
     if nodocker:
         if binary_path == '':

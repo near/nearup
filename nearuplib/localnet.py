@@ -6,7 +6,7 @@ from shutil import rmtree
 from os import mkdir
 from os.path import exists, expanduser, join
 import json
-from nearuplib.nodelib import run_binary, NODE_PID, proc_name_from_pid, run_docker_testnet, run_docker
+from nearuplib.nodelib import run_binary, NODE_PID, proc_name_from_pid, run_docker_testnet, run_docker, check_exist_neard
 
 
 def run(args):
@@ -87,10 +87,6 @@ def entry():
     if args.binary_path:
         args.binary_path = join(args.binary_path, 'neard')
 
-    if exists(NODE_PID):
-        print("There is already a test running. Stop it using:")
-        print("nearup stop")
-        print(f"If this is a mistake, remove {NODE_PID}")
-        exit(1)
+    check_exist_neard()
 
     run(args)
