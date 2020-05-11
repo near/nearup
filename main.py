@@ -14,6 +14,7 @@ class NearupArgParser(object):
             usage='''nearup <command> [<args>]
 
 Commands are:
+    mainnet    (Comming soon) Run a mainnet node
     testnet    Run a testnet node
     betanet    Run a betanet node
     devnet     Run a devnet node
@@ -50,6 +51,11 @@ Run nearup <command> --help to see help for specific command
             netname='devnet', description='Run a devnet node')
         self.args = parser.parse_args(sys.argv[2:])
 
+    def mainnet(self):
+        parser = create_net_argparser(
+            netname='mainnet', description='Run a mainnet node')
+        self.args = parser.parse_args(sys.argv[2:])
+
     def stop(self):
         parser = argparse.ArgumentParser(
             description='Stop the currently running node')
@@ -72,6 +78,8 @@ if __name__ == '__main__':
                       init_flags=[f'--chain-id={command}'],
                       boot_nodes=args.boot_nodes,
                       verbose=args.verbose)
+    if command == 'mainnet':
+        print('Sorry mainnet is now internal nodes only, please use https://rpc.mainnet.near.org to reach mainnet rpc')
     elif command == 'localnet':
         entry()
     elif command == 'stop':
