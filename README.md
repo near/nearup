@@ -155,7 +155,7 @@ nearup runs also on Apple macOS. Requirements:
 	Node is running! 
 	To check logs call: docker logs --follow nearcore
 	```
-	Nearup will ask your `account ID`, for now you can leave it empty. If you already have a wallet on https://wallet.betanet.nearprotocol.com, feel free to input your `account ID` for future use as a validator.
+	Nearup will ask your `account ID`, for now you can leave it empty. If you already have a wallet on https://wallet.betanet.near.org, feel free to input your `account ID` for future use as a validator.
 
 5. Check if your node is running correctly by issuing the command
 	```
@@ -163,7 +163,7 @@ nearup runs also on Apple macOS. Requirements:
 	```
 	The output will look like this:
 	```
-	Telemetry: https://explorer.nearprotocol.com/api/nodes
+	Telemetry: https://explorer.betanet.near.org/api/nodes
 	Bootnodes: 
 	Mar 25 01:38:59.607  INFO near: Did not find "/srv/near/data" path, will be creating new store database    
 	Mar 25 01:39:00.161  INFO stats: Server listening at ed25519:AWDhVpfVDvV85tem2ZUa6CmZQwmPawFuzR1wnoiLirRa@0.0.0.0:24567
