@@ -218,13 +218,17 @@ def print_staking_key(home_dir):
 
 def docker_stop_if_exists(name):
     """Stops and removes given docker container."""
+    if type(name) is list:
+        names = name
+    else:
+        names = [name]
     try:
-        subprocess.Popen(['docker', 'stop', name], stdout=subprocess.PIPE,
+        subprocess.Popen(['docker', 'stop', *names], stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE).communicate()
     except subprocess.CalledProcessError:
         pass
     try:
-        subprocess.Popen(['docker', 'rm', name], stdout=subprocess.PIPE,
+        subprocess.Popen(['docker', 'rm', *names], stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE).communicate()
     except subprocess.CalledProcessError:
         pass
@@ -438,8 +442,7 @@ def stop():
 def stop_docker(containers):
     """Stops docker for Nearcore if they are running."""
     print('Stopping docker near')
-    for c in containers:
-        docker_stop_if_exists(c)
+    docker_stop_if_exists(containers)
 
 
 def stop_native():
