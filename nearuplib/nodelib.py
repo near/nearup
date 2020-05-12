@@ -329,9 +329,10 @@ def check_exist_neard():
         print(f"If this is a mistake, remove {NODE_PID}")
         exit(1)
     if shutil.which('docker') is not None:
-        out = subprocess.check_output(
-            ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True).strip()
-        if out:
+        p = subprocess.Popen(
+            ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, _ = p.communicate()
+        if out.strip():
             print("There is already docker node running. Stop it using:")
             print("nearup stop")
             exit(1)
