@@ -441,9 +441,10 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
 
 def stop():
     if shutil.which('docker') is not None:
-        out = subprocess.check_output(
-            ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True).strip()
-        if out:
+        p = subprocess.Popen(
+            ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, _ = p.communicate()
+        if out.strip():
             stop_docker(out.split('\n'))
         else:
             stop_native()
