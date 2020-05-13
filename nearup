@@ -16,17 +16,19 @@ main_script = os.path.expanduser('~/.nearup/main.py')
 if os.path.exists(main_script):
     p = subprocess.Popen('cd ' + nearup_dir + ' && git pull',
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    _stdout, _stderr = p.communicate()
+    _stdout, stderr = p.communicate()
     if p.returncode != 0:
-        sys.stderr.write('Warning: Failed to update nearup.\n')
+        sys.stderr.write('Warning: Failed to update nearup. Error:\n')
+        sys.stderr.write(stderr + '\n')
     args = ['python3', main_script] + sys.argv[1:]
     subprocess.run(args)
 else:
     p = subprocess.Popen(
         ['git', 'clone', 'https://github.com/nearprotocol/nearup', os.path.expanduser('~/.nearup')], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    _stdout, _stderr = p.communicate()
+    _stdout, stderr = p.communicate()
     if p.returncode != 0:
-        sys.stderr.write('Failed to obtain nearup. Please retry\n')
+        sys.stderr.write('Failed to obtain nearup. Error:\n')
+        sys.stderr.write(stderr + '\n')
         subprocess.check_output(['rm', '-rf', os.path.expanduser('~/.nearup')])
         exit(1)
 
