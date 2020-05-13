@@ -262,13 +262,17 @@ def run_docker(image, home_dir, boot_nodes, verbose, container_name='nearcore', 
     else:
         network_flags = ['-p', rpc_port, '-p', network_port]
     subprocess.check_output(['mkdir', '-p', home_dir])
-    subprocess.check_output(['docker', 'run', '-u', USER,
-                             '-d', '-v', '%s:/srv/near' % home_dir,
-                             *network_flags,
-                             '-v', '/tmp:/tmp',
-                             '--ulimit', 'core=-1',
-                             '--name', container_name, '--restart', 'unless-stopped'] +
-                            envs + [image] + cmd)
+    try:
+        subprocess.check_output(['docker', 'run', '-u', USER,
+                                 '-d', '-v', '%s:/srv/near' % home_dir,
+                                 *network_flags,
+                                 '-v', '/tmp:/tmp',
+                                 '--ulimit', 'core=-1',
+                                 '--name', container_name, '--restart', 'unless-stopped'] +
+                                envs + [image] + cmd)
+    except subprocess.CalledProcessError as e:
+        print('Failed to run docker near. Error:', file=sys.stderr)
+        print(e.stderr, file=sys.stderr)
 
 
 def run_docker_testnet(image, home, *, shards=None, validators=None, non_validators=None):
@@ -283,7 +287,16 @@ def run_docker_testnet(image, home, *, shards=None, validators=None, non_validat
         command.extend(['--v', str(validators)])
     if non_validators:
         command.extend(['--n', str(non_validators)])
-    subprocess.check_output(command)
+    try:
+        subprocess.check_output(command)
+    except subprocess.CalledProcessError as e:
+        print('Failed to run docker near. Error:', file=sys.stderr)
+        print(e.stderr, file=sys.stderr)
+        exit(1)
+    except FileNotFoundError as exc:
+        print(
+            "Failed to run docker near: docker is not installed or not in PATH", file=sys.stderr)
+        exit(1)
 
 
 NODE_PID = os.path.expanduser('~/.nearup/node.pid')
@@ -424,7 +437,12 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
             print(f'Pull docker image {image}')
             subprocess.check_output(['docker', 'pull', image])
         except subprocess.CalledProcessError as exc:
-            print("Failed to fetch docker containers: %s" % exc)
+            print("Failed to fetch docker containers: \n%s" %
+                  exc.stderr, file=sys.stderr)
+            exit(1)
+        except FileNotFoundError as exc:
+            print(
+                "Failed to fetch docker containers, docker is not installed or not in PATH", file=sys.stderr)
             exit(1)
 
     check_and_setup(nodocker, binary_path, image,
