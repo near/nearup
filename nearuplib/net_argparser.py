@@ -20,4 +20,7 @@ def create_net_argparser(*, netname, description):
     parser.add_argument(
         '--boot-nodes',
         help='Specify boot nodes to load from (Default: "")')
+    parser.add_argument(
+        '--account-id',
+        help='Specify account ID to init')
     return parser

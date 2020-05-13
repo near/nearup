@@ -111,7 +111,8 @@ def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_p
         return
 
     print("Setting up network configuration.")
-    if len([x for x in init_flags if x.startswith('--account-id')]) == 0:
+    account_id = [x for x in init_flags if x.startswith('--account-id')]
+    if not account_id:
         prompt = "Enter your account ID"
         if chain_id != '':
             prompt += " (leave empty if not going to be a validator): "
@@ -119,6 +120,8 @@ def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_p
             prompt += ": "
         account_id = input(prompt)
         init_flags.append('--account-id=%s' % account_id)
+    else:
+        account_id = account_id[0].split('=')[-1]
 
     if nodocker:
         if chain_id in ['devnet', 'betanet', 'testnet']:

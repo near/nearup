@@ -74,8 +74,11 @@ if __name__ == '__main__':
             print("Flag --local deprecated, please use --nodocker")
         nodocker = args.nodocker or args.local
         args.home = os.path.abspath(args.home)
+        init_flags = [f'--chain-id={command}']
+        if args.account_id:
+            init_flags.append(f'--account-id={args.account_id}')
         setup_and_run(nodocker, args.binary_path, args.image, args.home,
-                      init_flags=[f'--chain-id={command}'],
+                      init_flags=init_flags,
                       boot_nodes=args.boot_nodes,
                       verbose=args.verbose)
     if command == 'mainnet':
