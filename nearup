@@ -21,7 +21,10 @@ if os.path.exists(main_script):
         sys.stderr.write('Warning: Failed to update nearup. Error:\n')
         sys.stderr.write(stderr + '\n')
     args = ['python3', main_script] + sys.argv[1:]
-    subprocess.run(args)
+    try:
+        subprocess.run(args, start_new_session=True)
+    except KeyboardInterrupt:
+        pass
 else:
     p = subprocess.Popen(
         ['git', 'clone', 'https://github.com/nearprotocol/nearup', os.path.expanduser('~/.nearup')], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
