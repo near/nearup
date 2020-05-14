@@ -305,10 +305,7 @@ def run_docker(image, home_dir, boot_nodes, verbose, container_name='nearcore', 
         print(e.stderr, file=sys.stderr)
         exit(1)
     if watch:
-        watch_script = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), '..', 'watcher.py'))
-        Popen(['python3', watch_script, watch['net'],
-               home_dir, 'nodocker', *watch['args']])
+        run_watcher(watch, 'docker')
 
 
 def run_docker_testnet(image, home, *, shards=None, validators=None, non_validators=None):
@@ -360,11 +357,18 @@ def run_binary(path, home, action, *, verbose=None, shards=None, validators=None
 
     near = Popen(command, stderr=output, stdout=output)
     if watch:
-        watch_script = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), '..', 'watcher.py'))
-        Popen(['python3', watch_script, watch['net'],
-               home, 'nodocker', *watch['args']])
+        run_watcher(watch, 'nodocker')
     return near
+
+
+def run_watcher(watch, docker):
+    watch_script = os.path.abspath(os.path.join(
+        os.path.dirname(__file__), '..', 'watcher.py'))
+    watch_log = open(os.path.expanduser('~/.nearup/logs/watcher.log'), 'w')
+    p = Popen(['python3', watch_script, watch['net'],
+               watch['home'], docker, *watch['args']], stdout=watch_log, stderr=watch_log)
+    with open(os.path.expanduser('~/.nearup/watcher.pid'), 'w') as f:
+        f.write(str(p.pid))
 
 
 def proc_name_from_pid(pid):
@@ -494,14 +498,14 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
 
     if nodocker:
         run_nodocker(home_dir, binary_path, boot_nodes, verbose,
-                     chain_id, watch={"args": args, "net": chain_id})
+                     chain_id, watch={"args": args, "net": chain_id, 'home': home_dir})
     else:
         run_docker(image, home_dir, boot_nodes, verbose,
-                   watch={"args": args, "net": chain_id})
+                   watch={"args": args, "net": chain_id, 'home': home_dir})
         print("Node is running! \nTo check logs call: docker logs --follow nearcore")
 
 
-def stop():
+def stop(keep_watcher=False):
     if shutil.which('docker') is not None:
         p = subprocess.Popen(
             ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -512,6 +516,8 @@ def stop():
             stop_native()
     else:
         stop_native()
+    if not keep_watcher:
+        stop_watcher()
 
 
 def stop_docker(containers):
@@ -538,6 +544,25 @@ def stop_native():
                             break
 
         unlink(NODE_PID)
+
+
+def stop_watcher():
+    try:
+        with open(os.path.expanduser(f'~/.nearup/watcher.pid')) as f:
+            pid = int(f.read())
+        kill(pid, SIGTERM)
+        print(f'Stopping near watcher with pid {pid}')
+        os.remove(os.path.expanduser(f'~/.nearup/watcher.pid'))
+    except OSError:
+        pass
+    except FileNotFoundError:
+        pass
+    else:
+        while True:
+            try:
+                os.kill(pid, 0)
+            except OSError:
+                break
 
 
 def generate_node_key(home, binary_path, nodocker, image):

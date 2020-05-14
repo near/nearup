@@ -57,9 +57,7 @@ Run nearup <command> --help to see help for specific command
         self.args = parser.parse_args(sys.argv[2:])
 
     def stop(self):
-        parser = argparse.ArgumentParser(
-            description='Stop the currently running node')
-        self.args = parser.parse_args(sys.argv[2:])
+        self.args = sys.argv[2:]
 
     def logs(self):
         self.args = sys.argv[2:]
@@ -87,7 +85,7 @@ if __name__ == '__main__':
     elif command == 'localnet':
         entry()
     elif command == 'stop':
-        stop()
+        stop(len(args) > 0 and args[0] == '--keep-watcher')
     elif command == 'logs':
         show_logs(len(args) > 0 and (
             args[0] == '-f' or args[0] == '--follow'))

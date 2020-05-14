@@ -12,7 +12,7 @@ from nearuplib.nodelib import genesis_changed, binary_changed, docker_changed
 def nearup_restart(args):
     main_script = os.path.abspath(os.path.join(
         os.path.dirname(__file__), 'main.py'))
-    print(subprocess.check_output(['python3', main_script, 'stop']))
+    subprocess.check_output(['python3', main_script, 'stop', '--keep-watcher'])
     subprocess.Popen(
         ['python3', main_script, *args])
     print('done')
