@@ -1,5 +1,7 @@
 # nearup
 
+[![PyPI version](https://badge.fury.io/py/nearup.svg)](https://pypi.org/project/nearup/)
+
 Public scripts to launch near devnet, betanet and testnet node
 
 # Usage
@@ -10,7 +12,7 @@ Before you proceed, make sure you have the following software installed:
 
 * Python 3
 * git (used for updates)
-* cURL (installation only)
+* cURL
 
 ### Ubuntu Prerequisite Installation
 

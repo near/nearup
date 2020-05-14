@@ -80,7 +80,8 @@ if __name__ == '__main__':
         setup_and_run(nodocker, args.binary_path, args.image, args.home,
                       init_flags=init_flags,
                       boot_nodes=args.boot_nodes,
-                      verbose=args.verbose)
+                      verbose=args.verbose,
+                      args=sys.argv[1:])
     if command == 'mainnet':
         print('Sorry mainnet is now internal nodes only, please use https://rpc.mainnet.near.org to reach mainnet rpc')
     elif command == 'localnet':

@@ -24,7 +24,9 @@ if os.path.exists(main_script):
     try:
         subprocess.run(args, start_new_session=True)
     except KeyboardInterrupt:
-        pass
+        print('')
+        exit(0)
+
 else:
     p = subprocess.Popen(
         ['git', 'clone', 'https://github.com/nearprotocol/nearup', os.path.expanduser('~/.nearup')], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
