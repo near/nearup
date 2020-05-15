@@ -3,6 +3,7 @@ import sys
 from nearuplib.net_argparser import create_net_argparser
 from nearuplib.localnet import entry
 from nearuplib.nodelib import setup_and_run, stop, show_logs
+from nearuplib.util import print
 import os
 
 

@@ -7,6 +7,7 @@ import os
 import subprocess
 import time
 from nearuplib.nodelib import genesis_changed, binary_changed, docker_changed
+from nearuplib.util import print
 
 
 def nearup_restart(args):
