@@ -369,6 +369,8 @@ def run_binary(path, home, action, *, verbose=None, shards=None, validators=None
 def run_watcher(watch, docker):
     watch_script = os.path.abspath(os.path.join(
         os.path.dirname(__file__), '..', 'watcher.py'))
+    LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
+    subprocess.check_output(['mkdir', '-p', LOGS_FOLDER])
     watch_log = open(os.path.expanduser('~/.nearup/logs/watcher.log'), 'w')
     p = Popen(['python3', watch_script, watch['net'],
                watch['home'], docker, *watch['args']], stdout=watch_log, stderr=watch_log)
