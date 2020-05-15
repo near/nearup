@@ -483,12 +483,17 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
             binary_path = os.path.expanduser(f'~/.nearup/near/{chain_id}')
             subprocess.check_output(['mkdir', '-p', binary_path])
             download_binary(chain_id, uname)
+            watch = {"args": args, "net": chain_id, 'home': home_dir}
         else:
             print(f'Using local binary at {binary_path}')
             check_binary_version(binary_path, chain_id)
+            watch = False
     else:
         if image == 'auto':
             image = net_to_docker_image(chain_id)
+            watch = {"args": args, "net": chain_id, 'home': home_dir}
+        else:
+            watch = False
         try:
             print(f'Pull docker image {image}')
             subprocess.check_output(['docker', 'pull', image])
@@ -508,10 +513,10 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
 
     if nodocker:
         run_nodocker(home_dir, binary_path, boot_nodes, verbose,
-                     chain_id, watch={"args": args, "net": chain_id, 'home': home_dir})
+                     chain_id, watch=watch)
     else:
         run_docker(image, home_dir, boot_nodes, verbose,
-                   watch={"args": args, "net": chain_id, 'home': home_dir})
+                   watch=watch)
         print("Node is running! \nTo check logs call: docker logs --follow nearcore")
 
 
