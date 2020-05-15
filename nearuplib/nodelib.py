@@ -171,10 +171,13 @@ def latest_deployed_version(net):
     return download_near_s3(f'nearcore-deploy/{net}/latest_deploy')
 
 
-def docker_changed(image):
+def docker_changed(net):
+    image = net_to_docker_image(net)
+    print(f'Docker image: {image}')
     local_version = subprocess.check_output(
-        ['docker', 'image', 'ls', '-q', '--filter', f'reference={image}']).strip()
+        ['docker', 'image', 'ls', '-q', '--filter', f'reference={image}'], universal_newlines=True).strip()
     if local_version:
+        print(f'Local docker version: {local_version}')
         repo, *tag = image.split(':')
         if tag:
             tag = tag[0]
@@ -185,7 +188,9 @@ def docker_changed(image):
         image_info = json.loads(download(f"https://index.docker.io/v2/{repo}/manifests/{tag}", headers=[
                                 f"Authorization: Bearer {auth_token}",  "Accept: application/vnd.docker.distribution.manifest.v2+json"]))
         remote_version = image_info["config"]["digest"].split(':')[1]
+        print(f'Remote version: {remote_version}')
         if remote_version.startswith(local_version):
+            print('Local docker image is up to date')
             return False
     return True
 
@@ -454,6 +459,16 @@ def check_binary_version(binary_path, chain_id):
             f'Warning: current deployed version on {chain_id} is {latest_deploy_version}, but local binary is {version}. It might not work')
 
 
+def net_to_docker_image(chain_id):
+    if chain_id == 'betanet':
+        image = 'nearprotocol/nearcore:beta'
+    elif chain_id == 'devnet':
+        image = 'nearprotocol/nearcore:master'
+    else:
+        image = 'nearprotocol/nearcore'
+    return image
+
+
 def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes, verbose=False, no_gas_price=False, args=None):
     check_exist_neard()
     chain_id = get_chain_id_from_flags(init_flags)
@@ -473,12 +488,7 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
             check_binary_version(binary_path, chain_id)
     else:
         if image == 'auto':
-            if chain_id == 'betanet':
-                image = 'nearprotocol/nearcore:beta'
-            elif chain_id == 'devnet':
-                image = 'nearprotocol/nearcore:master'
-            else:
-                image = 'nearprotocol/nearcore'
+            image = net_to_docker_image(chain_id)
         try:
             print(f'Pull docker image {image}')
             subprocess.check_output(['docker', 'pull', image])

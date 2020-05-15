@@ -6,6 +6,7 @@ import sys
 import os
 import subprocess
 import time
+import traceback
 from nearuplib.nodelib import genesis_changed, binary_changed, docker_changed
 from nearuplib.util import print
 
@@ -27,12 +28,16 @@ if __name__ == '__main__':
 
     while True:
         time.sleep(60)
-        if genesis_changed(net, home_dir):
-            nearup_restart(args)
-            exit(0)
-        elif docker == 'nodocker' and binary_changed(net):
-            nearup_restart(args)
-            exit(0)
-        elif docker == 'docker' and docker_changed(net):
-            nearup_restart(args)
-            exit(0)
+        try:
+            if genesis_changed(net, home_dir):
+                nearup_restart(args)
+                exit(0)
+            elif docker == 'nodocker' and binary_changed(net):
+                nearup_restart(args)
+                exit(0)
+            elif docker == 'docker' and docker_changed(net):
+                nearup_restart(args)
+                exit(0)
+        except:
+            traceback.print_exc()
+            pass
