@@ -31,13 +31,13 @@ if __name__ == '__main__':
         try:
             if genesis_changed(net, home_dir):
                 nearup_restart(args)
-                exit(0)
+                break
             elif docker == 'nodocker' and binary_changed(net):
                 nearup_restart(args)
-                exit(0)
+                break
             elif docker == 'docker' and docker_changed(net):
                 nearup_restart(args)
-                exit(0)
+                break
         except:
             traceback.print_exc()
             pass
