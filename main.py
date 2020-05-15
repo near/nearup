@@ -3,6 +3,7 @@ import sys
 from nearuplib.net_argparser import create_net_argparser
 from nearuplib.localnet import entry
 from nearuplib.nodelib import setup_and_run, stop, show_logs
+from nearuplib.util import print
 import os
 
 
@@ -57,9 +58,7 @@ Run nearup <command> --help to see help for specific command
         self.args = parser.parse_args(sys.argv[2:])
 
     def stop(self):
-        parser = argparse.ArgumentParser(
-            description='Stop the currently running node')
-        self.args = parser.parse_args(sys.argv[2:])
+        self.args = sys.argv[2:]
 
     def logs(self):
         self.args = sys.argv[2:]
@@ -80,13 +79,14 @@ if __name__ == '__main__':
         setup_and_run(nodocker, args.binary_path, args.image, args.home,
                       init_flags=init_flags,
                       boot_nodes=args.boot_nodes,
-                      verbose=args.verbose)
+                      verbose=args.verbose,
+                      args=sys.argv[1:])
     if command == 'mainnet':
         print('Sorry mainnet is now internal nodes only, please use https://rpc.mainnet.near.org to reach mainnet rpc')
     elif command == 'localnet':
         entry()
     elif command == 'stop':
-        stop()
+        stop(len(args) > 0 and args[0] == '--keep-watcher')
     elif command == 'logs':
         show_logs(len(args) > 0 and (
             args[0] == '-f' or args[0] == '--follow'))

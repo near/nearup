@@ -1,7 +1,7 @@
 import json
 import os
 import subprocess
-from nearuplib.util import download_near_s3
+from nearuplib.util import download_near_s3, download, print
 import sys
 import shutil
 import hashlib
@@ -53,6 +53,31 @@ def get_chain_id_from_flags(flags):
     return ''
 
 
+def genesis_changed(chain_id, home_dir):
+    genesis_md5sum = get_genesis_md5sum(chain_id)
+    local_genesis_md5sum = hashlib.md5(open(os.path.join(
+        os.path.join(home_dir, 'genesis.json')), 'rb').read()).hexdigest()
+    if genesis_md5sum == local_genesis_md5sum:
+        print(f'Our genesis version is up to date')
+        return False
+    else:
+        print(
+            f'Remote genesis protocol version md5 {genesis_md5sum}, ours is {local_genesis_md5sum}')
+        return True
+
+
+def check_and_update_genesis(chain_id, home_dir):
+    if genesis_changed(chain_id, home_dir):
+        print(
+            f'Update genesis config and remove stale data for {chain_id}')
+        os.remove(os.path.join(home_dir, 'genesis.json'))
+        download_genesis(chain_id, home_dir)
+        if os.path.exists(os.path.join(home_dir, 'data')):
+            shutil.rmtree(os.path.join(home_dir, 'data'))
+        return True
+    return False
+
+
 def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_price=False):
     """Checks if there is already everything setup on this machine, otherwise sets up NEAR node."""
     chain_id = get_chain_id_from_flags(init_flags)
@@ -74,36 +99,13 @@ def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_p
             exit(1)
 
         if chain_id == 'devnet':
-            genesis_time = get_genesis_time(chain_id)
-            if genesis_time == genesis_config['genesis_time']:
-                print(f'Our genesis version up to date')
-            else:
-                print(
-                    f'Remote genesis time {genesis_time}, ours is {genesis_config["genesis_time"]}')
-                print(
-                    f'Update genesis config and remove stale data for {chain_id}')
-                os.remove(os.path.join(home_dir, 'genesis.json'))
-                download_genesis('devnet', home_dir)
-                if os.path.exists(os.path.join(home_dir, 'data')):
-                    shutil.rmtree(os.path.join(home_dir, 'data'))
+            if check_and_update_genesis(chain_id, home_dir):
+                # For devnet, also update config because boot nodes changed
                 print(f'Update devnet config for new boot nodes')
                 os.remove(os.path.join(home_dir, 'config.json'))
                 download_config('devnet', home_dir)
         elif chain_id in ['betanet', 'testnet']:
-            genesis_md5sum = get_genesis_md5sum(chain_id)
-            local_genesis_md5sum = hashlib.md5(open(os.path.join(
-                os.path.join(home_dir, 'genesis.json')), 'rb').read()).hexdigest()
-            if genesis_md5sum == local_genesis_md5sum:
-                print(f'Our genesis version up to date')
-            else:
-                print(
-                    f'Remote genesis protocol version md5 {genesis_md5sum}, ours is {local_genesis_md5sum}')
-                print(
-                    f'Update genesis config and remove stale data for {chain_id}')
-                os.remove(os.path.join(home_dir, 'genesis.json'))
-                download_genesis(chain_id, home_dir)
-                if os.path.exists(os.path.join(home_dir, 'data')):
-                    shutil.rmtree(os.path.join(home_dir, 'data'))
+            check_and_update_genesis(chain_id, home_dir)
         else:
             print(f'Start {chain_id}')
             print("Using existing node configuration from %s for %s" %
@@ -169,29 +171,54 @@ def latest_deployed_version(net):
     return download_near_s3(f'nearcore-deploy/{net}/latest_deploy')
 
 
-def download_binary(net, uname):
+def docker_changed(image):
+    local_version = subprocess.check_output(
+        ['docker', 'image', 'ls', '-q', '--filter', f'reference={image}']).strip()
+    if local_version:
+        repo, *tag = image.split(':')
+        if tag:
+            tag = tag[0]
+        else:
+            tag = 'latest'
+        auth_token = json.loads(download(
+            f"https://auth.docker.io/token?service=registry.docker.io&scope=repository:{repo}:pull"))['token']
+        image_info = json.loads(download(f"https://index.docker.io/v2/{repo}/manifests/{tag}", headers=[
+                                f"Authorization: Bearer {auth_token}",  "Accept: application/vnd.docker.distribution.manifest.v2+json"]))
+        remote_version = image_info["config"]["digest"].split(':')[1]
+        if remote_version.startswith(local_version):
+            return False
+    return True
+
+
+def binary_changed(net):
     latest_deploy_version = latest_deployed_version(net)
     if os.path.exists(os.path.expanduser(f'~/.nearup/near/{net}/version')):
         with open(os.path.expanduser(f'~/.nearup/near/{net}/version')) as f:
             version = f.read().strip()
             if version == latest_deploy_version:
                 print('Downloaded binary version is up to date')
-                return
-    print(f'Downloading latest deployed version for {net}')
-    download_near_s3(
-        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/near', os.path.expanduser(f'~/.nearup/near/{net}/near'))
-    download_near_s3(
-        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/keypair-generator', os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator'))
-    download_near_s3(
-        f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/genesis-csv-to-json', os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json'))
-    subprocess.check_output(
-        ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/near')])
-    subprocess.check_output(
-        ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator')])
-    subprocess.check_output(
-        ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json')])
-    with open(os.path.expanduser(f'~/.nearup/near/{net}/version'), 'w') as f:
-        f.write(latest_deploy_version)
+                return False
+    return latest_deploy_version
+
+
+def download_binary(net, uname):
+    latest_deploy_version = binary_changed(net)
+    if latest_deploy_version:
+        print(f'Downloading latest deployed version for {net}')
+        download_near_s3(
+            f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/near', os.path.expanduser(f'~/.nearup/near/{net}/near'))
+        download_near_s3(
+            f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/keypair-generator', os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator'))
+        download_near_s3(
+            f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/genesis-csv-to-json', os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json'))
+        subprocess.check_output(
+            ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/near')])
+        subprocess.check_output(
+            ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator')])
+        subprocess.check_output(
+            ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json')])
+        with open(os.path.expanduser(f'~/.nearup/near/{net}/version'), 'w') as f:
+            f.write(latest_deploy_version)
 
 
 def get_genesis_time(net):
@@ -244,7 +271,7 @@ def get_port(home_dir, net):
     return p + ":" + p
 
 
-def run_docker(image, home_dir, boot_nodes, verbose, container_name='nearcore', host_network=False):
+def run_docker(image, home_dir, boot_nodes, verbose, container_name='nearcore', host_network=False, watch=False):
     """Runs NEAR core inside the docker container"""
     print("Starting NEAR client docker...")
     docker_stop_if_exists(container_name)
@@ -276,6 +303,9 @@ def run_docker(image, home_dir, boot_nodes, verbose, container_name='nearcore', 
     except subprocess.CalledProcessError as e:
         print('Failed to run docker near. Error:', file=sys.stderr)
         print(e.stderr, file=sys.stderr)
+        exit(1)
+    if watch:
+        run_watcher(watch, 'docker')
 
 
 def run_docker_testnet(image, home, *, shards=None, validators=None, non_validators=None):
@@ -305,7 +335,7 @@ def run_docker_testnet(image, home, *, shards=None, validators=None, non_validat
 NODE_PID = os.path.expanduser('~/.nearup/node.pid')
 
 
-def run_binary(path, home, action, *, verbose=None, shards=None, validators=None, non_validators=None, boot_nodes=None, output=None):
+def run_binary(path, home, action, *, verbose=None, shards=None, validators=None, non_validators=None, boot_nodes=None, output=None, watch=False):
     command = [path, '--home', home]
 
     if verbose or verbose == '':
@@ -325,7 +355,20 @@ def run_binary(path, home, action, *, verbose=None, shards=None, validators=None
     if output:
         output = open(f'{output}.log', 'w')
 
-    return Popen(command, stderr=output, stdout=output)
+    near = Popen(command, stderr=output, stdout=output)
+    if watch:
+        run_watcher(watch, 'nodocker')
+    return near
+
+
+def run_watcher(watch, docker):
+    watch_script = os.path.abspath(os.path.join(
+        os.path.dirname(__file__), '..', 'watcher.py'))
+    watch_log = open(os.path.expanduser('~/.nearup/logs/watcher.log'), 'w')
+    p = Popen(['python3', watch_script, watch['net'],
+               watch['home'], docker, *watch['args']], stdout=watch_log, stderr=watch_log)
+    with open(os.path.expanduser('~/.nearup/watcher.pid'), 'w') as f:
+        f.write(str(p.pid))
 
 
 def proc_name_from_pid(pid):
@@ -354,7 +397,7 @@ def check_exist_neard():
             exit(1)
 
 
-def run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id):
+def run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
     """Runs NEAR core outside of docker."""
     print("Starting NEAR client...")
     os.environ['RUST_BACKTRACE'] = '1'
@@ -367,7 +410,7 @@ def run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id):
     LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
     subprocess.check_output(['mkdir', '-p', LOGS_FOLDER])
     proc = run_binary(os.path.join(binary_path, 'near'), home_dir, 'run', verbose=verbose,
-                      boot_nodes=boot_nodes, output=os.path.join(LOGS_FOLDER, chain_id))
+                      boot_nodes=boot_nodes, output=os.path.join(LOGS_FOLDER, chain_id), watch=watch)
     proc_name = proc_name_from_pid(proc.pid)
     print(proc.pid, "|", proc_name, "|", chain_id, file=pid_fd)
     pid_fd.close()
@@ -411,7 +454,7 @@ def check_binary_version(binary_path, chain_id):
             f'Warning: current deployed version on {chain_id} is {latest_deploy_version}, but local binary is {version}. It might not work')
 
 
-def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes, verbose=False, no_gas_price=False):
+def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes, verbose=False, no_gas_price=False, args=None):
     check_exist_neard()
     chain_id = get_chain_id_from_flags(init_flags)
     if nodocker:
@@ -454,13 +497,15 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
     print_staking_key(home_dir)
 
     if nodocker:
-        run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id)
+        run_nodocker(home_dir, binary_path, boot_nodes, verbose,
+                     chain_id, watch={"args": args, "net": chain_id, 'home': home_dir})
     else:
-        run_docker(image, home_dir, boot_nodes, verbose)
+        run_docker(image, home_dir, boot_nodes, verbose,
+                   watch={"args": args, "net": chain_id, 'home': home_dir})
         print("Node is running! \nTo check logs call: docker logs --follow nearcore")
 
 
-def stop():
+def stop(keep_watcher=False):
     if shutil.which('docker') is not None:
         p = subprocess.Popen(
             ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -471,6 +516,8 @@ def stop():
             stop_native()
     else:
         stop_native()
+    if not keep_watcher:
+        stop_watcher()
 
 
 def stop_docker(containers):
@@ -489,7 +536,33 @@ def stop_native():
                 if proc_name in proc_name_from_pid(pid):
                     print(f"Stopping process {proc_name} with pid", pid)
                     kill(pid, SIGTERM)
+                    # Ensure the pid is killed, not just SIGTERM signal sent
+                    while True:
+                        try:
+                            os.kill(pid, 0)
+                        except OSError:
+                            break
+
         unlink(NODE_PID)
+
+
+def stop_watcher():
+    try:
+        with open(os.path.expanduser(f'~/.nearup/watcher.pid')) as f:
+            pid = int(f.read())
+        kill(pid, SIGTERM)
+        print(f'Stopping near watcher with pid {pid}')
+        os.remove(os.path.expanduser(f'~/.nearup/watcher.pid'))
+    except OSError:
+        pass
+    except FileNotFoundError:
+        pass
+    else:
+        while True:
+            try:
+                os.kill(pid, 0)
+            except OSError:
+                break
 
 
 def generate_node_key(home, binary_path, nodocker, image):
