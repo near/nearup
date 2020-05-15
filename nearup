@@ -21,7 +21,7 @@ if os.path.exists(main_script):
         sys.stderr.write('Warning: Failed to update nearup. Error:\n')
         sys.stderr.write(stderr + '\n')
     args = ['python3', main_script] + sys.argv[1:]
-    subprocess.Popen(args)
+    os.execvp(args[0], args[1:])
 
 else:
     p = subprocess.Popen(
