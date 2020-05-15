@@ -58,7 +58,7 @@ def genesis_changed(chain_id, home_dir):
     local_genesis_md5sum = hashlib.md5(open(os.path.join(
         os.path.join(home_dir, 'genesis.json')), 'rb').read()).hexdigest()
     if genesis_md5sum == local_genesis_md5sum:
-        print(f'Our genesis version up to date')
+        print(f'Our genesis version is up to date')
         return False
     else:
         print(
@@ -190,7 +190,7 @@ def docker_changed(image):
     return True
 
 
-def binary_changed(net, uname):
+def binary_changed(net):
     latest_deploy_version = latest_deployed_version(net)
     if os.path.exists(os.path.expanduser(f'~/.nearup/near/{net}/version')):
         with open(os.path.expanduser(f'~/.nearup/near/{net}/version')) as f:
@@ -202,7 +202,7 @@ def binary_changed(net, uname):
 
 
 def download_binary(net, uname):
-    latest_deploy_version = binary_changed(net, uname)
+    latest_deploy_version = binary_changed(net)
     if latest_deploy_version:
         print(f'Downloading latest deployed version for {net}')
         download_near_s3(

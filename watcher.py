@@ -29,7 +29,7 @@ if __name__ == '__main__':
         if genesis_changed(net, home_dir):
             nearup_restart(args)
             exit(0)
-        elif docker == 'nodocker' and binary_changed(net, os.uname()[0]):
+        elif docker == 'nodocker' and binary_changed(net):
             nearup_restart(args)
             exit(0)
         elif docker == 'docker' and docker_changed(net):
