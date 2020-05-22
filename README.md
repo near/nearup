@@ -19,6 +19,7 @@ Before you proceed, make sure you have the following software installed:
 Here is the installation command:
 
 ```
+sudo apt update
 sudo apt install python3 git curl
 ```
 
@@ -39,6 +40,7 @@ On each run, nearup self-updates to the latest version.
 > Ubuntu users can install it with the following command:
 >
 > ```
+> sudo apt update
 > sudo apt install docker.io
 > ```
 >
