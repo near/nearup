@@ -39,6 +39,7 @@ On each run, nearup self-updates to the latest version.
 > Ubuntu users can install it with the following command:
 >
 > ```
+> sudo apt update
 > sudo apt install docker.io
 > ```
 >
