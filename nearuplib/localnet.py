@@ -68,9 +68,12 @@ def run(args):
 
 def entry():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
+
+    group = parser.add_mutually_exclusive_group(required=True)
+
+    group.add_argument(
         '--docker-image', help='docker image to run localnet with docker, if specified will run docker instead of binary')
-    parser.add_argument(
+    group.add_argument(
         '--binary-path', help="near binary path, set to nearcore/target/debug or nearcore/target/release to use locally compiled binary")
     parser.add_argument('--home', default=expanduser('~/.near/localnet'),
                         help='Home path for storing configs, keys and chain data (Default: ~/.near/localnet)')
