@@ -1,7 +1,7 @@
 import json
 import os
 import subprocess
-from nearuplib.util import download_near_s3, download, print
+from nearuplib.util import download_near_s3, download, print, post
 import sys
 import shutil
 import hashlib
@@ -78,6 +78,18 @@ def check_and_update_genesis(chain_id, home_dir):
     return False
 
 
+def check_account_exist(net, account):
+    try:
+        resp = post(f'https://rpc.{net}.near.org', {
+            "id": "a", "jsonrpc": "2.0", "method": "query", 
+            "params": [f"account/{account}", ""]})
+        if resp.get('result'):
+            return True
+        return False
+    except:
+        return None
+
+
 def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_price=False):
     """Checks if there is already everything setup on this machine, otherwise sets up NEAR node."""
     chain_id = get_chain_id_from_flags(init_flags)
@@ -115,12 +127,18 @@ def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_p
     print("Setting up network configuration.")
     account_id = [x for x in init_flags if x.startswith('--account-id')]
     if not account_id:
-        prompt = "Enter your account ID"
+        prompt = ""
+        if chain_id in ['devnet', 'betanet', 'testnet']:
+            prompt += f"You need to have an account to be a validator, register or login on: https:/wallet.{chain_id}.near.org\n"
+        prompt += "Enter your account ID"
         if chain_id != '':
             prompt += " (leave empty if not going to be a validator): "
         else:
             prompt += ": "
         account_id = input(prompt)
+        if chain_id in ['devnet', 'betanet', 'testnet']:
+            if check_account_exist(chain_id, account_id) is False:
+                print(f'Account {account_id} does not exist, please make sure to register on https:/wallet.{chain_id}.near.org')
         init_flags.append('--account-id=%s' % account_id)
     else:
         account_id = account_id[0].split('=')[-1]
@@ -238,17 +256,31 @@ def get_genesis_md5sum(net):
     return download_near_s3(f'nearcore-deploy/{net}/genesis_md5sum').strip()
 
 
-def print_staking_key(home_dir):
+def amount_need_for_stake(chain_id):
+    if chain_id == 'betanet':
+        return 50000
+    else:
+        # a very high amount to prevent user from staking
+        return 50000000
+
+
+def print_staking_key(home_dir, chain_id):
     key_path = os.path.join(home_dir, 'validator_key.json')
     if not os.path.exists(key_path):
         return
 
     key_file = json.loads(open(key_path).read())
-    if not key_file['account_id']:
+    account_id = key_file['account_id']
+    pubkey = key_file['public_key']
+    if not account_id:
         print("Node is not staking. Re-run init to specify staking account.")
         return
-    print("Stake for user '%s' with '%s'" %
-          (key_file['account_id'], key_file['public_key']))
+    if chain_id in ['devnet', 'betanet', 'testnet']:
+        print(f"""Please staking with near-shell (https://github.com/near/near-shell):
+
+    near login --nodeUrl https://rpc.{chain_id}.near.org --networkId {chain_id} --accountId {account_id} --keyPath {key_path}
+    near stake {account_id} {pubkey} {amount_need_for_stake(chain_id)} # or above for staking on {chain_id}
+    """)
 
 
 def docker_stop_if_exists(name):
@@ -511,7 +543,7 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
     check_and_setup(nodocker, binary_path, image,
                     home_dir, init_flags, no_gas_price)
 
-    print_staking_key(home_dir)
+    print_staking_key(home_dir, chain_id)
 
     if nodocker:
         run_nodocker(home_dir, binary_path, boot_nodes, verbose,
