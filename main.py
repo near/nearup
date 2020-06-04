@@ -61,7 +61,10 @@ Run nearup <command> --help to see help for specific command
         self.args = sys.argv[2:]
 
     def logs(self):
-        self.args = sys.argv[2:]
+        parser = argparse.ArgumentParser(description='Show logs of currently running non docker node')
+        parser.add_argument('-f', '--follow', action='store_true', help='Follow logs')
+        parser.add_argument('-n', help='show given number of lines of logs (Default: 100)', default=100, type=int)
+        self.args = parser.parse_args(sys.argv[2:])
 
 
 if __name__ == '__main__':
@@ -88,5 +91,4 @@ if __name__ == '__main__':
     elif command == 'stop':
         stop(len(args) > 0 and args[0] == '--keep-watcher')
     elif command == 'logs':
-        show_logs(len(args) > 0 and (
-            args[0] == '-f' or args[0] == '--follow'))
+        show_logs(args.follow, args.n)
