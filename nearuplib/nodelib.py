@@ -278,8 +278,8 @@ def print_staking_key(home_dir, chain_id):
     if chain_id in ['devnet', 'betanet', 'testnet']:
         print(f"""Please staking with near-shell (https://github.com/near/near-shell):
 
-    near login --nodeUrl https://rpc.{chain_id}.near.org --networkId {chain_id} --accountId {account_id} --keyPath {key_path}
-    near stake {account_id} {pubkey} {amount_need_for_stake(chain_id)} # or above for staking on {chain_id}
+    near login --nodeUrl https://rpc.{chain_id}.near.org --networkId {chain_id} --accountId {account_id} --keyPath {key_path} --walletUrl https://wallet.{chain_id}.near.org --helperUrl https://helper.{chain_id}.near.org
+    near stake {account_id} {pubkey} {amount_need_for_stake(chain_id)} --nodeUrl https://rpc.{chain_id}.near.org --networkId {chain_id} --accountId {account_id} --keyPath {key_path} --walletUrl https://wallet.{chain_id}.near.org --helperUrl https://helper.{chain_id}.near.org # or above for staking on {chain_id}
     """)
 
 
