@@ -238,6 +238,10 @@ def get_genesis_md5sum(net):
     return download_near_s3(f'nearcore-deploy/{net}/genesis_md5sum').strip()
 
 
+def get_latest_deploy_at(net):
+    return download_near_s3(f'nearcore-deploy/{net}/latest_deploy_at').strip()
+
+
 def print_staking_key(home_dir):
     key_path = os.path.join(home_dir, 'validator_key.json')
     if not os.path.exists(key_path):
