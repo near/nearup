@@ -7,7 +7,7 @@ import os
 import subprocess
 import time
 import traceback
-from nearuplib.nodelib import genesis_changed, binary_changed, docker_changed
+from nearuplib.nodelib import get_latest_deploy_at
 from nearuplib.util import print
 
 
@@ -25,17 +25,14 @@ if __name__ == '__main__':
     home_dir = sys.argv[2]
     docker = sys.argv[3]
     args = sys.argv[4:]
+    latest_deploy_at = get_latest_deploy_at(net)
 
     while True:
         time.sleep(60)
         try:
-            if genesis_changed(net, home_dir):
-                nearup_restart(args)
-                break
-            elif docker == 'nodocker' and binary_changed(net):
-                nearup_restart(args)
-                break
-            elif docker == 'docker' and docker_changed(net):
+            new_latest_deploy_at = get_latest_deploy_at(net)
+            if new_latest_deploy_at and new_latest_deploy_at != latest_deploy_at:
+                print(f'new deploy happens at {new_latest_deploy_at}, restart nearup')
                 nearup_restart(args)
                 break
         except:
