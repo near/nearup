@@ -428,7 +428,7 @@ def run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=Fal
     print("Node is running! \nTo check logs call: `nearup logs` or `nearup logs --follow`")
 
 
-def show_logs(follow):
+def show_logs(follow, number_lines):
     LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
     if not os.path.exists(NODE_PID):
         print('Node is not running')
@@ -446,7 +446,7 @@ def show_logs(follow):
         # Maybe better to support `nearup logs node0` usage.
         print(f'You are running local net. Logs are in: ~/.nearup/localnet-logs/')
         exit(0)
-    command = ['tail']
+    command = ['tail', '-n', str(number_lines)]
     if follow:
         command += ['-f']
     command += [os.path.expanduser(f'~/.nearup/logs/{net}.log')]
