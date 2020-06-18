@@ -9,23 +9,23 @@ from subprocess import Popen, PIPE
 from os import unlink, kill
 from signal import SIGTERM
 
-
-USER = str(os.getuid())+':'+str(os.getgid())
+USER = str(os.getuid()) + ':' + str(os.getgid())
 
 
 def docker_init(image, home_dir, init_flags):
     """Inits the node configuration using docker."""
     subprocess.check_output(['mkdir', '-p', home_dir])
-    subprocess.check_output(['docker', 'run', '-u', USER, '--rm',
-                             '-v', '%s:/srv/near' % home_dir,
-                             '-v', os.path.abspath('near/res') + ':/near/res',
-                             image, 'near', '--home=/srv/near', 'init'] + init_flags)
+    subprocess.check_output([
+        'docker', 'run', '-u', USER, '--rm', '-v',
+        '%s:/srv/near' % home_dir, '-v',
+        os.path.abspath('near/res') +
+        ':/near/res', image, 'near', '--home=/srv/near', 'init'
+    ] + init_flags)
 
 
 def docker_init_official(chain_id, image, home_dir, account_id):
     """Inits the node configuration using docker for devnet, betanet and testnet"""
-    initialize_keys(home_dir, '', False, image,
-                    account_id, False)
+    initialize_keys(home_dir, '', False, image, account_id, False)
     download_genesis(chain_id, home_dir)
     download_config(chain_id, home_dir)
 
@@ -33,14 +33,12 @@ def docker_init_official(chain_id, image, home_dir, account_id):
 def nodocker_init(home_dir, binary_path, init_flags):
     """Inits the node configuration using near binary."""
     target = f'{binary_path}/near'
-    subprocess.call([target,
-                     '--home=%s' % home_dir, 'init'] + init_flags)
+    subprocess.call([target, '--home=%s' % home_dir, 'init'] + init_flags)
 
 
 def nodocker_init_official(chain_id, binary_path, home_dir, account_id):
     """Inits the node configuration using near binary for devnet, betanet and testnet"""
-    initialize_keys(home_dir, binary_path, True, '',
-                    account_id, False)
+    initialize_keys(home_dir, binary_path, True, '', account_id, False)
     download_genesis(chain_id, home_dir)
     download_config(chain_id, home_dir)
 
@@ -55,21 +53,22 @@ def get_chain_id_from_flags(flags):
 
 def genesis_changed(chain_id, home_dir):
     genesis_md5sum = get_genesis_md5sum(chain_id)
-    local_genesis_md5sum = hashlib.md5(open(os.path.join(
-        os.path.join(home_dir, 'genesis.json')), 'rb').read()).hexdigest()
+    local_genesis_md5sum = hashlib.md5(
+        open(os.path.join(os.path.join(home_dir, 'genesis.json')),
+             'rb').read()).hexdigest()
     if genesis_md5sum == local_genesis_md5sum:
         print(f'Our genesis version is up to date')
         return False
     else:
         print(
-            f'Remote genesis protocol version md5 {genesis_md5sum}, ours is {local_genesis_md5sum}')
+            f'Remote genesis protocol version md5 {genesis_md5sum}, ours is {local_genesis_md5sum}'
+        )
         return True
 
 
 def check_and_update_genesis(chain_id, home_dir):
     if genesis_changed(chain_id, home_dir):
-        print(
-            f'Update genesis config and remove stale data for {chain_id}')
+        print(f'Update genesis config and remove stale data for {chain_id}')
         os.remove(os.path.join(home_dir, 'genesis.json'))
         download_genesis(chain_id, home_dir)
         if os.path.exists(os.path.join(home_dir, 'data')):
@@ -78,7 +77,12 @@ def check_and_update_genesis(chain_id, home_dir):
     return False
 
 
-def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_price=False):
+def check_and_setup(nodocker,
+                    binary_path,
+                    image,
+                    home_dir,
+                    init_flags,
+                    no_gas_price=False):
     """Checks if there is already everything setup on this machine, otherwise sets up NEAR node."""
     chain_id = get_chain_id_from_flags(init_flags)
     if os.path.exists(os.path.join(home_dir)):
@@ -88,14 +92,17 @@ def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_p
                 missing.append(file)
         if missing:
             print(
-                f'Missing files {", ".join(missing)} in {home_dir}. Maybe last init was failed. either specify different --home or remove {home_dir} to start from scratch.', file=sys.stderr)
+                f'Missing files {", ".join(missing)} in {home_dir}. Maybe last init was failed. either specify different --home or remove {home_dir} to start from scratch.',
+                file=sys.stderr)
             exit(1)
 
         genesis_config = json.loads(
             open(os.path.join(os.path.join(home_dir, 'genesis.json'))).read())
         if genesis_config['chain_id'] != chain_id:
-            print(f"Folder {home_dir} already has network configuration for {genesis_config['chain_id']}\n"
-                  f"You want to run {chain_id}, either specify different --home or remove {home_dir} to start from scratch.", file=sys.stderr)
+            print(
+                f"Folder {home_dir} already has network configuration for {genesis_config['chain_id']}\n"
+                f"You want to run {chain_id}, either specify different --home or remove {home_dir} to start from scratch.",
+                file=sys.stderr)
             exit(1)
 
         if chain_id == 'devnet':
@@ -143,17 +150,18 @@ def check_and_setup(nodocker, binary_path, image, home_dir, init_flags, no_gas_p
         json.dump(genesis_config, open(filename, 'w'))
     elif no_gas_price:
         print(
-            f'no_gas_price is only for local development network, ignoring for {chain_id}')
+            f'no_gas_price is only for local development network, ignoring for {chain_id}'
+        )
 
 
 def download_config(net, home_dir):
-    download_near_s3(
-        f'nearcore-deploy/{net}/config.json', os.path.join(home_dir, 'config.json'))
+    download_near_s3(f'nearcore-deploy/{net}/config.json',
+                     os.path.join(home_dir, 'config.json'))
 
 
 def download_genesis(net, home_dir):
-    download_near_s3(
-        f'nearcore-deploy/{net}/genesis.json', os.path.join(home_dir, 'genesis.json'))
+    download_near_s3(f'nearcore-deploy/{net}/genesis.json',
+                     os.path.join(home_dir, 'genesis.json'))
 
 
 def net_to_branch(net):
@@ -175,7 +183,8 @@ def docker_changed(net):
     image = net_to_docker_image(net)
     print(f'Docker image: {image}')
     local_version = subprocess.check_output(
-        ['docker', 'image', 'ls', '-q', '--filter', f'reference={image}'], universal_newlines=True).strip()
+        ['docker', 'image', 'ls', '-q', '--filter', f'reference={image}'],
+        universal_newlines=True).strip()
     if local_version:
         print(f'Local docker version: {local_version}')
         repo, *tag = image.split(':')
@@ -183,10 +192,17 @@ def docker_changed(net):
             tag = tag[0]
         else:
             tag = 'latest'
-        auth_token = json.loads(download(
-            f"https://auth.docker.io/token?service=registry.docker.io&scope=repository:{repo}:pull"))['token']
-        image_info = json.loads(download(f"https://index.docker.io/v2/{repo}/manifests/{tag}", headers=[
-                                f"Authorization: Bearer {auth_token}",  "Accept: application/vnd.docker.distribution.manifest.v2+json"]))
+        auth_token = json.loads(
+            download(
+                f"https://auth.docker.io/token?service=registry.docker.io&scope=repository:{repo}:pull"
+            ))['token']
+        image_info = json.loads(
+            download(
+                f"https://index.docker.io/v2/{repo}/manifests/{tag}",
+                headers=[
+                    f"Authorization: Bearer {auth_token}",
+                    "Accept: application/vnd.docker.distribution.manifest.v2+json"
+                ]))
         remote_version = image_info["config"]["digest"].split(':')[1]
         print(f'Remote version: {remote_version}')
         if remote_version.startswith(local_version):
@@ -211,18 +227,27 @@ def download_binary(net, uname):
     if latest_deploy_version:
         print(f'Downloading latest deployed version for {net}')
         download_near_s3(
-            f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/near', os.path.expanduser(f'~/.nearup/near/{net}/near'))
+            f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/near',
+            os.path.expanduser(f'~/.nearup/near/{net}/near'))
         download_near_s3(
-            f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/keypair-generator', os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator'))
+            f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/keypair-generator',
+            os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator'))
         download_near_s3(
-            f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/genesis-csv-to-json', os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json'))
+            f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/genesis-csv-to-json',
+            os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json'))
         subprocess.check_output(
-            ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/near')])
-        subprocess.check_output(
-            ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator')])
-        subprocess.check_output(
-            ['chmod', '+x', os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json')])
-        with open(os.path.expanduser(f'~/.nearup/near/{net}/version'), 'w') as f:
+            ['chmod', '+x',
+             os.path.expanduser(f'~/.nearup/near/{net}/near')])
+        subprocess.check_output([
+            'chmod', '+x',
+            os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator')
+        ])
+        subprocess.check_output([
+            'chmod', '+x',
+            os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json')
+        ])
+        with open(os.path.expanduser(f'~/.nearup/near/{net}/version'),
+                  'w') as f:
             f.write(latest_deploy_version)
 
 
@@ -231,7 +256,8 @@ def get_genesis_time(net):
 
 
 def get_genesis_protocol_version(net):
-    return int(download_near_s3(f'nearcore-deploy/{net}/protocol_version').strip())
+    return int(
+        download_near_s3(f'nearcore-deploy/{net}/protocol_version').strip())
 
 
 def get_genesis_md5sum(net):
@@ -262,12 +288,14 @@ def docker_stop_if_exists(name):
     else:
         names = [name]
     try:
-        subprocess.Popen(['docker', 'stop', *names], stdout=subprocess.PIPE,
+        subprocess.Popen(['docker', 'stop', *names],
+                         stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE).communicate()
     except subprocess.CalledProcessError:
         pass
     try:
-        subprocess.Popen(['docker', 'rm', *names], stdout=subprocess.PIPE,
+        subprocess.Popen(['docker', 'rm', *names],
+                         stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE).communicate()
     except subprocess.CalledProcessError:
         pass
@@ -280,13 +308,21 @@ def get_port(home_dir, net):
     return p + ":" + p
 
 
-def run_docker(image, home_dir, boot_nodes, verbose, container_name='nearcore', host_network=False, watch=False):
+def run_docker(image,
+               home_dir,
+               boot_nodes,
+               verbose,
+               container_name='nearcore',
+               host_network=False,
+               watch=False):
     """Runs NEAR core inside the docker container"""
     print("Starting NEAR client docker...")
     docker_stop_if_exists(container_name)
     # Start nearcore container, mapping home folder and ports.
-    envs = ['-e', 'RUST_BACKTRACE=1', '-e', 'RUST_LOG=%s' %
-            os.environ.get('RUST_LOG', '')]
+    envs = [
+        '-e', 'RUST_BACKTRACE=1', '-e',
+        'RUST_LOG=%s' % os.environ.get('RUST_LOG', '')
+    ]
     home_dir = os.path.abspath(home_dir)
     rpc_port = get_port(home_dir, 'rpc')
     network_port = get_port(home_dir, 'network')
@@ -302,13 +338,12 @@ def run_docker(image, home_dir, boot_nodes, verbose, container_name='nearcore', 
         network_flags = ['-p', rpc_port, '-p', network_port]
     subprocess.check_output(['mkdir', '-p', home_dir])
     try:
-        subprocess.check_output(['docker', 'run', '-u', USER,
-                                 '-d', '-v', '%s:/srv/near' % home_dir,
-                                 *network_flags,
-                                 '-v', '/tmp:/tmp',
-                                 '--ulimit', 'core=-1',
-                                 '--name', container_name, '--restart', 'unless-stopped'] +
-                                envs + [image] + cmd)
+        subprocess.check_output([
+            'docker', 'run', '-u', USER, '-d', '-v',
+            '%s:/srv/near' %
+            home_dir, *network_flags, '-v', '/tmp:/tmp', '--ulimit', 'core=-1',
+            '--name', container_name, '--restart', 'unless-stopped'
+        ] + envs + [image] + cmd)
     except subprocess.CalledProcessError as e:
         print('Failed to run docker near. Error:', file=sys.stderr)
         print(e.stderr, file=sys.stderr)
@@ -317,12 +352,18 @@ def run_docker(image, home_dir, boot_nodes, verbose, container_name='nearcore', 
         run_watcher(watch, 'docker')
 
 
-def run_docker_testnet(image, home, *, shards=None, validators=None, non_validators=None):
+def run_docker_testnet(image,
+                       home,
+                       *,
+                       shards=None,
+                       validators=None,
+                       non_validators=None):
     subprocess.check_output(['mkdir', '-p', home])
     home = os.path.abspath(home)
-    command = ['docker', 'run', '-u', USER,
-               '--rm', '-v', '%s:/srv/near' % home,
-               image, 'near', '--home', '/srv/near', 'testnet']
+    command = [
+        'docker', 'run', '-u', USER, '--rm', '-v',
+        '%s:/srv/near' % home, image, 'near', '--home', '/srv/near', 'testnet'
+    ]
     if shards:
         command.extend(['--shards', str(shards)])
     if validators:
@@ -337,14 +378,25 @@ def run_docker_testnet(image, home, *, shards=None, validators=None, non_validat
         exit(1)
     except FileNotFoundError as exc:
         print(
-            "Failed to run docker near: docker is not installed or not in PATH", file=sys.stderr)
+            "Failed to run docker near: docker is not installed or not in PATH",
+            file=sys.stderr)
         exit(1)
 
 
 NODE_PID = os.path.expanduser('~/.nearup/node.pid')
 
 
-def run_binary(path, home, action, *, verbose=None, shards=None, validators=None, non_validators=None, boot_nodes=None, output=None, watch=False):
+def run_binary(path,
+               home,
+               action,
+               *,
+               verbose=None,
+               shards=None,
+               validators=None,
+               non_validators=None,
+               boot_nodes=None,
+               output=None,
+               watch=False):
     command = [path, '--home', home]
 
     if verbose or verbose == '':
@@ -371,13 +423,17 @@ def run_binary(path, home, action, *, verbose=None, shards=None, validators=None
 
 
 def run_watcher(watch, docker):
-    watch_script = os.path.abspath(os.path.join(
-        os.path.dirname(__file__), '..', 'watcher.py'))
+    watch_script = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..', 'watcher.py'))
     LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
     subprocess.check_output(['mkdir', '-p', LOGS_FOLDER])
     watch_log = open(os.path.expanduser('~/.nearup/logs/watcher.log'), 'w')
-    p = Popen(['python3', watch_script, watch['net'],
-               watch['home'], docker, *watch['args']], stdout=watch_log, stderr=watch_log)
+    p = Popen([
+        'python3', watch_script, watch['net'], watch['home'], docker,
+        *watch['args']
+    ],
+              stdout=watch_log,
+              stderr=watch_log)
     with open(os.path.expanduser('~/.nearup/watcher.pid'), 'w') as f:
         f.write(str(p.pid))
 
@@ -399,8 +455,10 @@ def check_exist_neard():
         print(f"If this is a mistake, remove {NODE_PID}")
         exit(1)
     if shutil.which('docker') is not None:
-        p = subprocess.Popen(
-            ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.Popen(['docker', 'ps', '-q', '-f', 'name=nearcore'],
+                             universal_newlines=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
         out, _ = p.communicate()
         if out.strip():
             print("There is already docker node running. Stop it using:")
@@ -408,7 +466,12 @@ def check_exist_neard():
             exit(1)
 
 
-def run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
+def run_nodocker(home_dir,
+                 binary_path,
+                 boot_nodes,
+                 verbose,
+                 chain_id,
+                 watch=False):
     """Runs NEAR core outside of docker."""
     print("Starting NEAR client...")
     os.environ['RUST_BACKTRACE'] = '1'
@@ -420,12 +483,19 @@ def run_nodocker(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=Fal
         verbose = None
     LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
     subprocess.check_output(['mkdir', '-p', LOGS_FOLDER])
-    proc = run_binary(os.path.join(binary_path, 'near'), home_dir, 'run', verbose=verbose,
-                      boot_nodes=boot_nodes, output=os.path.join(LOGS_FOLDER, chain_id), watch=watch)
+    proc = run_binary(os.path.join(binary_path, 'near'),
+                      home_dir,
+                      'run',
+                      verbose=verbose,
+                      boot_nodes=boot_nodes,
+                      output=os.path.join(LOGS_FOLDER, chain_id),
+                      watch=watch)
     proc_name = proc_name_from_pid(proc.pid)
     print(proc.pid, "|", proc_name, "|", chain_id, file=pid_fd)
     pid_fd.close()
-    print("Node is running! \nTo check logs call: `nearup logs` or `nearup logs --follow`")
+    print(
+        "Node is running! \nTo check logs call: `nearup logs` or `nearup logs --follow`"
+    )
 
 
 def show_logs(follow, number_lines):
@@ -444,7 +514,8 @@ def show_logs(follow, number_lines):
     else:
         # TODO: localnet could have several logs, not showing them all but list log files here
         # Maybe better to support `nearup logs node0` usage.
-        print(f'You are running local net. Logs are in: ~/.nearup/localnet-logs/')
+        print(
+            f'You are running local net. Logs are in: ~/.nearup/localnet-logs/')
         exit(0)
     command = ['tail', '-n', str(number_lines)]
     if follow:
@@ -459,10 +530,12 @@ def show_logs(follow, number_lines):
 def check_binary_version(binary_path, chain_id):
     latest_deploy_version = latest_deployed_version(chain_id)
     version = subprocess.check_output(
-        [f'{binary_path}/near', '--version'], universal_newlines=True).split('(build ')[1].split(')')[0]
+        [f'{binary_path}/near', '--version'],
+        universal_newlines=True).split('(build ')[1].split(')')[0]
     if not latest_deploy_version.startswith(version):
         print(
-            f'Warning: current deployed version on {chain_id} is {latest_deploy_version}, but local binary is {version}. It might not work')
+            f'Warning: current deployed version on {chain_id} is {latest_deploy_version}, but local binary is {version}. It might not work'
+        )
 
 
 def net_to_docker_image(chain_id):
@@ -475,7 +548,15 @@ def net_to_docker_image(chain_id):
     return image
 
 
-def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes, verbose=False, no_gas_price=False, args=None):
+def setup_and_run(nodocker,
+                  binary_path,
+                  image,
+                  home_dir,
+                  init_flags,
+                  boot_nodes,
+                  verbose=False,
+                  no_gas_price=False,
+                  args=None):
     check_exist_neard()
     chain_id = get_chain_id_from_flags(init_flags)
     if nodocker:
@@ -484,7 +565,8 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
             uname = os.uname()[0]
             if uname not in ['Linux', 'Darwin']:
                 print(
-                    'Sorry your Operating System does not have officially compiled binary now.\nPlease compile locally by `make debug` or `make release` in nearcore and set --binary-path')
+                    'Sorry your Operating System does not have officially compiled binary now.\nPlease compile locally by `make debug` or `make release` in nearcore and set --binary-path'
+                )
                 exit(1)
             binary_path = os.path.expanduser(f'~/.nearup/near/{chain_id}')
             subprocess.check_output(['mkdir', '-p', binary_path])
@@ -504,32 +586,40 @@ def setup_and_run(nodocker, binary_path, image, home_dir, init_flags, boot_nodes
             print(f'Pull docker image {image}')
             subprocess.check_output(['docker', 'pull', image])
         except subprocess.CalledProcessError as exc:
-            print("Failed to fetch docker containers: \n%s" %
-                  exc.stderr, file=sys.stderr)
+            print("Failed to fetch docker containers: \n%s" % exc.stderr,
+                  file=sys.stderr)
             exit(1)
         except FileNotFoundError as exc:
             print(
-                "Failed to fetch docker containers, docker is not installed or not in PATH", file=sys.stderr)
+                "Failed to fetch docker containers, docker is not installed or not in PATH",
+                file=sys.stderr)
             exit(1)
 
-    check_and_setup(nodocker, binary_path, image,
-                    home_dir, init_flags, no_gas_price)
+    check_and_setup(nodocker, binary_path, image, home_dir, init_flags,
+                    no_gas_price)
 
     print_staking_key(home_dir)
 
     if nodocker:
-        run_nodocker(home_dir, binary_path, boot_nodes, verbose,
-                     chain_id, watch=watch)
+        run_nodocker(home_dir,
+                     binary_path,
+                     boot_nodes,
+                     verbose,
+                     chain_id,
+                     watch=watch)
     else:
-        run_docker(image, home_dir, boot_nodes, verbose,
-                   watch=watch)
-        print("Node is running! \nTo check logs call: docker logs --follow nearcore")
+        run_docker(image, home_dir, boot_nodes, verbose, watch=watch)
+        print(
+            "Node is running! \nTo check logs call: docker logs --follow nearcore"
+        )
 
 
 def stop(keep_watcher=False):
     if shutil.which('docker') is not None:
-        p = subprocess.Popen(
-            ['docker', 'ps', '-q', '-f', 'name=nearcore'], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.Popen(['docker', 'ps', '-q', '-f', 'name=nearcore'],
+                             universal_newlines=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
         out, _ = p.communicate()
         if out.strip():
             stop_docker(out.split('\n'))
@@ -551,8 +641,7 @@ def stop_native():
     if os.path.exists(NODE_PID):
         with open(NODE_PID) as f:
             for line in f.readlines():
-                pid, proc_name, _ = map(
-                    str.strip, line.strip(' \n').split("|"))
+                pid, proc_name, _ = map(str.strip, line.strip(' \n').split("|"))
                 pid = int(pid)
                 if proc_name in proc_name_from_pid(pid):
                     print(f"Stopping process {proc_name} with pid", pid)
@@ -599,8 +688,11 @@ def generate_node_key(home, binary_path, nodocker, image):
             print("\nStopping NEARCore.")
     else:
         subprocess.check_output(['mkdir', '-p', home])
-        subprocess.check_output(['docker', 'run', '-u', USER, '-v', '%s:/srv/keypair-generator' % home,
-                                 image, 'keypair-generator', '--home=/srv/keypair-generator', '--generate-config', 'node-key'])
+        subprocess.check_output([
+            'docker', 'run', '-u', USER, '-v',
+            '%s:/srv/keypair-generator' % home, image, 'keypair-generator',
+            '--home=/srv/keypair-generator', '--generate-config', 'node-key'
+        ])
     print("Node key generated")
 
 
@@ -618,8 +710,12 @@ def generate_validator_key(home, binary_path, nodocker, image, account_id):
             print("\nStopping NEARCore.")
     else:
         subprocess.check_output(['mkdir', '-p', home])
-        subprocess.check_output(['docker', 'run', '-u', USER, '-v', '%s:/srv/keypair-generator' % home, image, 'keypair-generator',
-                                 '--home=/srv/keypair-generator', '--generate-config', '--account-id=%s' % account_id, 'validator-key'])
+        subprocess.check_output([
+            'docker', 'run', '-u', USER, '-v',
+            '%s:/srv/keypair-generator' % home, image, 'keypair-generator',
+            '--home=/srv/keypair-generator', '--generate-config',
+            '--account-id=%s' % account_id, 'validator-key'
+        ])
     print("Validator key generated")
 
 
@@ -637,12 +733,17 @@ def generate_signer_key(home, binary_path, nodocker, image, account_id):
             print("\nStopping NEARCore.")
     else:
         subprocess.check_output(['mkdir', '-p', home])
-        subprocess.check_output(['docker', 'run', '-u', USER, '-v', '%s:/srv/keypair-generator' % home, image, 'keypair-generator',
-                                 '--home=/srv/keypair-generator', '--generate-config', '--account-id=%s' % account_id, 'signer-keys'])
+        subprocess.check_output([
+            'docker', 'run', '-u', USER, '-v',
+            '%s:/srv/keypair-generator' % home, image, 'keypair-generator',
+            '--home=/srv/keypair-generator', '--generate-config',
+            '--account-id=%s' % account_id, 'signer-keys'
+        ])
     print("Signer keys generated")
 
 
-def initialize_keys(home, binary_path, nodocker, image, account_id, generate_signer_keys):
+def initialize_keys(home, binary_path, nodocker, image, account_id,
+                    generate_signer_keys):
     if generate_signer_keys:
         generate_signer_key(home, binary_path, nodocker, image, account_id)
     generate_node_key(home, binary_path, nodocker, image)
@@ -650,7 +751,8 @@ def initialize_keys(home, binary_path, nodocker, image, account_id, generate_sig
         generate_validator_key(home, binary_path, nodocker, image, account_id)
 
 
-def create_genesis(home, binary_path, nodocker, image, chain_id, tracked_shards):
+def create_genesis(home, binary_path, nodocker, image, chain_id,
+                   tracked_shards):
     if os.path.exists(os.path.join(home, 'genesis.json')):
         print("Genesis already exists")
         return
@@ -670,17 +772,28 @@ def create_genesis(home, binary_path, nodocker, image, chain_id, tracked_shards)
             print("\nStopping NEARCore.")
     else:
         subprocess.check_output(['mkdir', '-p', home])
-        subprocess.check_output(['docker', 'run', '-u', USER, '-v', '%s:/srv/genesis-csv-to-json' % home, image, 'genesis-csv-to-json',
-                                 '--home=/srv/genesis-csv-to-json', '--chain-id=%s' % chain_id, '--tracked-shards=%s' % tracked_shards])
+        subprocess.check_output([
+            'docker', 'run', '-u', USER, '-v',
+            '%s:/srv/genesis-csv-to-json' % home, image, 'genesis-csv-to-json',
+            '--home=/srv/genesis-csv-to-json',
+            '--chain-id=%s' % chain_id,
+            '--tracked-shards=%s' % tracked_shards
+        ])
     print("Genesis created")
 
 
-def start_stakewars(home, binary_path, nodocker, image, verbose, tracked_shards):
-    create_genesis(home, binary_path, nodocker, image,
-                   'stakewars', tracked_shards)
+def start_stakewars(home, binary_path, nodocker, image, verbose,
+                    tracked_shards):
+    create_genesis(home, binary_path, nodocker, image, 'stakewars',
+                   tracked_shards)
     if nodocker:
-        run_nodocker(home, binary_path, boot_nodes='',
-                     verbose=verbose, chain_id='stakewars')
+        run_nodocker(home,
+                     binary_path,
+                     boot_nodes='',
+                     verbose=verbose,
+                     chain_id='stakewars')
     else:
         run_docker(image, home, boot_nodes='', verbose=verbose)
-        print("Node is running! \nTo check logs call: docker logs --follow nearcore")
+        print(
+            "Node is running! \nTo check logs call: docker logs --follow nearcore"
+        )
