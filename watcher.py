@@ -12,11 +12,10 @@ from nearuplib.util import print
 
 
 def nearup_restart(args):
-    main_script = os.path.abspath(os.path.join(
-        os.path.dirname(__file__), 'main.py'))
+    main_script = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), 'main.py'))
     subprocess.check_output(['python3', main_script, 'stop', '--keep-watcher'])
-    subprocess.Popen(
-        ['python3', main_script, *args])
+    subprocess.Popen(['python3', main_script, *args])
     print('done')
 
 
@@ -32,7 +31,9 @@ if __name__ == '__main__':
         try:
             new_latest_deploy_at = get_latest_deploy_at(net)
             if new_latest_deploy_at and new_latest_deploy_at != latest_deploy_at:
-                print(f'new deploy happens at {new_latest_deploy_at}, restart nearup')
+                print(
+                    f'new deploy happens at {new_latest_deploy_at}, restart nearup'
+                )
                 nearup_restart(args)
                 break
         except:
