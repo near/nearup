@@ -8,48 +8,59 @@ version = platform.python_version_tuple()
 major_version = int(version[0])
 minor_version = int(version[1])
 if major_version < 3 or minor_version < 6:
-    sys.stderr.write('Require Python 3.6 or higher to run nearup\n')
-    exit(2)
+  sys.stderr.write('Require Python 3.6 or higher to run nearup\n')
+  exit(2)
 
 nearup_dir = os.path.expanduser('~/.nearup')
 main_script = os.path.expanduser('~/.nearup/main.py')
-if os.path.exists(main_script):
-    p = subprocess.Popen('cd ' + nearup_dir + ' && git pull',
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
-    _stdout, stderr = p.communicate()
-    if p.returncode != 0:
-        sys.stderr.write('Warning: Failed to update nearup. Error:\n')
-        sys.stderr.write(stderr + '\n')
-    args = ['python3', main_script] + sys.argv[1:]
-    os.execvp(args[0], args)
+if not os.path.exists(main_script):
+  p = subprocess.Popen([
+      'git', 'clone', 'https://github.com/nearprotocol/nearup',
+      os.path.expanduser('~/.nearup')
+  ],
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE,
+                       universal_newlines=True)
+  _stdout, stderr = p.communicate()
+  if p.returncode != 0:
+    sys.stderr.write('Failed to obtain nearup. Error:\n')
+    sys.stderr.write(stderr + '\n')
+    subprocess.check_output(['rm', '-rf', os.path.expanduser('~/.nearup')])
+    exit(1)
 
-else:
-    p = subprocess.Popen(
-        ['git', 'clone', 'https://github.com/nearprotocol/nearup', os.path.expanduser('~/.nearup')], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-    _stdout, stderr = p.communicate()
-    if p.returncode != 0:
-        sys.stderr.write('Failed to obtain nearup. Error:\n')
-        sys.stderr.write(stderr + '\n')
-        subprocess.check_output(['rm', '-rf', os.path.expanduser('~/.nearup')])
-        exit(1)
+  print('Nearup is installed to ~/.nearup!\n')
+  in_path = False
+  if os.path.exists(os.path.expanduser('~/.profile')):
+    with open(os.path.expanduser('~/.profile'), 'r') as f:
+      if 'source $HOME/.nearup/env' in f.read():
+        in_path = True
+  if not in_path:
 
-    print('Nearup is installed to ~/.nearup!\n')
-    in_path = False
-    if os.path.exists(os.path.expanduser('~/.profile')):
-        with open(os.path.expanduser('~/.profile'), 'r') as f:
-            if 'source $HOME/.nearup/env' in f.read():
-                in_path = True
-    if not in_path:
-        def add_path_if_exist(path):
-            if os.path.exists(os.path.expanduser(path)):
-                with open(os.path.expanduser(path), 'a') as f:
-                    f.write('\n\nsource $HOME/.nearup/env\n\n')
-        with open(os.path.expanduser('~/.profile'), 'a') as f:
-            f.write('\n\nsource $HOME/.nearup/env\n\n')
-        add_path_if_exist('~/.zprofile')
-        add_path_if_exist('~/.config/fish')
-        add_path_if_exist('~/.bash_profile')
-        print('''To get started you need Nearup's directory ($HOME/.nearup) in your PATH
+    def add_path_if_exist(path):
+      if os.path.exists(os.path.expanduser(path)):
+        with open(os.path.expanduser(path), 'a') as f:
+          f.write('\n\nsource $HOME/.nearup/env\n\n')
+
+    with open(os.path.expanduser('~/.profile'), 'a') as f:
+      f.write('\n\nsource $HOME/.nearup/env\n\n')
+    add_path_if_exist('~/.zprofile')
+    add_path_if_exist('~/.config/fish')
+    add_path_if_exist('~/.bash_profile')
+    print(
+        '''To get started you need Nearup's directory ($HOME/.nearup) in your PATH
 environment variable. Next time you log in this will be done automatically.
 
 To configure your current shell run `source $HOME/.nearup/env`''')
+
+p = subprocess.Popen(
+    'cd ' + nearup_dir + ' && git pull',
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    shell=True,
+    universal_newlines=True)
+_stdout, stderr = p.communicate()
+if p.returncode != 0:
+  sys.stderr.write('Warning: Failed to update nearup. Error:\n')
+  sys.stderr.write(stderr + '\n')
+args = ['python3', main_script] + sys.argv[1:]
+os.execvp(args[0], args)
