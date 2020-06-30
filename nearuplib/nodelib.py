@@ -780,20 +780,3 @@ def create_genesis(home, binary_path, nodocker, image, chain_id,
             '--tracked-shards=%s' % tracked_shards
         ])
     print("Genesis created")
-
-
-def start_stakewars(home, binary_path, nodocker, image, verbose,
-                    tracked_shards):
-    create_genesis(home, binary_path, nodocker, image, 'stakewars',
-                   tracked_shards)
-    if nodocker:
-        run_nodocker(home,
-                     binary_path,
-                     boot_nodes='',
-                     verbose=verbose,
-                     chain_id='stakewars')
-    else:
-        run_docker(image, home, boot_nodes='', verbose=verbose)
-        print(
-            "Node is running! \nTo check logs call: docker logs --follow nearcore"
-        )
