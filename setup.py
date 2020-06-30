@@ -15,17 +15,21 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Development Status :: 3 - Alpha", "Intended Audience :: Developers",
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
         "License :: OSI Approved :: BSD License",
         "Operating System :: MacOS :: MacOS X",
-        "Operating System :: POSIX :: Linux", "Topic :: System :: Clustering",
+        "Operating System :: POSIX :: Linux",
+        "Topic :: System :: Clustering",
         "Topic :: System :: Distributed Computing",
         "Topic :: System :: Installation/Setup",
         "Topic :: System :: Systems Administration",
-        "Topic :: System :: Networking"
+        "Topic :: System :: Networking",
     ],
-    install_requires=[],
+    install_requires=[
+        "psutil",
+    ],
     python_requires='>=3.6',
     # scripts=['nearup'] # Intentionally no scripts, use as lib only if installed from pypi
 )

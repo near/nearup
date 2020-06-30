@@ -1,12 +1,19 @@
-import sys
 import argparse
 import configparser
-from subprocess import Popen, PIPE
-from shutil import rmtree
+import json
+import sys
+
 from os import mkdir
 from os.path import exists, expanduser, join
-import json
-from nearuplib.nodelib import run_binary, NODE_PID, proc_name_from_pid, run_docker_testnet, run_docker, check_exist_neard
+from subprocess import Popen, PIPE
+from shutil import rmtree
+
+from nearuplib.nodelib import run_binary, NODE_PID, run_docker_testnet, run_docker, check_exist_neard
+
+# Egg import dependencies
+for egg in os.listdir('wheelhouse'):
+    sys.path.append(os.path.join('wheelhouse', egg))
+import psutil
 
 
 def run(args):
@@ -67,7 +74,7 @@ def run(args):
                 verbose=args.verbose,
                 boot_nodes=f'{pk}@127.0.0.1:24567' if i > 0 else None,
                 output=join(LOGS_FOLDER, f'node{i}'))
-            proc_name = proc_name_from_pid(proc.pid)
+            proc_name = psutil.Process(proc.pid).name()
             print(proc.pid, "|", proc_name, "|", 'localnet', file=pid_fd)
         pid_fd.close()
 
