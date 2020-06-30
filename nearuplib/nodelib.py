@@ -1,13 +1,16 @@
+import hashlib
 import json
 import os
+import psutil
 import subprocess
-from nearuplib.util import download_near_s3, download, print
 import sys
 import shutil
-import hashlib
-from subprocess import Popen, PIPE
+
 from os import unlink, kill
+from subprocess import Popen, PIPE
 from signal import SIGTERM
+
+from nearuplib.util import download_near_s3, download, print
 
 USER = str(os.getuid()) + ':' + str(os.getgid())
 
@@ -438,16 +441,6 @@ def run_watcher(watch, docker):
         f.write(str(p.pid))
 
 
-def proc_name_from_pid(pid):
-    proc = Popen(["ps", "-p", str(pid), "-o", "command="], stdout=PIPE)
-
-    if proc.wait() != 0:
-        # No process with this pid
-        return ""
-    else:
-        return proc.stdout.read().decode().strip()
-
-
 def check_exist_neard():
     if os.path.exists(NODE_PID):
         print("There is already binary nodes running. Stop it using:")
@@ -490,7 +483,7 @@ def run_nodocker(home_dir,
                       boot_nodes=boot_nodes,
                       output=os.path.join(LOGS_FOLDER, chain_id),
                       watch=watch)
-    proc_name = proc_name_from_pid(proc.pid)
+    proc_name = psutil.Process(proc.pid).name()
     print(proc.pid, "|", proc_name, "|", chain_id, file=pid_fd)
     pid_fd.close()
     print(
@@ -643,7 +636,7 @@ def stop_native():
             for line in f.readlines():
                 pid, proc_name, _ = map(str.strip, line.strip(' \n').split("|"))
                 pid = int(pid)
-                if proc_name in proc_name_from_pid(pid):
+                if proc_name == psutil.Process(pid).name():
                     print(f"Stopping process {proc_name} with pid", pid)
                     kill(pid, SIGTERM)
                     # Ensure the pid is killed, not just SIGTERM signal sent
