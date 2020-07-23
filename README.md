@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/nearup.svg)](https://pypi.org/project/nearup/)
 
-Public scripts to launch near devnet, betanet and testnet node
+Public scripts to launch near betanet and testnet node
 
 # Usage
 
@@ -58,7 +58,7 @@ Once all the prerequisites are met, just run:
 nearup betanet
 ```
 
-Where `betanet` is the weekly release; use `devnet` for the nightly releases, or `testnet` for the stable releases.
+Where `betanet` is the weekly release, or `testnet` for the stable releases.
 
 ### Using Officially Compiled Binary (recommended for running on servers)
 
@@ -68,7 +68,7 @@ Currently, officially compiled binaries are available for Linux and Mac OS X
 nearup betanet --nodocker
 ```
 
-Replace `betanet` with `devnet` or `testnet` if you want to use a different network.
+Replace `betanet` with `testnet` if you want to use a different network.
 
 ### Using Locally Compiled Binary (recommended for security critical validators or development needs)
 
@@ -78,7 +78,7 @@ Clone and compile nearcore with `make release` or `make debug` first.
 nearup betanet --nodocker --binary-path path/to/nearcore/target/{debug, release}
 ```
 
-Replace `betanet` with `devnet` or `testnet` if you want to use a different network.
+Replace `betanet` with `testnet` if you want to use a different network.
 
 ## Spawn Local network
 
