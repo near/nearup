@@ -24,7 +24,7 @@ def docker_init(image, home_dir, init_flags):
 
 
 def docker_init_official(chain_id, image, home_dir, account_id):
-    """Inits the node configuration using docker for devnet, betanet and testnet"""
+    """Inits the node configuration using docker for betanet and testnet"""
     initialize_keys(home_dir, '', False, image, account_id, False)
     download_genesis(chain_id, home_dir)
     download_config(chain_id, home_dir)
@@ -37,7 +37,7 @@ def nodocker_init(home_dir, binary_path, init_flags):
 
 
 def nodocker_init_official(chain_id, binary_path, home_dir, account_id):
-    """Inits the node configuration using near binary for devnet, betanet and testnet"""
+    """Inits the node configuration using near binary for betanet and testnet"""
     initialize_keys(home_dir, binary_path, True, '', account_id, False)
     download_genesis(chain_id, home_dir)
     download_config(chain_id, home_dir)
@@ -105,13 +105,7 @@ def check_and_setup(nodocker,
                 file=sys.stderr)
             exit(1)
 
-        if chain_id == 'devnet':
-            if check_and_update_genesis(chain_id, home_dir):
-                # For devnet, also update config because boot nodes changed
-                print(f'Update devnet config for new boot nodes')
-                os.remove(os.path.join(home_dir, 'config.json'))
-                download_config('devnet', home_dir)
-        elif chain_id in ['betanet', 'testnet']:
+        if chain_id in ['betanet', 'testnet']:
             check_and_update_genesis(chain_id, home_dir)
         else:
             print(f'Start {chain_id}')
@@ -133,16 +127,16 @@ def check_and_setup(nodocker,
         account_id = account_id[0].split('=')[-1]
 
     if nodocker:
-        if chain_id in ['devnet', 'betanet', 'testnet']:
+        if chain_id in ['betanet', 'testnet']:
             nodocker_init_official(chain_id, binary_path, home_dir, account_id)
         else:
             nodocker_init(home_dir, binary_path, init_flags)
     else:
-        if chain_id in ['devnet', 'betanet', 'testnet']:
+        if chain_id in ['betanet', 'testnet']:
             docker_init_official(chain_id, image, home_dir, account_id)
         else:
             docker_init(image, home_dir, init_flags)
-    if chain_id not in ['devnet', 'betanet', 'testnet'] and no_gas_price:
+    if chain_id not in ['betanet', 'testnet'] and no_gas_price:
         filename = os.path.join(home_dir, 'genesis.json')
         genesis_config = json.load(open(filename))
         genesis_config['gas_price'] = 0
@@ -169,8 +163,6 @@ def net_to_branch(net):
         return 'stable'
     elif net == 'betanet':
         return 'beta'
-    elif net == 'devnet':
-        return 'master'
     else:
         raise Exception(f'Unknown net {net}')
 
@@ -505,9 +497,7 @@ def show_logs(follow, number_lines):
         exit(1)
 
     pid_info = open(NODE_PID).read()
-    if 'devnet' in pid_info:
-        net = 'devnet'
-    elif 'betanet' in pid_info:
+    if 'betanet' in pid_info:
         net = 'betanet'
     elif 'testnet' in pid_info:
         net = 'testnet'
@@ -541,8 +531,6 @@ def check_binary_version(binary_path, chain_id):
 def net_to_docker_image(chain_id):
     if chain_id == 'betanet':
         image = 'nearprotocol/nearcore:beta'
-    elif chain_id == 'devnet':
-        image = 'nearprotocol/nearcore:master'
     else:
         image = 'nearprotocol/nearcore'
     return image

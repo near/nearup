@@ -17,7 +17,6 @@ Commands are:
     mainnet    (Coming soon) Run a mainnet node
     testnet    Run a testnet node
     betanet    Run a betanet node
-    devnet     Run a devnet node
     localnet   Run a network with several nodes locally
     stop       Stop the currently running node
     logs       Show logs of currently running non docker node
@@ -44,11 +43,6 @@ Run nearup <command> --help to see help for specific command
     def betanet(self):
         parser = create_net_argparser(netname='betanet',
                                       description='Run a betanet node')
-        self.args = parser.parse_args(sys.argv[2:])
-
-    def devnet(self):
-        parser = create_net_argparser(netname='devnet',
-                                      description='Run a devnet node')
         self.args = parser.parse_args(sys.argv[2:])
 
     def mainnet(self):
@@ -78,7 +72,7 @@ if __name__ == '__main__':
     sys.argv[0] = 'nearup'
     nearup_arg_parser = NearupArgParser()
     command, args = nearup_arg_parser.command, nearup_arg_parser.args
-    if command in ['devnet', 'betanet', 'testnet']:
+    if command in ['betanet', 'testnet']:
         if args.local:
             print("Flag --local deprecated, please use --nodocker")
         nodocker = args.nodocker or args.local
