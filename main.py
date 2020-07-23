@@ -14,7 +14,7 @@ class NearupArgParser(object):
                                          usage='''nearup <command> [<args>]
 
 Commands are:
-    mainnet    (Comming soon) Run a mainnet node
+    mainnet    (Coming soon) Run a mainnet node
     testnet    Run a testnet node
     betanet    Run a betanet node
     devnet     Run a devnet node
