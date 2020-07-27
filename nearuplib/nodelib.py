@@ -158,17 +158,12 @@ def download_genesis(net, home_dir):
                      os.path.join(home_dir, 'genesis.json'))
 
 
-def net_to_branch(net):
-    if net == 'testnet':
-        return 'stable'
-    elif net == 'betanet':
-        return 'beta'
-    else:
-        raise Exception(f'Unknown net {net}')
-
-
 def latest_deployed_version(net):
-    return download_near_s3(f'nearcore-deploy/{net}/latest_deploy')
+    return download_near_s3(f'nearcore-deploy/{net}/latest_deploy').strip()
+
+
+def latest_deployed_release(net):
+    return download_near_s3(f'nearcore-deploy/{net}/latest_release').strip()
 
 
 def docker_changed(net):
@@ -215,17 +210,18 @@ def binary_changed(net):
 
 
 def download_binary(net, uname):
-    latest_deploy_version = binary_changed(net)
-    if latest_deploy_version:
+    commit = latest_deployed_version(net)
+    branch = latest_deployed_release(net)
+
+    if commit:
         print(f'Downloading latest deployed version for {net}')
+        download_near_s3(f'nearcore/{uname}/{branch}/{commit}/near',
+                         os.path.expanduser(f'~/.nearup/near/{net}/near'))
         download_near_s3(
-            f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/near',
-            os.path.expanduser(f'~/.nearup/near/{net}/near'))
-        download_near_s3(
-            f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/keypair-generator',
+            f'nearcore/{uname}/{branch}/{commit}/keypair-generator',
             os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator'))
         download_near_s3(
-            f'nearcore/{uname}/{net_to_branch(net)}/{latest_deploy_version}/genesis-csv-to-json',
+            f'nearcore/{uname}/{branch}/{commit}/genesis-csv-to-json',
             os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json'))
         subprocess.check_output(
             ['chmod', '+x',
@@ -240,7 +236,7 @@ def download_binary(net, uname):
         ])
         with open(os.path.expanduser(f'~/.nearup/near/{net}/version'),
                   'w') as f:
-            f.write(latest_deploy_version)
+            f.write(commit)
 
 
 def get_genesis_time(net):
@@ -528,12 +524,10 @@ def check_binary_version(binary_path, chain_id):
         )
 
 
-def net_to_docker_image(chain_id):
-    if chain_id == 'betanet':
-        image = 'nearprotocol/nearcore:beta'
-    else:
-        image = 'nearprotocol/nearcore'
-    return image
+def net_to_docker_image(net):
+    commit = latest_deployed_version(net)
+    branch = latest_deployed_release(net)
+    return f'nearprotocol/nearcore:{branch}-{commit}'
 
 
 def setup_and_run(nodocker,
