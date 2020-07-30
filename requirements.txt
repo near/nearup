@@ -1,0 +1,10 @@
+boto3
+click
+jinja2
+pytest
+PyGithub
+requests
+semver
+terminaltables
+toml==0.10.0
+yapf
