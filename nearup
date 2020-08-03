@@ -1,102 +1,82 @@
 #!/usr/bin/env python3
 
-import argparse
+import click
+import os
 import sys
-from nearuplib.net_argparser import create_net_argparser
+
 from nearuplib.localnet import entry
 from nearuplib.nodelib import setup_and_run, stop, show_logs
-from nearuplib.util import print
-import os
 
 
-class NearupArgParser(object):
+@click.group()
+def cli():
+    pass
 
-    def __init__(self):
-        parser = argparse.ArgumentParser(description='Nearup',
-                                         usage='''nearup <command> [<args>]
 
-Commands are:
-    mainnet    (Coming soon) Run a mainnet node
-    testnet    Run a testnet node
-    betanet    Run a betanet node
-    localnet   Run a network with several nodes locally
-    stop       Stop the currently running node
-    logs       Show logs of currently running non docker node
+@cli.command()
+@click.argument('network',
+                type=click.Choice({'mainnet', 'testnet', 'betanet',
+                                   'localnet'}))
+@click.option(
+    '--binary-path',
+    type=str,
+    default='',
+    help=
+    'Near binary path, use nearcore/target/debug or nearcore/target/release for local development'
+)
+@click.option(
+    '--home',
+    type=str,
+    help=
+    f'Home path for storing configs, keys and chain data (Default: ~/.near/testnet)'
+)
+@click.option('--account-id', type=str, help='Specify the node account ID')
+@click.option('--boot-nodes', type=str, help='Specify the nodes to boot from')
+@click.option('--verbose', is_flag=True, help='If set, prints verbose logs')
+def run(network, binary_path, home, account_id, boot_nodes, verbose):
+    print(network)
+    if home:
+        home = os.path.abspath(home)
+    else:
+        home = os.path.expanduser(f'~/.near/{network}')
 
-Run nearup <command> --help to see help for specific command
-''')
-        parser.add_argument('command', help='Subcommand to run')
-        args = parser.parse_args(sys.argv[1:2])
-        if not hasattr(self, args.command):
-            print('Unrecognized command', file=sys.stderr)
-            parser.print_help(sys.stderr)
-            exit(2)
-        self.command = args.command
-        getattr(self, args.command)()
+    print(home)
 
-    def localnet(self):
-        self.args = None
+    nodocker = True
+    image = None
 
-    def testnet(self):
-        parser = create_net_argparser(netname='testnet',
-                                      description='Run a testnet node')
-        self.args = parser.parse_args(sys.argv[2:])
+    if network == 'localnet':
+        entry()
+    elif network == 'mainnet':
+        print('Sorry mainnet is now internal nodes only!!!')
+        print('Please use https://rpc.mainnet.near.org to reach mainnet rpc')
+    else:
+        init_flags = [f'--chain-id={network}']
+        if account_id:
+            init_flags.append(f'--account-id={account_id}')
 
-    def betanet(self):
-        parser = create_net_argparser(netname='betanet',
-                                      description='Run a betanet node')
-        self.args = parser.parse_args(sys.argv[2:])
+        setup_and_run(nodocker,
+                      binary_path,
+                      image,
+                      home,
+                      init_flags=init_flags,
+                      boot_nodes=boot_nodes,
+                      verbose=verbose,
+                      args=[])
 
-    def mainnet(self):
-        parser = create_net_argparser(netname='mainnet',
-                                      description='Run a mainnet node')
-        self.args = parser.parse_args(sys.argv[2:])
 
-    def stop(self):
-        self.args = sys.argv[2:]
+@click.option('--keep-watcher', is_flag=True, help='Keep the watcher running.')
+@cli.command()
+def stop(keep_watcher):
+    stop(keep_watcher)
 
-    def logs(self):
-        parser = argparse.ArgumentParser(
-            description='Show logs of currently running non docker node')
-        parser.add_argument('-f',
-                            '--follow',
-                            action='store_true',
-                            help='Follow logs')
-        parser.add_argument(
-            '-n',
-            help='show given number of lines of logs (Default: 100)',
-            default=100,
-            type=int)
-        self.args = parser.parse_args(sys.argv[2:])
+
+@click.option('--follow', is_flag=True, help='Follow the logs.')
+@click.option('--lines', '-l', default=100, type=int)
+@cli.command()
+def logs(follow, lines):
+    show_logs(follow, lines)
 
 
 if __name__ == '__main__':
-    sys.argv[0] = 'nearup'
-    nearup_arg_parser = NearupArgParser()
-    command, args = nearup_arg_parser.command, nearup_arg_parser.args
-    if command in ['betanet', 'testnet']:
-        if args.local:
-            print("Flag --local deprecated, please use --nodocker")
-        nodocker = args.nodocker or args.local
-        args.home = os.path.abspath(args.home)
-        init_flags = [f'--chain-id={command}']
-        if args.account_id:
-            init_flags.append(f'--account-id={args.account_id}')
-        setup_and_run(nodocker,
-                      args.binary_path,
-                      args.image,
-                      args.home,
-                      init_flags=init_flags,
-                      boot_nodes=args.boot_nodes,
-                      verbose=args.verbose,
-                      args=sys.argv[1:])
-    if command == 'mainnet':
-        print(
-            'Sorry mainnet is now internal nodes only, please use https://rpc.mainnet.near.org to reach mainnet rpc'
-        )
-    elif command == 'localnet':
-        entry()
-    elif command == 'stop':
-        stop(len(args) > 0 and args[0] == '--keep-watcher')
-    elif command == 'logs':
-        show_logs(args.follow, args.n)
+    cli()
