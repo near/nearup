@@ -8,7 +8,6 @@ import subprocess
 import time
 import traceback
 from nearuplib.nodelib import get_latest_deploy_at
-from nearuplib.util import print
 
 
 def nearup_restart(args):

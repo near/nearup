@@ -1,7 +1,7 @@
 import json
 import os
 import subprocess
-from nearuplib.util import download_near_s3, download, print
+from nearuplib.util import download_near_s3, download
 import sys
 import shutil
 import hashlib
