@@ -27,5 +27,5 @@ setuptools.setup(
     ],
     install_requires=[],
     python_requires='>=3.6',
-    # scripts=['nearup'] # Intentionally no scripts, use as lib only if installed from pypi
+    scripts=['nearup'],
 )
