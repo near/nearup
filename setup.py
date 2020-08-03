@@ -25,7 +25,7 @@ setuptools.setup(
         "Topic :: System :: Systems Administration",
         "Topic :: System :: Networking"
     ],
-    install_requires=[],
+    install_requires=['click'],
     python_requires='>=3.6',
     scripts=['nearup'],
 )

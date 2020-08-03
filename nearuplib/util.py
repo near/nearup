@@ -25,7 +25,3 @@ def download_near_s3(path, filepath=None):
     return download(
         f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/{path}',
         filepath)
-
-
-def print(*args, **kwargs):
-    builtins.print(*args, **kwargs, flush=True)
