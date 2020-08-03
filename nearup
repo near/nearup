@@ -1,65 +1,102 @@
 #!/usr/bin/env python3
-import os
-import subprocess
+
+import argparse
 import sys
-import platform
+from nearuplib.net_argparser import create_net_argparser
+from nearuplib.localnet import entry
+from nearuplib.nodelib import setup_and_run, stop, show_logs
+from nearuplib.util import print
+import os
 
-version = platform.python_version_tuple()
-major_version = int(version[0])
-minor_version = int(version[1])
-if major_version < 3 or minor_version < 6:
-    sys.stderr.write('Require Python 3.6 or higher to run nearup\n')
-    exit(2)
 
-nearup_dir = os.path.expanduser('~/.nearup')
-main_script = os.path.expanduser('~/.nearup/main.py')
-if not os.path.exists(main_script):
-    p = subprocess.Popen([
-        'git', 'clone', 'https://github.com/nearprotocol/nearup',
-        os.path.expanduser('~/.nearup')
-    ],
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE,
-                         universal_newlines=True)
-    _stdout, stderr = p.communicate()
-    if p.returncode != 0:
-        sys.stderr.write('Failed to obtain nearup. Error:\n')
-        sys.stderr.write(stderr + '\n')
-        subprocess.check_output(['rm', '-rf', os.path.expanduser('~/.nearup')])
-        exit(1)
+class NearupArgParser(object):
 
-    print('Nearup is installed to ~/.nearup!\n')
-    in_path = False
-    if os.path.exists(os.path.expanduser('~/.profile')):
-        with open(os.path.expanduser('~/.profile'), 'r') as f:
-            if 'source $HOME/.nearup/env' in f.read():
-                in_path = True
-    if not in_path:
+    def __init__(self):
+        parser = argparse.ArgumentParser(description='Nearup',
+                                         usage='''nearup <command> [<args>]
 
-        def add_path_if_exist(path):
-            if os.path.exists(os.path.expanduser(path)):
-                with open(os.path.expanduser(path), 'a') as f:
-                    f.write('\n\nsource $HOME/.nearup/env\n\n')
+Commands are:
+    mainnet    (Coming soon) Run a mainnet node
+    testnet    Run a testnet node
+    betanet    Run a betanet node
+    localnet   Run a network with several nodes locally
+    stop       Stop the currently running node
+    logs       Show logs of currently running non docker node
 
-        with open(os.path.expanduser('~/.profile'), 'a') as f:
-            f.write('\n\nsource $HOME/.nearup/env\n\n')
-        add_path_if_exist('~/.zprofile')
-        add_path_if_exist('~/.config/fish')
-        add_path_if_exist('~/.bash_profile')
+Run nearup <command> --help to see help for specific command
+''')
+        parser.add_argument('command', help='Subcommand to run')
+        args = parser.parse_args(sys.argv[1:2])
+        if not hasattr(self, args.command):
+            print('Unrecognized command', file=sys.stderr)
+            parser.print_help(sys.stderr)
+            exit(2)
+        self.command = args.command
+        getattr(self, args.command)()
+
+    def localnet(self):
+        self.args = None
+
+    def testnet(self):
+        parser = create_net_argparser(netname='testnet',
+                                      description='Run a testnet node')
+        self.args = parser.parse_args(sys.argv[2:])
+
+    def betanet(self):
+        parser = create_net_argparser(netname='betanet',
+                                      description='Run a betanet node')
+        self.args = parser.parse_args(sys.argv[2:])
+
+    def mainnet(self):
+        parser = create_net_argparser(netname='mainnet',
+                                      description='Run a mainnet node')
+        self.args = parser.parse_args(sys.argv[2:])
+
+    def stop(self):
+        self.args = sys.argv[2:]
+
+    def logs(self):
+        parser = argparse.ArgumentParser(
+            description='Show logs of currently running non docker node')
+        parser.add_argument('-f',
+                            '--follow',
+                            action='store_true',
+                            help='Follow logs')
+        parser.add_argument(
+            '-n',
+            help='show given number of lines of logs (Default: 100)',
+            default=100,
+            type=int)
+        self.args = parser.parse_args(sys.argv[2:])
+
+
+if __name__ == '__main__':
+    sys.argv[0] = 'nearup'
+    nearup_arg_parser = NearupArgParser()
+    command, args = nearup_arg_parser.command, nearup_arg_parser.args
+    if command in ['betanet', 'testnet']:
+        if args.local:
+            print("Flag --local deprecated, please use --nodocker")
+        nodocker = args.nodocker or args.local
+        args.home = os.path.abspath(args.home)
+        init_flags = [f'--chain-id={command}']
+        if args.account_id:
+            init_flags.append(f'--account-id={args.account_id}')
+        setup_and_run(nodocker,
+                      args.binary_path,
+                      args.image,
+                      args.home,
+                      init_flags=init_flags,
+                      boot_nodes=args.boot_nodes,
+                      verbose=args.verbose,
+                      args=sys.argv[1:])
+    if command == 'mainnet':
         print(
-            '''To get started you need Nearup's directory ($HOME/.nearup) in your PATH
-environment variable. Next time you log in this will be done automatically.
-
-To configure your current shell run `source $HOME/.nearup/env`''')
-
-p = subprocess.Popen('cd ' + nearup_dir + ' && git pull',
-                     stdout=subprocess.PIPE,
-                     stderr=subprocess.PIPE,
-                     shell=True,
-                     universal_newlines=True)
-_stdout, stderr = p.communicate()
-if p.returncode != 0:
-    sys.stderr.write('Warning: Failed to update nearup. Error:\n')
-    sys.stderr.write(stderr + '\n')
-args = ['python3', main_script] + sys.argv[1:]
-os.execvp(args[0], args)
+            'Sorry mainnet is now internal nodes only, please use https://rpc.mainnet.near.org to reach mainnet rpc'
+        )
+    elif command == 'localnet':
+        entry()
+    elif command == 'stop':
+        stop(len(args) > 0 and args[0] == '--keep-watcher')
+    elif command == 'logs':
+        show_logs(args.follow, args.n)
