@@ -6,7 +6,7 @@ from shutil import rmtree
 from os import mkdir
 from os.path import exists, expanduser, join
 import json
-from nearuplib.nodelib import run_binary, NODE_PID, proc_name_from_pid, run_docker_testnet, run_docker, check_exist_neard
+from nearuplib.nodelib import run_binary, NODE_PID, proc_name_from_pid, check_exist_neard
 
 
 def run(args):
@@ -16,17 +16,11 @@ def run(args):
             rmtree(args.home)
 
     if not exists(args.home):
-        if args.docker_image:
-            run_docker_testnet(args.docker_image,
-                               args.home,
-                               shards=args.num_shards,
-                               validators=args.num_nodes)
-        else:
-            run_binary(args.binary_path,
-                       args.home,
-                       'testnet',
-                       shards=args.num_shards,
-                       validators=args.num_nodes).wait()
+        run_binary(args.binary_path,
+                   args.home,
+                   'testnet',
+                   shards=args.num_shards,
+                   validators=args.num_nodes).wait()
 
     # Edit args files
     for i in range(0, args.num_nodes):
@@ -49,35 +43,20 @@ def run(args):
     mkdir(LOGS_FOLDER)
 
     # Spawn network
-    if args.docker_image:
-        for i in range(0, args.num_nodes):
-            run_docker(args.docker_image,
-                       join(args.home, f'node{i}'),
-                       boot_nodes=f'{pk}@127.0.0.1:24567' if i > 0 else None,
-                       verbose=args.verbose,
-                       container_name=f'nearcore{i}',
-                       host_network=True)
-    else:
-        pid_fd = open(NODE_PID, 'w')
-        for i in range(0, args.num_nodes):
-            proc = run_binary(
-                args.binary_path,
-                join(args.home, f'node{i}'),
-                'run',
-                verbose=args.verbose,
-                boot_nodes=f'{pk}@127.0.0.1:24567' if i > 0 else None,
-                output=join(LOGS_FOLDER, f'node{i}'))
-            proc_name = proc_name_from_pid(proc.pid)
-            print(proc.pid, "|", proc_name, "|", 'localnet', file=pid_fd)
-        pid_fd.close()
+    pid_fd = open(NODE_PID, 'w')
+    for i in range(0, args.num_nodes):
+        proc = run_binary(args.binary_path,
+                          join(args.home, f'node{i}'),
+                          'run',
+                          verbose=args.verbose,
+                          boot_nodes=f'{pk}@127.0.0.1:24567' if i > 0 else None,
+                          output=join(LOGS_FOLDER, f'node{i}'))
+        proc_name = proc_name_from_pid(proc.pid)
+        print(proc.pid, "|", proc_name, "|", 'localnet', file=pid_fd)
+    pid_fd.close()
 
     print("Local network was spawned successfully.")
-    if args.docker_image:
-        print(
-            f"Check logs at: 'docker logs -f nearcore<i>', i is {','.join(list(map(str, range(4))))}"
-        )
-    else:
-        print(f"Check logs at: {LOGS_FOLDER}")
+    print(f"Check logs at: {LOGS_FOLDER}")
     print("Check network status at http://127.0.0.1:3030/status")
 
 
@@ -86,11 +65,6 @@ def entry():
 
     group = parser.add_mutually_exclusive_group(required=True)
 
-    group.add_argument(
-        '--docker-image',
-        help=
-        'docker image to run localnet with docker, if specified will run docker instead of binary'
-    )
     group.add_argument(
         '--binary-path',
         help=
