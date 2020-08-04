@@ -6,7 +6,7 @@ import os
 import sys
 
 from nearuplib.localnet import entry
-from nearuplib.nodelib import setup_and_run, stop, show_logs
+from nearuplib.nodelib import setup_and_run, stop_nearup, show_logs
 
 logging.basicConfig(
     level=logging.INFO,
@@ -68,7 +68,7 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose):
 @click.option('--keep-watcher', is_flag=True, help='Keep the watcher running.')
 @cli.command()
 def stop(keep_watcher):
-    stop(keep_watcher)
+    stop_nearup(keep_watcher)
 
 
 @click.option('--follow', is_flag=True, help='Follow the logs.')
