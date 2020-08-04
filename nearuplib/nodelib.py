@@ -329,6 +329,7 @@ def show_logs(follow, number_lines):
         exit(1)
 
     pid_info = open(NODE_PID).read()
+    print(pid_info)
     if 'betanet' in pid_info:
         net = 'betanet'
     elif 'testnet' in pid_info:
@@ -394,7 +395,7 @@ def setup_and_run(binary_path,
     run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=watch)
 
 
-def stop(keep_watcher=False):
+def stop_nearup(keep_watcher=False):
     logging.warn("Stopping the near daemon...")
     stop_native()
 
