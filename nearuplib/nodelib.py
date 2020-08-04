@@ -1,27 +1,34 @@
 import json
+import logging
 import os
 import subprocess
-from nearuplib.util import download_near_s3, download
 import sys
 import shutil
 import hashlib
-from subprocess import Popen, PIPE
+
 from os import unlink, kill
+from subprocess import Popen, PIPE
 from signal import SIGTERM
+
+from nearuplib.util import download_near_s3, download
 
 USER = str(os.getuid()) + ':' + str(os.getgid())
 
 
 def init(home_dir, binary_path, init_flags):
-    """Inits the node configuration using near binary."""
+    logging.info("Initializing the node configuration using near binary...")
     target = f'{binary_path}/near'
     subprocess.call([target, '--home=%s' % home_dir, 'init'] + init_flags)
 
 
 def init_official(chain_id, binary_path, home_dir, account_id):
-    """Inits the node configuration using near binary for betanet and testnet"""
+    logging.info("Initializing the keys...")
     initialize_keys(home_dir, binary_path, '', account_id)
+
+    logging.info("Downloading the genesis file...")
     download_genesis(chain_id, home_dir)
+
+    logging.info("Downloading the config file...")
     download_config(chain_id, home_dir)
 
 
@@ -39,18 +46,19 @@ def genesis_changed(chain_id, home_dir):
         open(os.path.join(os.path.join(home_dir, 'genesis.json')),
              'rb').read()).hexdigest()
     if genesis_md5sum == local_genesis_md5sum:
-        print(f'Our genesis version is up to date')
+        logging.info(f'Our genesis version is up to date')
         return False
-    else:
-        print(
-            f'Remote genesis protocol version md5 {genesis_md5sum}, ours is {local_genesis_md5sum}'
-        )
-        return True
+
+    logging.info(
+        f'Remote genesis protocol version md5 {genesis_md5sum}, ours is {local_genesis_md5sum}'
+    )
+    return True
 
 
 def check_and_update_genesis(chain_id, home_dir):
     if genesis_changed(chain_id, home_dir):
-        print(f'Update genesis config and remove stale data for {chain_id}')
+        logging.info(
+            f'Update genesis config and remove stale data for {chain_id}')
         os.remove(os.path.join(home_dir, 'genesis.json'))
         download_genesis(chain_id, home_dir)
         if os.path.exists(os.path.join(home_dir, 'data')):
@@ -68,29 +76,29 @@ def check_and_setup(binary_path, home_dir, init_flags, no_gas_price=False):
             if not os.path.exists(os.path.join(home_dir, file)):
                 missing.append(file)
         if missing:
-            print(
+            logging.error(
                 f'Missing files {", ".join(missing)} in {home_dir}. Maybe last init was failed. either specify different --home or remove {home_dir} to start from scratch.',
-                file=sys.stderr)
+            )
             exit(1)
 
         genesis_config = json.loads(
             open(os.path.join(os.path.join(home_dir, 'genesis.json'))).read())
         if genesis_config['chain_id'] != chain_id:
-            print(
+            logging.error(
                 f"Folder {home_dir} already has network configuration for {genesis_config['chain_id']}\n"
                 f"You want to run {chain_id}, either specify different --home or remove {home_dir} to start from scratch.",
-                file=sys.stderr)
+            )
             exit(1)
 
         if chain_id in ['betanet', 'testnet']:
             check_and_update_genesis(chain_id, home_dir)
         else:
-            print(f'Start {chain_id}')
-            print("Using existing node configuration from %s for %s" %
-                  (home_dir, genesis_config['chain_id']))
+            logging.info(f'Start {chain_id}')
+            logging.info("Using existing node configuration from %s for %s" %
+                         (home_dir, genesis_config['chain_id']))
         return
 
-    print("Setting up network configuration.")
+    logging.info("Setting up network configuration.")
     account_id = [x for x in init_flags if x.startswith('--account-id')]
     if not account_id:
         prompt = "Enter your account ID"
@@ -115,7 +123,7 @@ def check_and_setup(binary_path, home_dir, init_flags, no_gas_price=False):
         genesis_config['min_gas_price'] = 0
         json.dump(genesis_config, open(filename, 'w'))
     elif no_gas_price:
-        print(
+        logging.info(
             f'no_gas_price is only for local development network, ignoring for {chain_id}'
         )
 
@@ -144,7 +152,7 @@ def binary_changed(net):
         with open(os.path.expanduser(f'~/.nearup/near/{net}/version')) as f:
             version = f.read().strip()
             if version == latest_deploy_version:
-                print('Downloaded binary version is up to date')
+                logging.info('Downloaded binary version is up to date')
                 return False
     return latest_deploy_version
 
@@ -154,7 +162,7 @@ def download_binary(net, uname):
     branch = latest_deployed_release(net)
 
     if commit:
-        print(f'Downloading latest deployed version for {net}')
+        logging.info(f'Downloading latest deployed version for {net}')
         download_near_s3(f'nearcore/{uname}/{branch}/{commit}/near',
                          os.path.expanduser(f'~/.nearup/near/{net}/near'))
         download_near_s3(
@@ -203,10 +211,11 @@ def print_staking_key(home_dir):
 
     key_file = json.loads(open(key_path).read())
     if not key_file['account_id']:
-        print("Node is not staking. Re-run init to specify staking account.")
+        logging.warn(
+            "Node is not staking. Re-run init to specify staking account.")
         return
-    print("Stake for user '%s' with '%s'" %
-          (key_file['account_id'], key_file['public_key']))
+    logging.info("Stake for user '%s' with '%s'" %
+                 (key_file['account_id'], key_file['public_key']))
 
 
 def get_port(home_dir, net):
@@ -261,9 +270,12 @@ def run_watcher(watch):
     LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
     subprocess.check_output(['mkdir', '-p', LOGS_FOLDER])
     watch_log = open(os.path.expanduser('~/.nearup/logs/watcher.log'), 'w')
+
+    logging.info("Starting the nearup watcher...")
     p = Popen(['python3', watch_script, watch['net'], watch['home']],
               stdout=watch_log,
               stderr=watch_log)
+
     with open(os.path.expanduser('~/.nearup/watcher.pid'), 'w') as f:
         f.write(str(p.pid))
 
@@ -280,9 +292,9 @@ def proc_name_from_pid(pid):
 
 def check_exist_neard():
     if os.path.exists(NODE_PID):
-        print("There is already binary nodes running. Stop it using:")
-        print("nearup stop")
-        print(f"If this is a mistake, remove {NODE_PID}")
+        logging.warn("There is already binary nodes running. Stop it using:")
+        logging.warn("nearup stop")
+        logging.warn(f"If this is a mistake, remove {NODE_PID}")
         exit(1)
 
 
@@ -304,9 +316,8 @@ def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
                       output=os.path.join(LOGS_FOLDER, chain_id),
                       watch=watch)
     proc_name = proc_name_from_pid(proc.pid)
-    print(proc.pid, "|", proc_name, "|", chain_id, file=pid_fd)
     pid_fd.close()
-    print(
+    logging.info(
         "Node is running! \nTo check logs call: `nearup logs` or `nearup logs --follow`"
     )
 
@@ -314,7 +325,7 @@ def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
 def show_logs(follow, number_lines):
     LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
     if not os.path.exists(NODE_PID):
-        print('Node is not running')
+        logging.info('Node is not running')
         exit(1)
 
     pid_info = open(NODE_PID).read()
@@ -325,7 +336,7 @@ def show_logs(follow, number_lines):
     else:
         # TODO: localnet could have several logs, not showing them all but list log files here
         # Maybe better to support `nearup logs node0` usage.
-        print(
+        logging.info(
             f'You are running local net. Logs are in: ~/.nearup/localnet-logs/')
         exit(0)
     command = ['tail', '-n', str(number_lines)]
@@ -341,13 +352,14 @@ def show_logs(follow, number_lines):
 
 
 def check_binary_version(binary_path, chain_id):
+    logging.info("Checking the current binary version...")
     latest_deploy_version = latest_deployed_version(chain_id)
     version = subprocess.check_output(
         [f'{binary_path}/near', '--version'],
         universal_newlines=True).split('(build ')[1].split(')')[0]
     if not latest_deploy_version.startswith(version):
-        print(
-            f'Warning: current deployed version on {chain_id} is {latest_deploy_version}, but local binary is {version}. It might not work'
+        logging.warn(
+            f'Current deployed version on {chain_id} is {latest_deploy_version}, but local binary is {version}. It might not work'
         )
 
 
@@ -359,13 +371,12 @@ def setup_and_run(binary_path,
                   no_gas_price=False):
     check_exist_neard()
     chain_id = get_chain_id_from_flags(init_flags)
-    print(binary_path, home_dir, init_flags, verbose, no_gas_price)
 
     if binary_path == '':
-        print(f'Using officially compiled binary')
+        logging.info(f'Using officially compiled binary')
         uname = os.uname()[0]
         if uname not in ['Linux', 'Darwin']:
-            print(
+            logging.error(
                 'Sorry your Operating System does not have officially compiled binary now.\nPlease compile locally by `make debug` or `make release` in nearcore and set --binary-path'
             )
             exit(1)
@@ -374,7 +385,7 @@ def setup_and_run(binary_path,
         download_binary(chain_id, uname)
         watch = {"net": chain_id, 'home': home_dir}
     else:
-        print(f'Using local binary at {binary_path}')
+        logging.info(f'Using local binary at {binary_path}')
         check_binary_version(binary_path, chain_id)
         watch = False
 
@@ -386,10 +397,14 @@ def setup_and_run(binary_path,
 
 
 def stop(keep_watcher=False):
+    logging.warn("Stopping the near daemon...")
     stop_native()
 
     if not keep_watcher:
+        logging.warn("Stopping the nearup watcher...")
         stop_watcher()
+    else:
+        logging.warn("Skipping the stopping of the nearup watcher...")
 
 
 def stop_native():
@@ -399,7 +414,7 @@ def stop_native():
                 pid, proc_name, _ = map(str.strip, line.strip(' \n').split("|"))
                 pid = int(pid)
                 if proc_name in proc_name_from_pid(pid):
-                    print(f"Stopping process {proc_name} with pid", pid)
+                    logging.info(f"Stopping process {proc_name} with pid", pid)
                     kill(pid, SIGTERM)
                     # Ensure the pid is killed, not just SIGTERM signal sent
                     while True:
@@ -416,7 +431,7 @@ def stop_watcher():
         with open(os.path.expanduser(f'~/.nearup/watcher.pid')) as f:
             pid = int(f.read())
         kill(pid, SIGTERM)
-        print(f'Stopping near watcher with pid {pid}')
+        logging.info(f'Stopping near watcher with pid {pid}')
         os.remove(os.path.expanduser(f'~/.nearup/watcher.pid'))
     except OSError:
         pass
@@ -438,12 +453,12 @@ def generate_node_key(home, binary_path):
     try:
         subprocess.call(cmd)
     except KeyboardInterrupt:
-        print("\nStopping NEARCore.")
-    print("Node key generated")
+        logging.warn("\nStopping NEARCore.")
+    logging.info("Node key generated")
 
 
 def generate_validator_key(home, binary_path, account_id):
-    print("Generating validator key...")
+    logging.info("Generating validator key...")
     cmd = [f'{binary_path}/keypair-generator']
     cmd.extend(['--home', home])
     cmd.extend(['--generate-config'])
@@ -452,12 +467,12 @@ def generate_validator_key(home, binary_path, account_id):
     try:
         subprocess.call(cmd)
     except KeyboardInterrupt:
-        print("\nStopping NEARCore.")
-    print("Validator key generated")
+        logging.warn("\nStopping NEARCore.")
+    logging.info("Validator key generated")
 
 
 def generate_signer_key(home, binary_path, account_id):
-    print("Generating signer keys...")
+    logging.info("Generating signer keys...")
     cmd = [f'{binary_path}/keypair-generator']
     cmd.extend(['--home', home])
     cmd.extend(['--generate-config'])
@@ -466,23 +481,28 @@ def generate_signer_key(home, binary_path, account_id):
     try:
         subprocess.call(cmd)
     except KeyboardInterrupt:
-        print("\nStopping NEARCore.")
-    print("Signer keys generated")
+        logging.warn("\nStopping NEARCore.")
+    logging.info("Signer keys generated")
 
 
 def initialize_keys(home, binary_path, account_id, generate_signer_keys):
     if generate_signer_keys:
+        logging.info("Generating the signer keys...")
         generate_signer_key(home, binary_path, account_id)
+
+    logging.info("Generating the node keys...")
     generate_node_key(home, binary_path)
+
     if account_id:
+        logging.info("Generating the validator keys...")
         generate_validator_key(home, binary_path, account_id)
 
 
 def create_genesis(home, binary_path, chain_id, tracked_shards):
     if os.path.exists(os.path.join(home, 'genesis.json')):
-        print("Genesis already exists")
+        logging.warn("Genesis already exists")
         return
-    print("Creating genesis...")
+    logging.info("Creating genesis...")
     if not os.path.exists(os.path.join(home, 'accounts.csv')):
         raise Exception(
             "Failed to generate genesis: accounts.csv does not exist")
@@ -495,5 +515,5 @@ def create_genesis(home, binary_path, chain_id, tracked_shards):
     try:
         subprocess.call(cmd)
     except KeyboardInterrupt:
-        print("\nStopping NEARCore.")
-    print("Genesis created")
+        logging.warn("\nStopping NEARCore.")
+    logging.info("Genesis created")
