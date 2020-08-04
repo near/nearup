@@ -8,7 +8,11 @@ import sys
 from nearuplib.localnet import entry
 from nearuplib.nodelib import setup_and_run, stop, show_logs
 
-logging.basicConfig(filename='example.log', level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.INFO,
+    format=
+    '%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S')
 
 
 @click.group()
@@ -40,21 +44,19 @@ def cli():
               default='')
 @click.option('--verbose', is_flag=True, help='If set, prints verbose logs')
 def run(network, binary_path, home, account_id, boot_nodes, verbose):
-    print(network)
     if home:
         home = os.path.abspath(home)
     else:
         home = os.path.expanduser(f'~/.near/{network}')
 
-    print(home)
-
-    image = None
+    logging.info(f"Home directory is {home}...")
 
     if network == 'localnet':
         entry()
     elif network == 'mainnet':
-        print('Sorry mainnet is now internal nodes only!!!')
-        print('Please use https://rpc.mainnet.near.org to reach mainnet rpc')
+        logging.error('Sorry mainnet is now internal nodes only!!!')
+        logging.error(
+            'Please use https://rpc.mainnet.near.org to reach mainnet rpc')
     else:
         init_flags = [f'--chain-id={network}']
         if account_id:
