@@ -5,8 +5,12 @@ import logging
 import os
 import sys
 
+from nearuplib.constants import LOGS_FOLDER
 from nearuplib.localnet import entry
 from nearuplib.nodelib import setup_and_run, stop_nearup, show_logs
+
+if not os.path.exists(LOGS_FOLDER):
+    os.makedirs(LOGS_FOLDER)
 
 logging.basicConfig(
     level=logging.INFO,

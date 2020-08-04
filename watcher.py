@@ -2,12 +2,24 @@
 # Watch for genesis change, re-nearup when that happens
 # This tool is launched by main.py as a background process
 
+import logging
 import sys
 import os
 import subprocess
 import time
 import traceback
 from nearuplib.nodelib import get_latest_deploy_at
+
+logging.basicConfig(
+    level=logging.INFO,
+    format=
+    '%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.FileHandler(os.path.expanduser('~/.nearup/logs/watcher.log')),
+        logging.StreamHandler()
+    ],
+)
 
 
 def nearup_restart(args):
@@ -21,8 +33,7 @@ def nearup_restart(args):
 if __name__ == '__main__':
     net = sys.argv[1]
     home_dir = sys.argv[2]
-    docker = sys.argv[3]
-    args = sys.argv[4:]
+    args = sys.argv[3:]
     latest_deploy_at = get_latest_deploy_at(net)
 
     while True:

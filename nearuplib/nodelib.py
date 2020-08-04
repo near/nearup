@@ -10,6 +10,7 @@ from os import unlink, kill
 from subprocess import Popen, PIPE
 from signal import SIGTERM
 
+from nearuplib.constants import LOGS_FOLDER
 from nearuplib.util import download_near_s3, download
 
 USER = str(os.getuid()) + ':' + str(os.getgid())
@@ -267,14 +268,9 @@ def run_binary(path,
 def run_watcher(watch):
     watch_script = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..', 'watcher.py'))
-    LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
-    subprocess.check_output(['mkdir', '-p', LOGS_FOLDER])
-    watch_log = open(os.path.expanduser('~/.nearup/logs/watcher.log'), 'w')
 
     logging.info("Starting the nearup watcher...")
-    p = Popen(['python3', watch_script, watch['net'], watch['home']],
-              stdout=watch_log,
-              stderr=watch_log)
+    p = Popen(['python3', watch_script, watch['net'], watch['home']])
 
     with open(os.path.expanduser('~/.nearup/watcher.pid'), 'w') as f:
         f.write(str(p.pid))
@@ -306,8 +302,6 @@ def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
         verbose = ''
     else:
         verbose = None
-    LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
-    subprocess.check_output(['mkdir', '-p', LOGS_FOLDER])
     proc = run_binary(os.path.join(binary_path, 'near'),
                       home_dir,
                       'run',
@@ -323,7 +317,6 @@ def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
 
 
 def show_logs(follow, number_lines):
-    LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
     if not os.path.exists(NODE_PID):
         logging.info('Node is not running')
         exit(1)
