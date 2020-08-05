@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import psutil
 import subprocess
 import sys
 import shutil
@@ -277,13 +278,8 @@ def run_watcher(watch):
 
 
 def proc_name_from_pid(pid):
-    proc = Popen(["ps", "-p", str(pid), "-o", "command="], stdout=PIPE)
-
-    if proc.wait() != 0:
-        # No process with this pid
-        return ""
-    else:
-        return proc.stdout.read().decode().strip()
+    process = psutil.Process(pid)
+    return process.name()
 
 
 def check_exist_neard():
@@ -310,10 +306,11 @@ def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
                       output=os.path.join(LOGS_FOLDER, chain_id),
                       watch=watch)
     proc_name = proc_name_from_pid(proc.pid)
+    pid_fd.write(f"{proc.pid}|{proc_name}|{chain_id}")
     pid_fd.close()
-    logging.info(
-        "Node is running! \nTo check logs call: `nearup logs` or `nearup logs --follow`"
-    )
+
+    logging.info("Node is running...")
+    logging.info("To check logs call: `nearup logs` or `nearup logs --follow`")
 
 
 def show_logs(follow, number_lines):
@@ -322,7 +319,6 @@ def show_logs(follow, number_lines):
         exit(1)
 
     pid_info = open(NODE_PID).read()
-    print(pid_info)
     if 'betanet' in pid_info:
         net = 'betanet'
     elif 'testnet' in pid_info:
@@ -400,41 +396,40 @@ def stop_nearup(keep_watcher=False):
 
 
 def stop_native():
-    if os.path.exists(NODE_PID):
-        with open(NODE_PID) as f:
-            for line in f.readlines():
-                pid, proc_name, _ = map(str.strip, line.strip(' \n').split("|"))
-                pid = int(pid)
-                if proc_name in proc_name_from_pid(pid):
-                    logging.info(f"Stopping process {proc_name} with pid", pid)
-                    kill(pid, SIGTERM)
-                    # Ensure the pid is killed, not just SIGTERM signal sent
-                    while True:
-                        try:
-                            os.kill(pid, 0)
-                        except OSError:
-                            break
-
-        unlink(NODE_PID)
+    try:
+        if os.path.exists(NODE_PID):
+            with open(NODE_PID) as f:
+                for line in f.readlines():
+                    pid, proc_name, _ = line.strip().split("|")
+                    pid = int(pid)
+                    process = psutil.Process(pid)
+                    logging.info(
+                        "Near procces is {proc_name} with pid: {pid}...")
+                    if proc_name in proc_name_from_pid(pid):
+                        logging.info(
+                            f"Stopping process {proc_name} with pid {pid}...")
+                        process.kill()
+                    os.remove(NODE_PID)
+        else:
+            logging.info("Near deamon is not running...")
+    except OSError as e:
+        logging.error("There was an error while stopping watcher: {e}")
 
 
 def stop_watcher():
     try:
-        with open(os.path.expanduser(f'~/.nearup/watcher.pid')) as f:
-            pid = int(f.read())
-        kill(pid, SIGTERM)
-        logging.info(f'Stopping near watcher with pid {pid}')
-        os.remove(os.path.expanduser(f'~/.nearup/watcher.pid'))
-    except OSError:
-        pass
-    except FileNotFoundError:
-        pass
-    else:
-        while True:
-            try:
-                os.kill(pid, 0)
-            except OSError:
-                break
+        if os.path.exists("~/.nearup/watcher.pid"):
+            with open(os.path.expanduser(f'~/.nearup/watcher.pid')) as f:
+                pid = int(f.read())
+                process = psutil.Process(pid)
+                logging.info(
+                    f'Stopping near watcher {process.name()} with pid {pid}...')
+                process.kill()
+                os.remove(os.path.expanduser(f'~/.nearup/watcher.pid'))
+        else:
+            logging.info("Nearup watcher is not running...")
+    except OSError as e:
+        logging.error("There was an error while stopping watcher: {e}")
 
 
 def generate_node_key(home, binary_path):
