@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import psutil
+import stat
 import subprocess
 import sys
 import shutil
@@ -159,31 +160,28 @@ def binary_changed(net):
     return latest_deploy_version
 
 
-def download_binary(net, uname):
+def download_binaries(net, uname):
     commit = latest_deployed_version(net)
     branch = latest_deployed_release(net)
 
     if commit:
         logging.info(f'Downloading latest deployed version for {net}')
-        download_near_s3(f'nearcore/{uname}/{branch}/{commit}/near',
-                         os.path.expanduser(f'~/.nearup/near/{net}/near'))
-        download_near_s3(
-            f'nearcore/{uname}/{branch}/{commit}/keypair-generator',
-            os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator'))
-        download_near_s3(
-            f'nearcore/{uname}/{branch}/{commit}/genesis-csv-to-json',
-            os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json'))
-        subprocess.check_output(
-            ['chmod', '+x',
-             os.path.expanduser(f'~/.nearup/near/{net}/near')])
-        subprocess.check_output([
-            'chmod', '+x',
-            os.path.expanduser(f'~/.nearup/near/{net}/keypair-generator')
-        ])
-        subprocess.check_output([
-            'chmod', '+x',
-            os.path.expanduser(f'~/.nearup/near/{net}/genesis-csv-to-json')
-        ])
+
+        binaries = ['near', 'keypair-generator', 'genesis-csv-to-json']
+        for binary in binaries:
+            download_url = f'nearcore/{uname}/{branch}/{commit}/{binary}'
+            download_path = os.path.expanduser(f'~/.nearup/near/{net}/{binary}')
+
+            logging.info(
+                f"Downloading {binary} to {download_path} from {download_url}..."
+            )
+            download_near_s3(download_url, download_path)
+            logging.info(f"Downloaded {binary} to {download_path}...")
+
+            logging.info(f"Making the {binary} executable...")
+            status = os.stat(download_path)
+            os.chmod(download_path, status.st_mode | stat.S_IEXEC)
+
         with open(os.path.expanduser(f'~/.nearup/near/{net}/version'),
                   'w') as f:
             f.write(commit)
@@ -367,7 +365,7 @@ def setup_and_run(binary_path,
             exit(1)
         binary_path = os.path.expanduser(f'~/.nearup/near/{chain_id}')
         subprocess.check_output(['mkdir', '-p', binary_path])
-        download_binary(chain_id, uname)
+        download_binaries(chain_id, uname)
         watch = {"net": chain_id, 'home': home_dir}
     else:
         logging.info(f'Using local binary at {binary_path}')
