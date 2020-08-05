@@ -12,7 +12,7 @@ from subprocess import Popen, PIPE
 from signal import SIGTERM
 
 from nearuplib.constants import LOGS_FOLDER, NODE_PID_FILE, WATCHER_PID_FILE
-from nearuplib.util import download_near_s3, download
+from nearuplib.util import download_near_s3, download, initialize_keys
 
 USER = str(os.getuid()) + ':' + str(os.getgid())
 
@@ -428,77 +428,3 @@ def stop_watcher():
             logging.info("Nearup watcher is not running...")
     except OSError as e:
         logging.error("There was an error while stopping watcher: {e}")
-
-
-def generate_node_key(home, binary_path):
-    cmd = [f'{binary_path}/keypair-generator']
-    cmd.extend(['--home', home])
-    cmd.extend(['--generate-config'])
-    cmd.extend(['node-key'])
-    try:
-        subprocess.call(cmd)
-    except KeyboardInterrupt:
-        logging.warn("\nStopping NEARCore.")
-    logging.info("Node key generated")
-
-
-def generate_validator_key(home, binary_path, account_id):
-    logging.info("Generating validator key...")
-    cmd = [f'{binary_path}/keypair-generator']
-    cmd.extend(['--home', home])
-    cmd.extend(['--generate-config'])
-    cmd.extend(['--account-id', account_id])
-    cmd.extend(['validator-key'])
-    try:
-        subprocess.call(cmd)
-    except KeyboardInterrupt:
-        logging.warn("\nStopping NEARCore.")
-    logging.info("Validator key generated")
-
-
-def generate_signer_key(home, binary_path, account_id):
-    logging.info("Generating signer keys...")
-    cmd = [f'{binary_path}/keypair-generator']
-    cmd.extend(['--home', home])
-    cmd.extend(['--generate-config'])
-    cmd.extend(['--account-id', account_id])
-    cmd.extend(['signer-keys'])
-    try:
-        subprocess.call(cmd)
-    except KeyboardInterrupt:
-        logging.warn("\nStopping NEARCore.")
-    logging.info("Signer keys generated")
-
-
-def initialize_keys(home, binary_path, account_id, generate_signer_keys):
-    if generate_signer_keys:
-        logging.info("Generating the signer keys...")
-        generate_signer_key(home, binary_path, account_id)
-
-    logging.info("Generating the node keys...")
-    generate_node_key(home, binary_path)
-
-    if account_id:
-        logging.info("Generating the validator keys...")
-        generate_validator_key(home, binary_path, account_id)
-
-
-def create_genesis(home, binary_path, chain_id, tracked_shards):
-    if os.path.exists(os.path.join(home, 'genesis.json')):
-        logging.warn("Genesis already exists")
-        return
-    logging.info("Creating genesis...")
-    if not os.path.exists(os.path.join(home, 'accounts.csv')):
-        raise Exception(
-            "Failed to generate genesis: accounts.csv does not exist")
-
-    cmd = [f'{binary_path}/genesis-csv-to-json']
-    cmd.extend(['--home', home])
-    cmd.extend(['--chain-id', chain_id])
-    if len(tracked_shards) > 0:
-        cmd.extend(['--tracked-shards', tracked_shards])
-    try:
-        subprocess.call(cmd)
-    except KeyboardInterrupt:
-        logging.warn("\nStopping NEARCore.")
-    logging.info("Genesis created")
