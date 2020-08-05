@@ -288,7 +288,6 @@ def check_exist_neard():
 
 def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
     os.environ['RUST_BACKTRACE'] = '1'
-    pid_fd = open(NODE_PID_FILE, 'w')
     # convert verbose = True to --verbose '' command line argument
     if verbose:
         verbose = ''
@@ -302,8 +301,10 @@ def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
                       output=os.path.join(LOGS_FOLDER, chain_id),
                       watch=watch)
     proc_name = proc_name_from_pid(proc.pid)
-    pid_fd.write(f"{proc.pid}|{proc_name}|{chain_id}")
-    pid_fd.close()
+
+    with open(NODE_PID_FILE, 'w') as pid_fd:
+        pid_fd.write(f"{proc.pid}|{proc_name}|{chain_id}")
+        pid_fd.close()
 
     logging.info("Node is running...")
     logging.info("To check logs call: `nearup logs` or `nearup logs --follow`")
