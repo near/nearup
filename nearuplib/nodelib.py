@@ -230,7 +230,6 @@ def get_port(home_dir, net):
 def run_binary(path,
                home,
                action,
-               *,
                verbose=None,
                shards=None,
                validators=None,
@@ -401,7 +400,7 @@ def stop_native():
                     pid = int(pid)
                     process = psutil.Process(pid)
                     logging.info(
-                        "Near procces is {proc_name} with pid: {pid}...")
+                        f"Near procces is {proc_name} with pid: {pid}...")
                     if proc_name in proc_name_from_pid(pid):
                         logging.info(
                             f"Stopping process {proc_name} with pid {pid}...")
