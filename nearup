@@ -52,7 +52,19 @@ def cli():
               help='Specify the nodes to boot from',
               default='')
 @click.option('--verbose', is_flag=True, help='If set, prints verbose logs')
-def run(network, binary_path, home, account_id, boot_nodes, verbose):
+@click.option('--num-nodes',
+              type=int,
+              help='Specifies the number of localnet nodes to create',
+              default=4)
+@click.option('--num-shards',
+              type=int,
+              help='Specifies the number of localnet shards to create',
+              default=1)
+@click.option('--override',
+              is_flag=True,
+              help='Override previous localnet node data if exists')
+def run(network, binary_path, home, account_id, boot_nodes, verbose, num_nodes,
+        num_shards, override):
     if home:
         home = os.path.abspath(home)
     else:
@@ -61,7 +73,7 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose):
     logging.info(f"Home directory is {home}...")
 
     if network == 'localnet':
-        entry()
+        entry(binary_path, home, num_nodes, num_shards, override, verbose)
     elif network == 'mainnet':
         logging.error('Sorry mainnet is now internal nodes only!!!')
         logging.error(
