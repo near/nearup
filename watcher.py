@@ -3,12 +3,13 @@
 # This tool is launched by main.py as a background process
 
 import logging
-import sys
 import os
 import subprocess
+import sys
 import time
 import traceback
-from nearuplib.nodelib import get_latest_deploy_at
+
+from nearuplib.nodelib import get_latest_deploy_at, stop_nearup
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,9 +26,9 @@ logging.basicConfig(
 def nearup_restart(args):
     main_script = os.path.abspath(
         os.path.join(os.path.dirname(__file__), 'main.py'))
-    subprocess.check_output(['python3', main_script, 'stop', '--keep-watcher'])
+    stop_nearup(keepwatcher=True)
     subprocess.Popen(['python3', main_script, *args])
-    print('done')
+    logging.info("Nearup node has been restarted...")
 
 
 if __name__ == '__main__':
@@ -41,7 +42,7 @@ if __name__ == '__main__':
         try:
             new_latest_deploy_at = get_latest_deploy_at(net)
             if new_latest_deploy_at and new_latest_deploy_at != latest_deploy_at:
-                print(
+                logging.info(
                     f'new deploy happens at {new_latest_deploy_at}, restart nearup'
                 )
                 nearup_restart(args)
