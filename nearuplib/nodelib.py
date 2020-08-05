@@ -15,8 +15,6 @@ from signal import SIGTERM
 from nearuplib.constants import LOGS_FOLDER, NODE_PID_FILE, WATCHER_PID_FILE
 from nearuplib.util import download_near_s3, download, initialize_keys
 
-USER = str(os.getuid()) + ':' + str(os.getgid())
-
 
 def init(home_dir, binary_path, init_flags):
     logging.info("Initializing the node configuration using near binary...")
