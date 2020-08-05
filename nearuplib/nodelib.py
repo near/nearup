@@ -11,7 +11,7 @@ from os import unlink, kill
 from subprocess import Popen, PIPE
 from signal import SIGTERM
 
-from nearuplib.constants import LOGS_FOLDER
+from nearuplib.constants import LOGS_FOLDER, NODE_PID_FILE, WATCHER_PID_FILE
 from nearuplib.util import download_near_s3, download
 
 USER = str(os.getuid()) + ':' + str(os.getgid())
@@ -227,9 +227,6 @@ def get_port(home_dir, net):
     return p + ":" + p
 
 
-NODE_PID = os.path.expanduser('~/.nearup/node.pid')
-
-
 def run_binary(path,
                home,
                action,
@@ -273,7 +270,7 @@ def run_watcher(watch):
     logging.info("Starting the nearup watcher...")
     p = Popen(['python3', watch_script, watch['net'], watch['home']])
 
-    with open(os.path.expanduser('~/.nearup/watcher.pid'), 'w') as f:
+    with open(WATCHER_PID_FILE, 'w') as f:
         f.write(str(p.pid))
 
 
@@ -283,16 +280,16 @@ def proc_name_from_pid(pid):
 
 
 def check_exist_neard():
-    if os.path.exists(NODE_PID):
+    if os.path.exists(NODE_PID_FILE):
         logging.warn("There is already binary nodes running. Stop it using:")
         logging.warn("nearup stop")
-        logging.warn(f"If this is a mistake, remove {NODE_PID}")
+        logging.warn(f"If this is a mistake, remove {NODE_PID_FILE}")
         exit(1)
 
 
 def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
     os.environ['RUST_BACKTRACE'] = '1'
-    pid_fd = open(NODE_PID, 'w')
+    pid_fd = open(NODE_PID_FILE, 'w')
     # convert verbose = True to --verbose '' command line argument
     if verbose:
         verbose = ''
@@ -314,11 +311,11 @@ def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
 
 
 def show_logs(follow, number_lines):
-    if not os.path.exists(NODE_PID):
+    if not os.path.exists(NODE_PID_FILE):
         logging.info('Node is not running')
         exit(1)
 
-    pid_info = open(NODE_PID).read()
+    pid_info = open(NODE_PID_FILE).read()
     if 'betanet' in pid_info:
         net = 'betanet'
     elif 'testnet' in pid_info:
@@ -399,8 +396,8 @@ def stop_nearup(keep_watcher=False):
 
 def stop_native():
     try:
-        if os.path.exists(NODE_PID):
-            with open(NODE_PID) as f:
+        if os.path.exists(NODE_PID_FILE):
+            with open(NODE_PID_FILE) as f:
                 for line in f.readlines():
                     pid, proc_name, _ = line.strip().split("|")
                     pid = int(pid)
@@ -411,7 +408,7 @@ def stop_native():
                         logging.info(
                             f"Stopping process {proc_name} with pid {pid}...")
                         process.kill()
-                    os.remove(NODE_PID)
+            os.remove(NODE_PID_FILE)
         else:
             logging.info("Near deamon is not running...")
     except OSError as e:
@@ -420,14 +417,14 @@ def stop_native():
 
 def stop_watcher():
     try:
-        if os.path.exists("~/.nearup/watcher.pid"):
-            with open(os.path.expanduser(f'~/.nearup/watcher.pid')) as f:
+        if os.path.exists(WATCHER_PID_FILE):
+            with open(WATCHER_PID_FILE) as f:
                 pid = int(f.read())
                 process = psutil.Process(pid)
                 logging.info(
                     f'Stopping near watcher {process.name()} with pid {pid}...')
                 process.kill()
-                os.remove(os.path.expanduser(f'~/.nearup/watcher.pid'))
+                os.remove(WATCHER_PID_FILE)
         else:
             logging.info("Nearup watcher is not running...")
     except OSError as e:
