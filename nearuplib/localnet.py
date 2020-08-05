@@ -1,12 +1,15 @@
-import sys
 import argparse
+import sys
 import configparser
-from subprocess import Popen, PIPE
-from shutil import rmtree
+import json
+
 from os import mkdir
 from os.path import exists, expanduser, join
-import json
-from nearuplib.nodelib import run_binary, NODE_PID, proc_name_from_pid, check_exist_neard
+from shutil import rmtree
+from subprocess import Popen, PIPE
+
+from nearuplib.constants import NODE_PID_FILE
+from nearuplib.nodelib import run_binary, proc_name_from_pid, check_exist_neard
 
 
 def run(args):
@@ -43,7 +46,7 @@ def run(args):
     mkdir(LOGS_FOLDER)
 
     # Spawn network
-    pid_fd = open(NODE_PID, 'w')
+    pid_fd = open(NODE_PID_FILE, 'w')
     for i in range(0, args.num_nodes):
         proc = run_binary(args.binary_path,
                           join(args.home, f'node{i}'),
