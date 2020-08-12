@@ -35,6 +35,7 @@ def run(args):
             data = json.load(f)
         data['rpc']['addr'] = f'0.0.0.0:{3030 + i}'
         data['network']['addr'] = f'0.0.0.0:{24567 + i}'
+        data['archive'] = True
         with open(args_json, 'w') as f:
             json.dump(data, f, indent=2)
 
