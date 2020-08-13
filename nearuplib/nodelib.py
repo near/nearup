@@ -420,8 +420,8 @@ def run_watcher(watch, docker):
         'python3', watch_script, watch['net'], watch['home'], docker,
         *watch['args']
     ],
-              stdout=watch_log,
-              stderr=watch_log)
+        stdout=watch_log,
+        stderr=watch_log)
     with open(os.path.expanduser('~/.nearup/watcher.pid'), 'w') as f:
         f.write(str(p.pid))
 
@@ -508,8 +508,10 @@ def show_logs(follow, number_lines):
         command += ['-f']
     command += [os.path.expanduser(f'~/.nearup/logs/{net}.log')]
     try:
-        subprocess.run(command, start_new_session=True)
+        proc = subprocess.Popen(command, start_new_session=True)
+        proc.wait()
     except KeyboardInterrupt:
+        proc.kill()
         exit(0)
 
 
@@ -623,7 +625,8 @@ def stop_native():
     if os.path.exists(NODE_PID):
         with open(NODE_PID) as f:
             for line in f.readlines():
-                pid, proc_name, _ = map(str.strip, line.strip(' \n').split("|"))
+                pid, proc_name, _ = map(
+                    str.strip, line.strip(' \n').split("|"))
                 pid = int(pid)
                 if proc_name in proc_name_from_pid(pid):
                     print(f"Stopping process {proc_name} with pid", pid)
