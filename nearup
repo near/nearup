@@ -52,9 +52,6 @@ if not os.path.exists(main_script):
         add_path_if_exist('~/.config/fish')
         add_path_if_exist('~/.bash_profile')
         print(STARTUP_MESSAGE)
-else:
-    print("\nWarning: Nearup was already installed in ~/.nearup!\n")
-    print(STARTUP_MESSAGE)
 
 
 p = subprocess.Popen('cd ' + nearup_dir + ' && git pull',
