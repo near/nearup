@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="nearup",  # Replace with your own username
-    version="0.2.0-beta",
+    version="0.3.1",
     author="Near Inc",
     author_email="hello@near.org",
     description="Public scripts to launch near blockchain nodes",
@@ -27,5 +27,6 @@ setuptools.setup(
     ],
     install_requires=['click', 'psutil', 'boto3'],
     python_requires='>=3.6',
-    scripts=['nearup'],
+    include_package_data=True,
+    scripts=['nearup', 'watcher.py'],
 )
