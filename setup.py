@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="nearup",  # Replace with your own username
-    version="0.1.2",
+    version="0.2.0-beta",
     author="Near Inc",
     author_email="hello@near.org",
     description="Public scripts to launch near blockchain nodes",
