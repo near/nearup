@@ -1,19 +1,16 @@
+import hashlib
 import json
 import logging
 import os
-import psutil
+import shutil
 import stat
 import subprocess
-import sys
-import shutil
-import hashlib
 
-from os import unlink, kill
+import psutil
 from subprocess import Popen, PIPE
-from signal import SIGTERM
 
 from nearuplib.constants import LOGS_FOLDER, NODE_PID_FILE, WATCHER_PID_FILE
-from nearuplib.util import download_near_s3, download, initialize_keys
+from nearuplib.util import download_from_s3, read_from_s3, initialize_keys
 
 
 def init(home_dir, binary_path, init_flags):
@@ -130,21 +127,21 @@ def check_and_setup(binary_path, home_dir, init_flags, no_gas_price=False):
 
 
 def download_config(net, home_dir):
-    download_near_s3(f'nearcore-deploy/{net}/config.json',
+    download_from_s3(f'nearcore-deploy/{net}/config.json',
                      os.path.join(home_dir, 'config.json'))
 
 
 def download_genesis(net, home_dir):
-    download_near_s3(f'nearcore-deploy/{net}/genesis.json',
+    download_from_s3(f'nearcore-deploy/{net}/genesis.json',
                      os.path.join(home_dir, 'genesis.json'))
 
 
 def latest_deployed_version(net):
-    return download_near_s3(f'nearcore-deploy/{net}/latest_deploy').strip()
+    return read_from_s3(f'nearcore-deploy/{net}/latest_deploy').strip()
 
 
 def latest_deployed_release(net):
-    return download_near_s3(f'nearcore-deploy/{net}/latest_release').strip()
+    return read_from_s3(f'nearcore-deploy/{net}/latest_release').strip()
 
 
 def binary_changed(net):
@@ -173,7 +170,7 @@ def download_binaries(net, uname):
             logging.info(
                 f"Downloading {binary} to {download_path} from {download_url}..."
             )
-            download_near_s3(download_url, download_path)
+            download_from_s3(download_url, download_path)
             logging.info(f"Downloaded {binary} to {download_path}...")
 
             logging.info(f"Making the {binary} executable...")
@@ -186,20 +183,19 @@ def download_binaries(net, uname):
 
 
 def get_genesis_time(net):
-    return download_near_s3(f'nearcore-deploy/{net}/genesis_time')
+    return read_from_s3(f'nearcore-deploy/{net}/genesis_time')
 
 
 def get_genesis_protocol_version(net):
-    return int(
-        download_near_s3(f'nearcore-deploy/{net}/protocol_version').strip())
+    return int(read_from_s3(f'nearcore-deploy/{net}/protocol_version').strip())
 
 
 def get_genesis_md5sum(net):
-    return download_near_s3(f'nearcore-deploy/{net}/genesis_md5sum').strip()
+    return read_from_s3(f'nearcore-deploy/{net}/genesis_md5sum').strip()
 
 
 def get_latest_deploy_at(net):
-    return download_near_s3(f'nearcore-deploy/{net}/latest_deploy_at').strip()
+    return read_from_s3(f'nearcore-deploy/{net}/latest_deploy_at').strip()
 
 
 def print_staking_key(home_dir):
@@ -407,8 +403,8 @@ def stop_native():
             os.remove(NODE_PID_FILE)
         else:
             logging.info("Near deamon is not running...")
-    except OSError as e:
-        logging.error("There was an error while stopping watcher: {e}")
+    except Exception as e:
+        logging.error(f"There was an error while stopping watcher: {e}")
 
 
 def stop_watcher():
@@ -423,5 +419,5 @@ def stop_watcher():
                 os.remove(WATCHER_PID_FILE)
         else:
             logging.info("Nearup watcher is not running...")
-    except OSError as e:
-        logging.error("There was an error while stopping watcher: {e}")
+    except Exception as e:
+        logging.error(f"There was an error while stopping watcher: {e}")

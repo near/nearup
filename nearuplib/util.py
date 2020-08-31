@@ -2,29 +2,22 @@ import logging
 import os
 import subprocess
 
+import boto3
+from botocore import UNSIGNED
+from botocore.client import Config
 
-def download(url, filepath=None, *, headers=None):
-    if headers:
-        headers = sum(list(map(lambda header: ['-H', header], headers)), [])
-    else:
-        headers = []
-    if filepath:
-        if os.path.exists(filepath):
-            os.remove(filepath)
-        subprocess.check_output([
-            'curl', '--proto', '=https', '--tlsv1.2', '-sSfL', *headers, url,
-            '-o', filepath
-        ])
-    else:
-        return subprocess.check_output(
-            ['curl', '--proto', '=https', '--tlsv1.2', '-sSfL', *headers, url],
-            universal_newlines=True)
+from nearuplib.constants import S3_BUCKET
 
 
-def download_near_s3(path, filepath=None):
-    return download(
-        f'https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/{path}',
-        filepath)
+def download_from_s3(path, filepath=None):
+    s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    s3.download_file(S3_BUCKET, path, filepath)
+
+
+def read_from_s3(path):
+    s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    response = s3.get_object(Bucket=S3_BUCKET, Key=path)
+    return response['Body'].read().decode('utf-8')
 
 
 def generate_node_key(home, binary_path):
