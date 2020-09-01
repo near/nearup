@@ -24,10 +24,9 @@ logging.basicConfig(
 
 
 def nearup_restart(args):
-    main_script = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), 'nearup'))
+    path = os.path.expanduser('~/.local/bin/nearup')
     stop_nearup(keepwatcher=True)
-    subprocess.Popen(['python3', main_script, *args])
+    subprocess.Popen(['python3', path, *args])
     logging.info("Nearup node has been restarted...")
 
 
