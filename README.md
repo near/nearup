@@ -21,10 +21,14 @@ sudo apt update
 sudo apt install python3 python3-pip
 ```
 
+Upgrade pip if needed you are getting a Permission Denied error or version of pip (pip3 --version) is below 20.
+```
+pip install --upgrade pip
+```
 ## Install
 
 ```
-pip3 install nearup
+pip3 install --user nearup
 ```
 
 Add nearup to your PATH in ~/.profile or ~/.bashrc or appropriate shell config
