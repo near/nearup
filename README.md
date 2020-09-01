@@ -18,7 +18,7 @@ Here is the installation command:
 
 ```
 sudo apt update
-sudo apt install python3 && python3-pip
+sudo apt install python3 python3-pip
 ```
 
 ## Install
@@ -27,8 +27,10 @@ sudo apt install python3 && python3-pip
 pip3 install nearup
 ```
 
-Nearup automatically adds itself to PATH: restart the terminal, or issue the command `source ~/.profile`.
-On each run, nearup self-updates to the latest version.
+Add nearup to your PATH in ~/.profile or ~/.bashrc or appropriate shell config
+```
+export PATH="$HOME/.local/bin:$PATH"
+```
 
 ## Start
 
