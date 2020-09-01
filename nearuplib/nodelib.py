@@ -255,11 +255,9 @@ def run_binary(path,
 
 
 def run_watcher(watch):
-    watch_script = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', 'watcher.py'))
-
     logging.info("Starting the nearup watcher...")
-    p = Popen(['python3', watch_script, watch['net'], watch['home']])
+    path = os.path.expanduser('~/.local/bin/watcher.py')
+    p = Popen(['python3', path, watch['net'], watch['home']])
 
     with open(WATCHER_PID_FILE, 'w') as f:
         f.write(str(p.pid))
