@@ -99,13 +99,10 @@ def check_and_setup(binary_path, home_dir, init_flags, no_gas_price=False):
     logging.info("Setting up network configuration.")
     account_id = [x for x in init_flags if x.startswith('--account-id')]
     if not account_id:
-        prompt = "Enter your account ID"
-        if chain_id != '':
-            prompt += " (leave empty if not going to be a validator): "
-        else:
-            prompt += ": "
-        account_id = input(prompt)
-        init_flags.append('--account-id=%s' % account_id)
+        logging.warn(
+            "If you want to be a validator please specify the --account-id flag with the validator id."
+        )
+        account_id = ""
     else:
         account_id = account_id[0].split('=')[-1]
 
@@ -257,6 +254,16 @@ def run_binary(path,
 def run_watcher(watch):
     logging.info("Starting the nearup watcher...")
     path = os.path.expanduser('~/.local/bin/watcher.py')
+
+    if not os.path.exists(path):
+        logging.error(
+            "Please delete current nearup and install the new with `pip3 install --user nearup`"
+        )
+        logging.error(
+            "If you are using nearup for local development use: `pip3 install .` from root directory"
+        )
+        exit(1)
+
     p = Popen(['python3', path, watch['net'], watch['home']])
 
     with open(WATCHER_PID_FILE, 'w') as f:
