@@ -25,6 +25,16 @@ logging.basicConfig(
 
 def nearup_restart(args):
     path = os.path.expanduser('~/.local/bin/nearup')
+
+    if not os.path.exists(path):
+        logging.error(
+            "Please delete current nearup and install the new with `pip3 install --user nearup`"
+        )
+        logging.error(
+            "If you are using nearup for local development use: `pip3 install .` from root directory"
+        )
+        exit(1)
+
     stop_nearup(keepwatcher=True)
     subprocess.Popen(['python3', path, *args])
     logging.info("Nearup node has been restarted...")
