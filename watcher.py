@@ -35,7 +35,7 @@ def nearup_restart(args):
         )
         exit(1)
 
-    stop_nearup(keepwatcher=True)
+    stop_nearup(keep_watcher=True)
     subprocess.Popen(['python3', path, *args])
     logging.info("Nearup node has been restarted...")
 
