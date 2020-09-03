@@ -102,7 +102,7 @@ docker run --volume $HOME/.near:/root/.near nearup run betanet
 
 ## To run in the detached(deamon) mode run:
 ```
-docker run --mount type=bind,source=$HOME/.near,target=/root/.near nearup nearup run testnet
+docker run -d --volume $HOME/.near:/root/.near nearup run betanet
 ```
 
 ## You can get the information about the running docker container with:
