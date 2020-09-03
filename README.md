@@ -23,12 +23,17 @@ sudo apt install python3 python3-pip
 
 Upgrade pip if needed you are getting a Permission Denied error or version of pip (pip3 --version) is below 20.
 ```
-pip install --upgrade pip
+pip3 install --upgrade pip
 ```
 ## Install
 
 ```
 pip3 install --user nearup
+```
+
+Verify that you local installation is in ~/.local/bin/nearup by running:
+```
+which nearup
 ```
 
 Add nearup to your PATH in ~/.profile or ~/.bashrc or appropriate shell config
@@ -82,19 +87,32 @@ nearup stop
 nearup run betanet --help
 ```
 
+Running nearup with Docker
+```
+docker run --mount type=bind,source=$HOME/.near,target=/root/.near nearup nearup run betanet
+```
 
-If the process is completed without errors, the node will be in sync within a few minutes.
+To run in the detached(deamon) mode run:
+```
+docker run --mount type=bind,source=$HOME/.near,target=/root/.near nearup nearup run testnet
+```
 
-### Cleaning up
-This is the step-by-step guide to remove nearup from your macOS system:
+You can get the information about the running docker container with:
+```
+docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS           PORTS               NAMES
+fc17f7f7fae0        nearup              "/root/start.sh run …"   3 minutes ago       Up 3 minutes    mystifying_moore
+```
 
-1. Stop nearcore container
-	```
-	nearup stop
-	```
-	The output will be `Stopping docker near`
+To execute other nearup commands like start,stop  and logs you can use:
+The container is running in a busy wait loop, so the container won't die.
+```
+docker exec <container-id> nearup logs
+docker exec <container-id> nearup stop
+docker exec <container-id> nearup run betanet.
+```
 
-2. Remove .near folder with the command
-	```
-	rm ~/-rf .near
-	```
+To eventually kill the docker container run:
+```
+docker kill <container-id>
+```
