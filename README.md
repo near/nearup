@@ -21,22 +21,22 @@ sudo apt update
 sudo apt install python3 python3-pip
 ```
 
-Upgrade pip if needed you are getting a Permission Denied error or version of pip (pip3 --version) is below 20.
+> :warning:  Upgrade pip if needed you are getting a Permission Denied error or version of pip (pip3 --version) is below 20.
 ```
 pip3 install --upgrade pip
 ```
 ## Install
-
+> :warning: Make sure that you are installing with the --user flag
 ```
 pip3 install --user nearup
 ```
 
-Verify that you local installation is in ~/.local/bin/nearup by running:
+> :warning: Verify that you local installation is in ~/.local/bin/nearup by running:
 ```
 which nearup
 ```
 
-Add nearup to your PATH in ~/.profile or ~/.bashrc or appropriate shell config
+> :warning: Add nearup to your PATH in ~/.profile or ~/.bashrc or appropriate shell config
 ```
 export PATH="$HOME/.local/bin:$PATH"
 ```
@@ -87,29 +87,43 @@ nearup stop
 nearup run betanet --help
 ```
 
-Running nearup with Docker
+# Docker
+## Building the docker image
+```
+docker build . -t nearup
+```
+
+## Running nearup with Docker
+> :warning: Nearup and neard are running inside the container, to ensure you don't lose your data which should live on the host you have to mount the ~/.near folder.
+
+> :warning: In case the folder doesn't exists make it on your host by running:
+```
+mkdir ~/.near
+```
+
+To run the nearup docker image run:
 ```
 docker run --mount type=bind,source=$HOME/.near,target=/root/.near nearup nearup run betanet
 ```
 
-To run in the detached(deamon) mode run:
+## To run in the detached(deamon) mode run:
 ```
 docker run --mount type=bind,source=$HOME/.near,target=/root/.near nearup nearup run testnet
 ```
 
-You can get the information about the running docker container with:
+## You can get the information about the running docker container with:
 ```
 docker ps
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS           PORTS               NAMES
-fc17f7f7fae0        nearup              "/root/start.sh run …"   3 minutes ago       Up 3 minutes    mystifying_moore
+fc17f7f7fae0        nearup              "/root/start.sh run …"   3 minutes ago       Up 3 minutes     324324         mystifying_moore
 ```
 
 To execute other nearup commands like start,stop  and logs you can use:
-The container is running in a busy wait loop, so the container won't die.
+> :warning: The container is running in a busy wait loop, so the container won't die.
 ```
 docker exec <container-id> nearup logs
 docker exec <container-id> nearup stop
-docker exec <container-id> nearup run betanet.
+docker exec <container-id> nearup run {betanet/testnet}
 ```
 
 To eventually kill the docker container run:
