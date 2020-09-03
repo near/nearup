@@ -116,12 +116,23 @@ To execute other nearup commands like start,stop  and logs you can use:
 
 :warning: The container is running in a busy wait loop, so the container won't die.
 ```
-docker exec <container-id> nearup logs
-docker exec <container-id> nearup stop
-docker exec <container-id> nearup run {betanet/testnet}
+docker exec nearup nearup logs
+docker exec nearup nearup stop
+docker exec nearup nearup run {betanet/testnet}
+```
+
+To get the neard logs run:
+```
+docker exec nearup nearup logs
+or
+docker exec nearup nearup logs --follow
+```
+To get the nearup logs run:
+```
+docker logs -f nearup
 ```
 
 To eventually kill the docker container run:
 ```
-docker kill <container-id>
+docker kill nearup
 ```
