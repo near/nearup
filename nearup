@@ -92,7 +92,7 @@ def stop(keep_watcher):
     stop_nearup(keep_watcher)
 
 
-@click.option('--follow', is_flag=True, help='Follow the logs.')
+@click.option('--follow', '-f', is_flag=True, help='Follow the logs.')
 @click.option('--lines', '-l', default=100, type=int)
 @cli.command()
 def logs(follow, lines):
