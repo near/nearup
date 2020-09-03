@@ -95,7 +95,6 @@ docker build . -t nearup
 
 ## Running nearup with Docker
 :warning: Nearup and neard are running inside the container, to ensure you don't lose your data which should live on the host you have to mount the ~/.near folder.
-```
 To run the nearup docker image run:
 ```
 docker run --volume $HOME/.near:/root/.near nearup run betanet
