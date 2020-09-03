@@ -410,6 +410,8 @@ def stop_native():
             logging.info("Near deamon is not running...")
     except Exception as e:
         logging.error(f"There was an error while stopping watcher: {e}")
+        if os.path.exists(NODE_PID_FILE):
+            os.remove(NODE_PID_FILE)
 
 
 def stop_watcher():
