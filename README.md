@@ -51,6 +51,12 @@ Currently, officially compiled binaries are available for Linux and Mac OS X
 nearup run betanet
 ```
 
+To run a validator node with validator keys, please specify the account id:
+```
+nearup run betanet --account-id testing.account
+```
+
+
 Replace `betanet` with `testnet` if you want to use a different network.
 
 ### Using Locally Compiled Binary (recommended for security critical validators or development needs)
