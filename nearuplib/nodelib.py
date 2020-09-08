@@ -21,7 +21,7 @@ def init(home_dir, binary_path, init_flags):
 
 def init_official(chain_id, binary_path, home_dir, account_id):
     logging.info("Initializing the keys...")
-    initialize_keys(home_dir, binary_path, '', account_id)
+    initialize_keys(home_dir, binary_path, account_id, False)
 
     logging.info("Downloading the genesis file...")
     download_genesis(chain_id, home_dir)
