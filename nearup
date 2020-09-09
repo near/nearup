@@ -75,7 +75,9 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose, num_nodes,
     if network == 'localnet':
         entry(binary_path, home, num_nodes, num_shards, override, verbose)
     elif network == 'mainnet':
-        logging.error('Sorry mainnet is now internal nodes only!!!')
+        logging.error('Sorry mainnet is now internal nodes only!!!'
+        
+        )
         logging.error(
             'Please use https://rpc.mainnet.near.org to reach mainnet rpc')
     else:
