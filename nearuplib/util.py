@@ -1,5 +1,4 @@
 import logging
-import os
 import subprocess
 
 import boto3
@@ -10,13 +9,13 @@ from nearuplib.constants import S3_BUCKET
 
 
 def download_from_s3(path, filepath=None):
-    s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))
-    s3.download_file(S3_BUCKET, path, filepath)
+    s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    s3_client.download_file(S3_BUCKET, path, filepath)
 
 
 def read_from_s3(path):
-    s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))
-    response = s3.get_object(Bucket=S3_BUCKET, Key=path)
+    s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    response = s3_client.get_object(Bucket=S3_BUCKET, Key=path)
     return response['Body'].read().decode('utf-8')
 
 
@@ -28,7 +27,7 @@ def generate_node_key(home, binary_path):
     try:
         subprocess.call(cmd, stdout=subprocess.PIPE)
     except KeyboardInterrupt:
-        logging.warn("\nStopping NEARCore.")
+        logging.warning("\nStopping NEARCore.")
     logging.info("Node key generated")
 
 
@@ -41,7 +40,7 @@ def generate_validator_key(home, binary_path, account_id):
     try:
         subprocess.call(cmd, stdout=subprocess.PIPE)
     except KeyboardInterrupt:
-        logging.warn("\nStopping NEARCore.")
+        logging.warning("\nStopping NEARCore.")
     logging.info("Validator key generated")
 
 
@@ -54,7 +53,7 @@ def generate_signer_key(home, binary_path, account_id):
     try:
         subprocess.call(cmd, stdout=subprocess.PIPE)
     except KeyboardInterrupt:
-        logging.warn("\nStopping NEARCore.")
+        logging.warning("\nStopping NEARCore.")
     logging.info("Signer keys generated")
 
 
