@@ -1,18 +1,14 @@
-import argparse
-import configparser
 import json
 import logging
 import os
-import sys
 
 from shutil import rmtree
-from subprocess import Popen, PIPE
 
 from nearuplib.constants import NODE_PID_FILE, LOCALNET_LOGS_FOLDER
 from nearuplib.nodelib import run_binary, proc_name_from_pid, check_exist_neard
 
 
-def run(binary_path, home, num_nodes, num_shards, override, verbose):
+def run(binary_path, home, num_nodes, num_shards, override, verbose=True):
     if override:
         if os.path.exists(home):
             logging.info("Removing old data.")
@@ -28,18 +24,20 @@ def run(binary_path, home, num_nodes, num_shards, override, verbose):
     # Edit args files
     for i in range(0, num_nodes):
         args_json = os.path.join(home, f'node{i}', 'config.json')
-        with open(args_json, 'r') as f:
-            data = json.load(f)
+
+        with open(args_json, 'r') as config_file:
+            data = json.load(config_file)
         data['rpc']['addr'] = f'0.0.0.0:{3030 + i}'
         data['network']['addr'] = f'0.0.0.0:{24567 + i}'
-        data['archive'] = True
-        with open(args_json, 'w') as f:
-            json.dump(data, f, indent=2)
+
+        with open(args_json, 'w') as config_file:
+            json.dump(data, config_file, indent=2)
 
     # Load public key from first node
-    with open(os.path.join(home, f'node0', 'node_key.json'), 'r') as f:
-        data = json.load(f)
-        pk = data['public_key']
+    with open(os.path.join(home, 'node0', 'node_key.json'),
+              'r') as node_key_file:
+        data = json.load(node_key_file)
+        public_key = data['public_key']
 
     # Recreate log folder
     rmtree(LOCALNET_LOGS_FOLDER, ignore_errors=True)
@@ -48,12 +46,13 @@ def run(binary_path, home, num_nodes, num_shards, override, verbose):
     # Spawn network
     pid_fd = open(NODE_PID_FILE, 'w')
     for i in range(0, num_nodes):
-        proc = run_binary(binary_path,
-                          os.path.join(home, f'node{i}'),
-                          'run',
-                          verbose=verbose,
-                          boot_nodes=f'{pk}@127.0.0.1:24567' if i > 0 else None,
-                          output=os.path.join(LOCALNET_LOGS_FOLDER, f'node{i}'))
+        proc = run_binary(
+            binary_path,
+            os.path.join(home, f'node{i}'),
+            'run',
+            verbose=verbose,
+            boot_nodes=f'{public_key}@127.0.0.1:24567' if i > 0 else None,
+            output=os.path.join(LOCALNET_LOGS_FOLDER, f'node{i}'))
         proc_name = proc_name_from_pid(proc.pid)
         pid_fd.write(f"{proc.pid}|{proc_name}|localnet\n")
     pid_fd.close()
