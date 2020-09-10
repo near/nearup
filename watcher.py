@@ -9,7 +9,8 @@ import sys
 import time
 import traceback
 
-from nearuplib.nodelib import get_latest_deploy_at, stop_nearup
+from nearuplib.nodelib import stop_nearup
+from nearuplib.util import latest_deployed_release_time
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,12 +45,12 @@ if __name__ == '__main__':
     net = sys.argv[1]
     home_dir = sys.argv[2]
     args = sys.argv[3:]
-    latest_deploy_at = get_latest_deploy_at(net)
+    latest_deploy_at = latest_deployed_release_time(net)
 
     while True:
         time.sleep(60)
         try:
-            new_latest_deploy_at = get_latest_deploy_at(net)
+            new_latest_deploy_at = latest_deployed_release_time(net)
             if new_latest_deploy_at and new_latest_deploy_at != latest_deploy_at:
                 logging.info(
                     f'new deploy happens at {new_latest_deploy_at}, restart nearup'

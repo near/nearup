@@ -1,4 +1,6 @@
 import logging
+import os
+import stat
 import subprocess
 import sys
 
@@ -20,11 +22,65 @@ def read_from_s3(path):
     return response['Body'].read().decode('utf-8')
 
 
+def download_config(net, home_dir):
+    download_from_s3(f'nearcore-deploy/{net}/config.json',
+                     os.path.join(home_dir, 'config.json'))
+
+
+def download_genesis(net, home_dir):
+    download_from_s3(f'nearcore-deploy/{net}/genesis.json',
+                     os.path.join(home_dir, 'genesis.json'))
+
+
+def download_binaries(net, uname):
+    commit = latest_deployed_release_commit(net)
+    branch = latest_deployed_release_branch(net)
+
+    if commit:
+        logging.info(f'Downloading latest deployed version for {net}')
+
+        binaries = ['near', 'keypair-generator', 'genesis-csv-to-json']
+        for binary in binaries:
+            download_url = f'nearcore/{uname}/{branch}/{commit}/{binary}'
+            download_path = os.path.expanduser(f'~/.nearup/near/{net}/{binary}')
+
+            logging.info(
+                f"Downloading {binary} to {download_path} from {download_url}..."
+            )
+            download_from_s3(download_url, download_path)
+            logging.info(f"Downloaded {binary} to {download_path}...")
+
+            logging.info(f"Making the {binary} executable...")
+            status = os.stat(download_path)
+            os.chmod(download_path, status.st_mode | stat.S_IEXEC)
+
+        # TODO: seperate into download_metadata function with missing metadata
+        with open(os.path.expanduser(f'~/.nearup/near/{net}/version'),
+                  'w') as version_file:
+            version_file.write(commit)
+
+
+def latest_deployed_release_commit(net):
+    return read_from_s3(f'nearcore-deploy/{net}/latest_deploy').strip()
+
+
+def latest_deployed_release_branch(net):
+    return read_from_s3(f'nearcore-deploy/{net}/latest_release').strip()
+
+
+def latest_deployed_release_time(net):
+    return read_from_s3(f'nearcore-deploy/{net}/latest_deploy_at').strip()
+
+
+def latest_genesis_md5sum(net):
+    return read_from_s3(f'nearcore-deploy/{net}/genesis_md5sum').strip()
+
+
 def generate_key(cmd, key):
     logging.info(f"Generating {key}...")
 
     try:
-        result = subprocess.check_call(cmd, stdout=subprocess.PIPE)
+        subprocess.check_call(cmd, stdout=subprocess.PIPE)
     except KeyboardInterrupt:
         logging.error("\nStopping NEARCore.")
     except (subprocess.CalledProcessError, FileNotFoundError):
