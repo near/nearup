@@ -1,5 +1,6 @@
 import logging
 import subprocess
+import sys
 
 import boto3
 from botocore import UNSIGNED
@@ -19,49 +20,37 @@ def read_from_s3(path):
     return response['Body'].read().decode('utf-8')
 
 
+def generate_key(cmd, key):
+    logging.info(f"Generating {key}...")
+
+    try:
+        result = subprocess.check_call(cmd, stdout=subprocess.PIPE)
+    except KeyboardInterrupt:
+        logging.error("\nStopping NEARCore.")
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        logging.error(f"Unable to generate {key}.")
+        sys.exit(1)
+
+    logging.info(f"{key.capitalize()} generated...")
+
+
 def generate_node_key(home, binary_path):
     cmd = [
         f'{binary_path}/keypair-generator', '--home', home, '--generate-config',
         'node-key'
     ]
-    try:
-        subprocess.call(cmd, stdout=subprocess.PIPE)
-    except KeyboardInterrupt:
-        logging.warning("\nStopping NEARCore.")
-    logging.info("Node key generated")
+    generate_key(cmd, 'node key')
 
 
 def generate_validator_key(home, binary_path, account_id):
-    logging.info("Generating validator key...")
     cmd = [
         f'{binary_path}/keypair-generator', '--home', home, '--generate-config',
         '--account-id', account_id, 'validator-key'
     ]
-    try:
-        subprocess.call(cmd, stdout=subprocess.PIPE)
-    except KeyboardInterrupt:
-        logging.warning("\nStopping NEARCore.")
-    logging.info("Validator key generated")
+    generate_key(cmd, 'validator key')
 
 
-def generate_signer_key(home, binary_path, account_id):
-    logging.info("Generating signer keys...")
-    cmd = [
-        f'{binary_path}/keypair-generator', '--home', home, '--generate-config',
-        '--account-id', account_id, 'signer-keys'
-    ]
-    try:
-        subprocess.call(cmd, stdout=subprocess.PIPE)
-    except KeyboardInterrupt:
-        logging.warning("\nStopping NEARCore.")
-    logging.info("Signer keys generated")
-
-
-def initialize_keys(home, binary_path, account_id, generate_signer_keys):
-    if generate_signer_keys:
-        logging.info("Generating the signer keys...")
-        generate_signer_key(home, binary_path, account_id)
-
+def initialize_keys(home, binary_path, account_id):
     logging.info("Generating the node keys...")
     generate_node_key(home, binary_path)
 
