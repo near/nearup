@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import shutil
-import stat
 import subprocess
 import sys
 
@@ -12,7 +11,14 @@ from subprocess import Popen
 import psutil
 
 from nearuplib.constants import LOGS_FOLDER, NODE_PID_FILE, WATCHER_PID_FILE
-from nearuplib.util import download_from_s3, read_from_s3, initialize_keys
+from nearuplib.util import (
+    download_binaries,
+    download_config,
+    download_genesis,
+    initialize_keys,
+    latest_genesis_md5sum,
+    latest_deployed_release_commit,
+)
 
 
 def init(home_dir, binary_path, init_flags):
@@ -23,7 +29,7 @@ def init(home_dir, binary_path, init_flags):
 
 def init_official(chain_id, binary_path, home_dir, account_id):
     logging.info("Initializing the keys...")
-    initialize_keys(home_dir, binary_path, account_id, False)
+    initialize_keys(home_dir, binary_path, account_id)
 
     logging.info("Downloading the genesis file...")
     download_genesis(chain_id, home_dir)
@@ -41,7 +47,7 @@ def get_chain_id_from_flags(flags):
 
 
 def genesis_changed(chain_id, home_dir):
-    genesis_md5sum = get_genesis_md5sum(chain_id)
+    genesis_md5sum = latest_genesis_md5sum(chain_id)
     local_genesis_md5sum = hashlib.md5(
         open(os.path.join(os.path.join(home_dir, 'genesis.json')),
              'rb').read()).hexdigest()
@@ -128,79 +134,6 @@ def check_and_setup(binary_path, home_dir, init_flags, no_gas_price=False):
         )
 
 
-def download_config(net, home_dir):
-    download_from_s3(f'nearcore-deploy/{net}/config.json',
-                     os.path.join(home_dir, 'config.json'))
-
-
-def download_genesis(net, home_dir):
-    download_from_s3(f'nearcore-deploy/{net}/genesis.json',
-                     os.path.join(home_dir, 'genesis.json'))
-
-
-def latest_deployed_version(net):
-    return read_from_s3(f'nearcore-deploy/{net}/latest_deploy').strip()
-
-
-def latest_deployed_release(net):
-    return read_from_s3(f'nearcore-deploy/{net}/latest_release').strip()
-
-
-def binary_changed(net):
-    latest_deploy_version = latest_deployed_version(net)
-    if os.path.exists(os.path.expanduser(f'~/.nearup/near/{net}/version')):
-        with open(os.path.expanduser(
-                f'~/.nearup/near/{net}/version')) as version_file:
-            version = version_file.read().strip()
-            if version == latest_deploy_version:
-                logging.info('Downloaded binary version is up to date')
-                return False
-    return latest_deploy_version
-
-
-def download_binaries(net, uname):
-    commit = latest_deployed_version(net)
-    branch = latest_deployed_release(net)
-
-    if commit:
-        logging.info(f'Downloading latest deployed version for {net}')
-
-        binaries = ['near', 'keypair-generator', 'genesis-csv-to-json']
-        for binary in binaries:
-            download_url = f'nearcore/{uname}/{branch}/{commit}/{binary}'
-            download_path = os.path.expanduser(f'~/.nearup/near/{net}/{binary}')
-
-            logging.info(
-                f"Downloading {binary} to {download_path} from {download_url}..."
-            )
-            download_from_s3(download_url, download_path)
-            logging.info(f"Downloaded {binary} to {download_path}...")
-
-            logging.info(f"Making the {binary} executable...")
-            status = os.stat(download_path)
-            os.chmod(download_path, status.st_mode | stat.S_IEXEC)
-
-        with open(os.path.expanduser(f'~/.nearup/near/{net}/version'),
-                  'w') as version_file:
-            version_file.write(commit)
-
-
-def get_genesis_time(net):
-    return read_from_s3(f'nearcore-deploy/{net}/genesis_time')
-
-
-def get_genesis_protocol_version(net):
-    return int(read_from_s3(f'nearcore-deploy/{net}/protocol_version').strip())
-
-
-def get_genesis_md5sum(net):
-    return read_from_s3(f'nearcore-deploy/{net}/genesis_md5sum').strip()
-
-
-def get_latest_deploy_at(net):
-    return read_from_s3(f'nearcore-deploy/{net}/latest_deploy_at').strip()
-
-
 def print_staking_key(home_dir):
     key_path = os.path.join(home_dir, 'validator_key.json')
     if not os.path.exists(key_path):
@@ -213,13 +146,6 @@ def print_staking_key(home_dir):
         return
     logging.info("Stake for user '%s' with '%s'", key_file['account_id'],
                  key_file['public_key'])
-
-
-def get_port(home_dir, net):
-    """Checks the ports saved in config.json"""
-    config = json.load(open(os.path.join(home_dir, 'config.json')))
-    port = config[net]['addr'][config[net]['addr'].find(':') + 1:]
-    return port + ":" + port
 
 
 def run_binary(path,
@@ -329,6 +255,7 @@ def show_logs(follow, number_lines):
         logging.info(
             'You are running local net. Logs are in: ~/.nearup/localnet-logs/')
         sys.exit(0)
+
     command = ['tail', '-n', str(number_lines)]
     if follow:
         command += ['-f']
@@ -340,20 +267,6 @@ def show_logs(follow, number_lines):
     except subprocess.CalledProcessError:
         logging.error("Unable to read logs. Please try again.")
         sys.exit(1)
-
-
-def check_binary_version(binary_path, chain_id):
-    logging.info("Checking the current binary version...")
-    latest_deploy_version = latest_deployed_version(chain_id)
-    version = subprocess.check_output(
-        [f'{binary_path}/near', '--version'],
-        universal_newlines=True).split('(build ')[1].split(')')[0]
-    if not latest_deploy_version.startswith(version):
-        logging.warning(
-            f'Current deployed version on {chain_id} is {latest_deploy_version}.'
-        )
-        logging.warning(
-            'Your local binary is {version}. This can cause issues.')
 
 
 def setup_and_run(binary_path,
@@ -376,12 +289,14 @@ def setup_and_run(binary_path,
                 'Compile a local binary and set --binary-path when running')
             sys.exit(1)
         binary_path = os.path.expanduser(f'~/.nearup/near/{chain_id}')
-        subprocess.check_output(['mkdir', '-p', binary_path])
+
+        if not os.path.exists(binary_path):
+            os.makedirs(binary_path)
+
         download_binaries(chain_id, uname)
         watch = {"net": chain_id, 'home': home_dir}
     else:
         logging.info(f'Using local binary at {binary_path}')
-        check_binary_version(binary_path, chain_id)
         watch = False
 
     check_and_setup(binary_path, home_dir, init_flags, no_gas_price)

@@ -1,8 +1,6 @@
 import json
 import os
 import shutil
-import subprocess
-import tempfile
 
 import pytest
 
@@ -16,7 +14,7 @@ NEARUP_PATH = os.path.expanduser('~/.nearup/')
 ACCOUNT_ID = 'mock.nearup.account'
 
 
-def setup_module(module):
+def setup_module(module):  # pylint: disable=W0613
     if os.path.exists(HOME):
         shutil.rmtree(HOME)
 
