@@ -64,6 +64,18 @@ def latest_deployed_release_commit(net):
     return read_from_s3(f'nearcore-deploy/{net}/latest_deploy').strip()
 
 
+def latest_deployed_release_commit_has_changed(net, commit):
+    latest_commit = latest_deployed_release_commit(net)
+
+    logging.info(f"Current release commit is: {commit}")
+    logging.info(f"Latest release commit is {latest_commit}")
+
+    if not commit:
+        return False
+
+    return commit != latest_commit
+
+
 def latest_deployed_release_branch(net):
     return read_from_s3(f'nearcore-deploy/{net}/latest_release').strip()
 
