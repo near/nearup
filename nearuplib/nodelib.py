@@ -215,40 +215,6 @@ def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
         run_watcher(chain_id)
 
 
-def show_logs(follow, number_lines):
-    if not os.path.exists(NODE_PID_FILE):
-        logging.info('Node is not running')
-        sys.exit(1)
-
-    pid_info = open(NODE_PID_FILE).read()
-    if 'betanet' in pid_info:
-        net = 'betanet'
-    elif 'testnet' in pid_info:
-        net = 'testnet'
-    else:
-        # TODO: localnet could have several logs, not showing them all but list log files here
-        # Maybe better to support `nearup logs node0` usage.
-        logging.info(
-            'You are running local net. Logs are in: ~/.nearup/localnet-logs/')
-        sys.exit(0)
-
-    command = [
-        'tail',
-        '-n',
-        str(number_lines),
-        '-f' if follow else '',
-        os.path.expanduser(f'~/.nearup/logs/{net}.log'),
-    ]
-
-    try:
-        subprocess.run(command, start_new_session=True, check=True)
-    except KeyboardInterrupt:
-        sys.exit(0)
-    except subprocess.CalledProcessError:
-        logging.error("Unable to read logs. Please try again.")
-        sys.exit(1)
-
-
 def setup_and_run(binary_path, home_dir, init_flags, boot_nodes, verbose=False):
     check_exist_neard()
     chain_id = get_chain_id_from_flags(init_flags)
