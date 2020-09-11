@@ -215,7 +215,12 @@ def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
         run_watcher(chain_id)
 
 
-def setup_and_run(binary_path, home_dir, init_flags, boot_nodes, verbose=False):
+def setup_and_run(binary_path,
+                  home_dir,
+                  init_flags,
+                  boot_nodes,
+                  verbose=False,
+                  no_watcher=False):
     check_exist_neard()
     chain_id = get_chain_id_from_flags(init_flags)
 
@@ -243,6 +248,9 @@ def setup_and_run(binary_path, home_dir, init_flags, boot_nodes, verbose=False):
 
     print_staking_key(home_dir)
 
+    if no_watcher:
+        watch = False
+
     run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=watch)
 
 
@@ -257,8 +265,10 @@ def stop_nearup(keep_watcher=False):
         logging.warning("Skipping the stopping of the nearup watcher...")
 
 
-def restart_nearup(net):
-    path = os.path.expanduser('~/.local/bin/nearup')
+def restart_nearup(net,
+                   path=os.path.expanduser('~/.local/bin/nearup'),
+                   watcher=True):
+    logging.warning("Restarting nearup...")
 
     if not os.path.exists(path):
         logging.error(
@@ -269,9 +279,18 @@ def restart_nearup(net):
         )
         sys.exit(1)
 
-    stop_nearup(keep_watcher=True)
-    subprocess.Popen(['python3', path, 'run', net])
-    logging.info("Nearup node has been restarted...")
+    logging.warning("Stopping nearup...")
+    stop_nearup(keep_watcher=watcher)
+
+    logging.warning("Starting nearup...")
+    setup_and_run(binary_path='',
+                  home_dir='',
+                  init_flags=[f'--chain-id={net}'],
+                  boot_nodes='',
+                  verbose=True,
+                  no_watcher=not watcher)
+
+    logging.info("Nearup has been restarted...")
 
 
 def stop_native():
