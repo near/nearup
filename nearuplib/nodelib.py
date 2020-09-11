@@ -223,6 +223,7 @@ def setup_and_run(binary_path,
                   no_watcher=False):
     check_exist_neard()
     chain_id = get_chain_id_from_flags(init_flags)
+    watch = False
 
     if binary_path == '':
         logging.info('Using officially compiled binary')
