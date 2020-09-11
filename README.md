@@ -42,7 +42,7 @@ export PATH="$HOME/.local/bin:$PATH"
 ```
 
 ## Upgrade
-:warning:  If you have already installed nearup but you need to uppgrade, follow the commands below
+:warning:  If you have already installed nearup, you can upgrade to the latest version by using the command below
 ```
 pip3 install --user nearup -U
 ```
