@@ -63,8 +63,11 @@ def cli():
 @click.option('--override',
               is_flag=True,
               help='Override previous localnet node data if exists')
+@click.option('--no-watcher',
+              is_flag=True,
+              help='Disable nearup watcher, mostly used for tests.')
 def run(network, binary_path, home, account_id, boot_nodes, verbose, num_nodes,
-        num_shards, override):
+        num_shards, override, no_watcher):
     if home:
         home = os.path.abspath(home)
     else:
@@ -83,7 +86,8 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose, num_nodes,
         if account_id:
             init_flags.append(f'--account-id={account_id}')
 
-        setup_and_run(binary_path, home, init_flags, boot_nodes, verbose)
+        setup_and_run(binary_path, home, init_flags, boot_nodes, verbose,
+                      no_watcher)
 
 
 @click.option('--keep-watcher', is_flag=True, help='Keep the watcher running.')

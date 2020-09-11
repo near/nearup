@@ -25,7 +25,7 @@ setuptools.setup(
         "Topic :: System :: Systems Administration",
         "Topic :: System :: Networking"
     ],
-    install_requires=['click', 'psutil', 'boto3'],
+    install_requires=['boto3', 'click', 'psutil'],
     python_requires='>=3.6',
     include_package_data=True,
     scripts=['nearup', 'watcher'],
