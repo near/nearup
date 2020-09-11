@@ -41,6 +41,12 @@ which nearup
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
+## Upgrade
+:warning:  If you have already installed nearup but you need to uppgrade, follow the commands below
+```
+pip3 install --user nearup -U
+```
+
 ## Start
 
 ### Using Officially Compiled Binary (recommended for running on servers)
