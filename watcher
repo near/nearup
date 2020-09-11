@@ -44,7 +44,8 @@ def run(network):
     while True:
         time.sleep(60)
         try:
-            if latest_deployed_release_commit_has_changed(network, commit):
+            if latest_deployed_release_commit_has_changed(
+                    network, current_release_commit):
                 logging.info(
                     f"New release has been published. Restarting nearup")
                 restart_nearup(net)

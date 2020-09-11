@@ -6,7 +6,8 @@ import click
 
 from nearuplib.constants import LOGS_FOLDER
 from nearuplib.localnet import entry
-from nearuplib.nodelib import setup_and_run, stop_nearup, show_logs
+from nearuplib.nodelib import setup_and_run, stop_nearup
+from nearuplib.tailer import show_logs
 
 if not os.path.exists(LOGS_FOLDER):
     os.makedirs(LOGS_FOLDER)
