@@ -9,10 +9,12 @@ WATCHER_PATH = os.path.join(
 )
 
 
-def test_running_and_stopping_watcher():
+def setup_module(module):  # pylint: disable=W0613
     if os.path.exists(WATCHER_PID_FILE):
         os.remove(WATCHER_PID_FILE)
 
+
+def test_running_and_stopping_watcher():
     run_watcher('betanet', WATCHER_PATH)
     assert os.path.exists(WATCHER_PID_FILE)
 
