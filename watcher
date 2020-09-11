@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+# Watch for genesis change, re-nearup when that happens
+# This tool is launched by main.py as a background process
+
+import logging
+import os
+import subprocess
+import sys
+import time
+import traceback
+
+from nearuplib.nodelib import restart_nearup
+from nearuplib.util import (
+    latest_deployed_release_commit,
+    latest_deployed_release_commit_has_changed,
+)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format=
+    '%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.FileHandler(os.path.expanduser('~/.nearup/logs/watcher.log')),
+    ],
+)
+
+if __name__ == '__main__':
+    net = sys.argv[1]
+    current_release_commit = latest_deployed_release_commit(net)
+    logging.info(
+        f"Starting watcher for chain: {net} with commit: {current_release_commit}"
+    )
+
+    while True:
+        time.sleep(60)
+        try:
+            if latest_deployed_release_commit_has_changed(net, commit):
+                logging.info(
+                    f"New release has been published. Restarting nearup")
+                restart_nearup(net)
+                break
+        except:
+            traceback.print_exc()
+            pass

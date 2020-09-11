@@ -28,5 +28,5 @@ setuptools.setup(
     install_requires=['click', 'psutil', 'boto3'],
     python_requires='>=3.6',
     include_package_data=True,
-    scripts=['nearup', 'watcher.py'],
+    scripts=['nearup', 'watcher'],
 )
