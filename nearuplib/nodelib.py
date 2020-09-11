@@ -169,7 +169,7 @@ def run_binary(path,
         command.extend(['--boot-nodes', boot_nodes])
 
     if output:
-        output = open(f'{output}.log', 'w')
+        output = open(f'{output}.log', 'a')
 
     near = Popen(command, stderr=output, stdout=output)
     return near
