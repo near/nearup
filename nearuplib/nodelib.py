@@ -10,15 +10,15 @@ from subprocess import Popen
 
 import psutil
 
-from nearuplib.constants import LOGS_FOLDER, NODE_PID_FILE, WATCHER_PID_FILE
+from nearuplib.constants import LOGS_FOLDER, NODE_PID_FILE
 from nearuplib.util import (
     download_binaries,
     download_config,
     download_genesis,
     initialize_keys,
     latest_genesis_md5sum,
-    latest_deployed_release_commit,
 )
+from nearuplib.watcher import run_watcher, stop_watcher
 
 
 def init(home_dir, binary_path, init_flags):
@@ -73,7 +73,7 @@ def check_and_update_genesis(chain_id, home_dir):
     return False
 
 
-def check_and_setup(binary_path, home_dir, init_flags, no_gas_price=False):
+def check_and_setup(binary_path, home_dir, init_flags):
     """Checks if there is already everything setup on this machine, otherwise sets up NEAR node."""
     chain_id = get_chain_id_from_flags(init_flags)
     if os.path.exists(os.path.join(home_dir)):
@@ -102,7 +102,6 @@ def check_and_setup(binary_path, home_dir, init_flags, no_gas_price=False):
         if chain_id in ['betanet', 'testnet']:
             check_and_update_genesis(chain_id, home_dir)
         else:
-            logging.info(f'Start {chain_id}')
             logging.info("Using existing node configuration from %s for %s",
                          home_dir, genesis_config['chain_id'])
         return
@@ -122,16 +121,12 @@ def check_and_setup(binary_path, home_dir, init_flags, no_gas_price=False):
     else:
         init(home_dir, binary_path, init_flags)
 
-    if chain_id not in ['betanet', 'testnet'] and no_gas_price:
+    if chain_id not in ['betanet', 'testnet']:
         filename = os.path.join(home_dir, 'genesis.json')
         genesis_config = json.load(open(filename))
         genesis_config['gas_price'] = 0
         genesis_config['min_gas_price'] = 0
         json.dump(genesis_config, open(filename, 'w'))
-    elif no_gas_price:
-        logging.info(
-            f'no_gas_price is only for local development network, ignoring for {chain_id}'
-        )
 
 
 def print_staking_key(home_dir):
@@ -156,8 +151,7 @@ def run_binary(path,
                validators=None,
                non_validators=None,
                boot_nodes=None,
-               output=None,
-               watch=False):
+               output=None):
     command = [path, '--home', home]
 
     if verbose or verbose == '':
@@ -178,28 +172,7 @@ def run_binary(path,
         output = open(f'{output}.log', 'w')
 
     near = Popen(command, stderr=output, stdout=output)
-    if watch:
-        run_watcher(watch)
     return near
-
-
-def run_watcher(watch):
-    logging.info("Starting the nearup watcher...")
-    path = os.path.expanduser('~/.local/bin/watcher.py')
-
-    if not os.path.exists(path):
-        logging.error(
-            "Please delete current nearup and install the new with `pip3 install --user nearup`"
-        )
-        logging.error(
-            "To run nearup locally use: `pip3 install --user .` from root directory"
-        )
-        sys.exit(1)
-
-    proc = Popen(['python3', path, watch['net'], watch['home']])
-
-    with open(WATCHER_PID_FILE, 'w') as watcher_pid_file:
-        watcher_pid_file.write(str(proc.pid))
 
 
 def proc_name_from_pid(pid):
@@ -209,8 +182,8 @@ def proc_name_from_pid(pid):
 
 def check_exist_neard():
     if os.path.exists(NODE_PID_FILE):
-        logging.warning("There is already binary nodes running. Stop it using:")
-        logging.warning("nearup stop")
+        logging.warning(
+            "There is already binary nodes running. Stop it using: nearup stop")
         logging.warning(f"If this is a mistake, remove {NODE_PID_FILE}")
         sys.exit(1)
 
@@ -227,8 +200,7 @@ def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
                       'run',
                       verbose=verbose,
                       boot_nodes=boot_nodes,
-                      output=os.path.join(LOGS_FOLDER, chain_id),
-                      watch=watch)
+                      output=os.path.join(LOGS_FOLDER, chain_id))
     proc_name = proc_name_from_pid(proc.pid)
 
     with open(NODE_PID_FILE, 'w') as pid_fd:
@@ -237,6 +209,10 @@ def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
 
     logging.info("Node is running...")
     logging.info("To check logs call: `nearup logs` or `nearup logs --follow`")
+
+    if watch:
+        logging.info("Watcher is enabled. Starting watcher...")
+        run_watcher(chain_id)
 
 
 def show_logs(follow, number_lines):
@@ -256,10 +232,14 @@ def show_logs(follow, number_lines):
             'You are running local net. Logs are in: ~/.nearup/localnet-logs/')
         sys.exit(0)
 
-    command = ['tail', '-n', str(number_lines)]
-    if follow:
-        command += ['-f']
-    command += [os.path.expanduser(f'~/.nearup/logs/{net}.log')]
+    command = [
+        'tail',
+        '-n',
+        str(number_lines),
+        '-f' if follow else '',
+        os.path.expanduser(f'~/.nearup/logs/{net}.log'),
+    ]
+
     try:
         subprocess.run(command, start_new_session=True, check=True)
     except KeyboardInterrupt:
@@ -269,12 +249,7 @@ def show_logs(follow, number_lines):
         sys.exit(1)
 
 
-def setup_and_run(binary_path,
-                  home_dir,
-                  init_flags,
-                  boot_nodes,
-                  verbose=False,
-                  no_gas_price=False):
+def setup_and_run(binary_path, home_dir, init_flags, boot_nodes, verbose=False):
     check_exist_neard()
     chain_id = get_chain_id_from_flags(init_flags)
 
@@ -294,12 +269,11 @@ def setup_and_run(binary_path,
             os.makedirs(binary_path)
 
         download_binaries(chain_id, uname)
-        watch = {"net": chain_id, 'home': home_dir}
+        watch = True
     else:
         logging.info(f'Using local binary at {binary_path}')
-        watch = False
 
-    check_and_setup(binary_path, home_dir, init_flags, no_gas_price)
+    check_and_setup(binary_path, home_dir, init_flags)
 
     print_staking_key(home_dir)
 
@@ -315,6 +289,23 @@ def stop_nearup(keep_watcher=False):
         stop_watcher()
     else:
         logging.warning("Skipping the stopping of the nearup watcher...")
+
+
+def restart_nearup(net):
+    path = os.path.expanduser('~/.local/bin/nearup')
+
+    if not os.path.exists(path):
+        logging.error(
+            "Please delete current nearup and install the new with `pip3 install --user nearup`"
+        )
+        logging.error(
+            "For local development use: `pip3 install --user .` from root directory"
+        )
+        sys.exit(1)
+
+    stop_nearup(keep_watcher=True)
+    subprocess.Popen(['python3', path, 'run', net])
+    logging.info("Nearup node has been restarted...")
 
 
 def stop_native():
@@ -338,19 +329,3 @@ def stop_native():
         logging.error(f"There was an error while stopping watcher: {ex}")
         if os.path.exists(NODE_PID_FILE):
             os.remove(NODE_PID_FILE)
-
-
-def stop_watcher():
-    try:
-        if os.path.exists(WATCHER_PID_FILE):
-            with open(WATCHER_PID_FILE) as pid_file:
-                pid = int(pid_file.read())
-                process = psutil.Process(pid)
-                logging.info(
-                    f'Stopping near watcher {process.name()} with pid {pid}...')
-                process.kill()
-                os.remove(WATCHER_PID_FILE)
-        else:
-            logging.info("Nearup watcher is not running...")
-    except Exception as ex:
-        logging.error(f"There was an error while stopping watcher: {ex}")
