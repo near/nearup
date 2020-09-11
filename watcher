@@ -9,6 +9,8 @@ import sys
 import time
 import traceback
 
+import click
+
 from nearuplib.nodelib import restart_nearup
 from nearuplib.util import (
     latest_deployed_release_commit,
@@ -25,17 +27,24 @@ logging.basicConfig(
     ],
 )
 
-if __name__ == '__main__':
-    net = sys.argv[1]
-    current_release_commit = latest_deployed_release_commit(net)
+
+@click.group()
+def main():
+    pass
+
+
+@main.command()
+@click.argument('network', type=click.Choice({'betanet', 'testnet'}))
+def run(network):
+    current_release_commit = latest_deployed_release_commit(network)
     logging.info(
-        f"Starting watcher for chain: {net} with commit: {current_release_commit}"
+        f"Starting watcher for chain: {network} with commit: {current_release_commit}"
     )
 
     while True:
         time.sleep(60)
         try:
-            if latest_deployed_release_commit_has_changed(net, commit):
+            if latest_deployed_release_commit_has_changed(network, commit):
                 logging.info(
                     f"New release has been published. Restarting nearup")
                 restart_nearup(net)
@@ -43,3 +52,7 @@ if __name__ == '__main__':
         except:
             traceback.print_exc()
             pass
+
+
+if __name__ == '__main__':
+    main()

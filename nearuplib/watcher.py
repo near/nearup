@@ -21,7 +21,7 @@ def run_watcher(net, path=os.path.expanduser('~/.local/bin/watcher')):
         )
         sys.exit(1)
 
-    proc = Popen(['python3', path, net])
+    proc = Popen(['python3', path, 'run', net])
 
     with open(WATCHER_PID_FILE, 'w') as watcher_pid_file:
         watcher_pid_file.write(str(proc.pid))
