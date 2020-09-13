@@ -116,7 +116,7 @@ def check_and_setup(nodocker,
     print("Setting up network configuration.")
     account_id = [x for x in init_flags if x.startswith('--account-id')]
     if not account_id:
-        prompt = "Enter your account ID"
+        prompt = "Enter your Staking-Pool-contract ID (xxxxx.stakehouse.betanet)"
         if chain_id != '':
             prompt += " (leave empty if not going to be a validator): "
         else:
