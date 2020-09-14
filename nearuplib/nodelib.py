@@ -281,7 +281,7 @@ def restart_nearup(net,
         sys.exit(1)
 
     logging.warning("Stopping nearup...")
-    stop_nearup(keep_watcher=watcher)
+    stop_nearup()
 
     logging.warning("Starting nearup...")
     setup_and_run(binary_path='',
