@@ -307,7 +307,7 @@ def stop_native(timeout=None):
                     if proc_name in proc_name_from_pid(pid):
                         logging.info(
                             f"Stopping process {proc_name} with pid {pid}...")
-                        process.kill()
+                        process.terminate()
                         process.wait(timeout=timeout if timeout else DEFAULT_WAIT_TIMEOUT)
             os.remove(NODE_PID_FILE)
         else:
