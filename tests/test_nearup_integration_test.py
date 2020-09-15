@@ -4,7 +4,7 @@ import shutil
 import pytest
 import requests
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 
 from nearuplib.nodelib import restart_nearup, setup_and_run, stop_nearup
 from nearuplib.constants import LOGS_FOLDER
