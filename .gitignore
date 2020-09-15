@@ -132,6 +132,11 @@ dmypy.json
 near
 # Near source code
 nearcore
+# Near data and configuration
+config.json
+data/
+genesis.json
+node_key.json
 
 # IDE
 .vscode/
