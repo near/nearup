@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y python3 python3-pip && pip3 install --u
 ENV LANG C.UTF-8  
 ENV LC_ALL C.UTF-8     
 ENV PATH="/root/.local/bin:$PATH"
+ENV HOME="/root"
 COPY ./start.sh /root/start.sh
 RUN chmod +x /root/start.sh
 
