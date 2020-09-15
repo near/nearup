@@ -10,7 +10,7 @@ from subprocess import Popen
 
 import psutil
 
-from nearuplib.constants import LOGS_FOLDER, NODE_PID_FILE
+from nearuplib.constants import DEFAULT_WAIT_TIMEOUT, LOGS_FOLDER, NODE_PID_FILE
 from nearuplib.util import (
     download_binaries,
     download_config,
@@ -294,7 +294,7 @@ def restart_nearup(net,
     logging.info("Nearup has been restarted...")
 
 
-def stop_native():
+def stop_native(timeout=None):
     try:
         if os.path.exists(NODE_PID_FILE):
             with open(NODE_PID_FILE) as pid_file:
@@ -308,6 +308,7 @@ def stop_native():
                         logging.info(
                             f"Stopping process {proc_name} with pid {pid}...")
                         process.kill()
+                        process.wait(timeout=timeout if timeout else DEFAULT_WAIT_TIMEOUT)
             os.remove(NODE_PID_FILE)
         else:
             logging.info("Near deamon is not running...")
