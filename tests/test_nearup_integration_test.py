@@ -4,6 +4,8 @@ import time
 
 import pytest
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 from nearuplib.nodelib import restart_nearup, setup_and_run, stop_nearup
 from nearuplib.constants import LOGS_FOLDER
@@ -46,27 +48,27 @@ def test_nearup_still_runnable():
                   boot_nodes='',
                   verbose=True,
                   no_watcher=True)
-    time.sleep(10)
 
-    resp = requests.get('http://localhost:3030/status')
+    retry_strategy = Retry(total=5, backoff_factor=5)
+    http = requests.Session()
+    http.mount("http://", HTTPAdapter(max_retries=retry_strategy))
+
+    resp = http.get('http://localhost:3030/status')
     assert resp.status_code == 200
     assert resp.text
 
     stop_nearup()
-    time.sleep(10)
 
     with pytest.raises(requests.exceptions.ConnectionError):
         requests.get('http://localhost:3030/status')
 
     restart_nearup('betanet', NEARUP_PATH, watcher=False)
-    time.sleep(10)
 
-    resp = requests.get('http://localhost:3030/status')
+    resp = http.get('http://localhost:3030/status')
     assert resp.status_code == 200
     assert resp.text
 
     stop_nearup()
-    time.sleep(10)
 
     with pytest.raises(requests.exceptions.ConnectionError):
         requests.get('http://localhost:3030/status')
