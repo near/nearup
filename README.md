@@ -147,3 +147,21 @@ To eventually kill the docker container run:
 ```
 docker kill nearup
 ```
+
+# Development
+
+Currently, nearup expects the test environment to be run on Linux.
+
+For macOS, you can simulate a Linux environment with docker.
+
+To build a development image,
+
+```
+docker build . -t nearprotocol/nearup:dev
+```
+
+The following will mount your repo directory into the running container and drop you into a shell to run test commands.
+
+```
+docker run -it --entrypoint "" -v $PWD:/root/nearup -v $HOME/.near:/root/.near -w /root/nearup nearprotocol/nearup:dev bash
+```
