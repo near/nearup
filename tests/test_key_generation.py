@@ -4,7 +4,7 @@ import shutil
 
 import pytest
 
-from nearuplib.util import generate_node_key, generate_validator_key
+from nearuplib.util import generate_node_key, generate_validator_key, initialize_keys
 from nearuplib.nodelib import download_binaries
 
 HOME = os.path.expanduser('~/.near/betanet')
@@ -27,10 +27,7 @@ def setup_module(module):  # pylint: disable=W0613
     download_binaries('betanet', 'Linux')
 
 
-@pytest.mark.run(order=0)
-def test_generate_node_key():
-    generate_node_key(HOME, BINARY_PATH)
-
+def assert_node_key():
     node_key_path = os.path.join(HOME, 'node_key.json')
     assert os.path.exists(node_key_path)
 
@@ -40,15 +37,7 @@ def test_generate_node_key():
         assert 'public_key' in data
         assert 'secret_key' in data
 
-    with pytest.raises(SystemExit) as err:
-        generate_node_key(HOME, WRONG_BINARY_PATH)
-    assert err.value.code == 1
-
-
-@pytest.mark.run(order=1)
-def test_generate_validator_key():
-    generate_validator_key(HOME, BINARY_PATH, ACCOUNT_ID)
-
+def assert_validator_key():
     validator_key_path = os.path.join(HOME, 'validator_key.json')
     assert os.path.exists(validator_key_path)
 
@@ -58,6 +47,35 @@ def test_generate_validator_key():
         assert 'public_key' in data
         assert 'secret_key' in data
 
+
+@pytest.mark.run(order=0)
+def test_generate_node_key():
+    generate_node_key(HOME, BINARY_PATH)
+    assert_node_key()
+
+    with pytest.raises(SystemExit) as err:
+        generate_node_key(HOME, WRONG_BINARY_PATH)
+    assert err.value.code == 1
+
+
+@pytest.mark.run(order=1)
+def test_generate_validator_key():
+    generate_validator_key(HOME, BINARY_PATH, ACCOUNT_ID)
+    assert_validator_key()
+
     with pytest.raises(SystemExit) as err:
         generate_validator_key(HOME, WRONG_BINARY_PATH, ACCOUNT_ID)
     assert err.value.code == 1
+
+
+@pytest.mark.run(order=2)
+def test_initialize_keys_no_validator():
+    initialize_keys(HOME, BINARY_PATH)
+    assert_node_key()
+
+
+@pytest.mark.run(order=3)
+def test_initialize_keys_validator():
+    initialize_keys(HOME, BINARY_PATH, ACCOUNT_ID)
+    assert_node_key()
+    assert_validator_key()
