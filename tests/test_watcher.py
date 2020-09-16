@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 from nearuplib.constants import WATCHER_PID_FILE
 from nearuplib.watcher import run_watcher, stop_watcher
 
@@ -20,3 +22,10 @@ def test_running_and_stopping_watcher():
 
     stop_watcher()
     assert not os.path.exists(WATCHER_PID_FILE)
+
+
+def test_running_bad_path():
+    with pytest.raises(SystemExit) as err:
+        run_watcher('betanet', os.path.expanduser('~/does/not/exist'))
+
+    assert err.value.code == 1

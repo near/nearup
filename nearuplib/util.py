@@ -118,7 +118,7 @@ def generate_validator_key(home, binary_path, account_id):
     generate_key(cmd, 'validator key')
 
 
-def initialize_keys(home, binary_path, account_id):
+def initialize_keys(home, binary_path, account_id=None):
     logging.info("Generating the node keys...")
     generate_node_key(home, binary_path)
 
