@@ -6,7 +6,7 @@ from subprocess import Popen
 
 import psutil
 
-from nearuplib.constants import WATCHER_PID_FILE
+from nearuplib.constants import DEFAULT_WAIT_TIMEOUT, WATCHER_PID_FILE
 
 
 def run_watcher(net, path=os.path.expanduser('~/.local/bin/watcher')):
@@ -27,7 +27,7 @@ def run_watcher(net, path=os.path.expanduser('~/.local/bin/watcher')):
         watcher_pid_file.write(str(proc.pid))
 
 
-def stop_watcher():
+def stop_watcher(timeout=None):
     try:
         if os.path.exists(WATCHER_PID_FILE):
             with open(WATCHER_PID_FILE) as pid_file:
@@ -35,7 +35,8 @@ def stop_watcher():
                 process = psutil.Process(pid)
                 logging.info(
                     f'Stopping near watcher {process.name()} with pid {pid}...')
-                process.kill()
+                process.terminate()
+                process.wait(timeout=timeout if timeout else DEFAULT_WAIT_TIMEOUT)
                 os.remove(WATCHER_PID_FILE)
         else:
             logging.info("Nearup watcher is not running...")
