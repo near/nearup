@@ -37,6 +37,7 @@ def assert_node_key():
         assert 'public_key' in data
         assert 'secret_key' in data
 
+
 def assert_validator_key():
     validator_key_path = os.path.join(HOME, 'validator_key.json')
     assert os.path.exists(validator_key_path)
