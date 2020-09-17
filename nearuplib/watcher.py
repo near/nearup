@@ -27,7 +27,7 @@ def run_watcher(net, path=os.path.expanduser('~/.local/bin/watcher')):
         watcher_pid_file.write(str(proc.pid))
 
 
-def stop_watcher(timeout=None):
+def stop_watcher(timeout=DEFAULT_WAIT_TIMEOUT):
     try:
         if os.path.exists(WATCHER_PID_FILE):
             with open(WATCHER_PID_FILE) as pid_file:
@@ -36,7 +36,7 @@ def stop_watcher(timeout=None):
                 logging.info(
                     f'Stopping near watcher {process.name()} with pid {pid}...')
                 process.terminate()
-                process.wait(timeout=timeout if timeout else DEFAULT_WAIT_TIMEOUT)
+                process.wait(timeout=timeout)
                 os.remove(WATCHER_PID_FILE)
         else:
             logging.info("Nearup watcher is not running...")
