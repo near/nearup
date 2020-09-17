@@ -294,7 +294,7 @@ def restart_nearup(net,
     logging.info("Nearup has been restarted...")
 
 
-def stop_native(timeout=None):
+def stop_native(timeout=DEFAULT_WAIT_TIMEOUT):
     try:
         if os.path.exists(NODE_PID_FILE):
             with open(NODE_PID_FILE) as pid_file:
@@ -308,7 +308,7 @@ def stop_native(timeout=None):
                         logging.info(
                             f"Stopping process {proc_name} with pid {pid}...")
                         process.terminate()
-                        process.wait(timeout=timeout if timeout else DEFAULT_WAIT_TIMEOUT)
+                        process.wait(timeout=timeout)
             os.remove(NODE_PID_FILE)
         else:
             logging.info("Near deamon is not running...")
