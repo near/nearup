@@ -49,7 +49,6 @@ def run(network):
                 logging.info(
                     f"New release has been published. Restarting nearup")
                 restart_nearup(net)
-                break
         except:
             traceback.print_exc()
             pass

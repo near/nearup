@@ -268,7 +268,7 @@ def stop_nearup(keep_watcher=False):
 
 def restart_nearup(net,
                    path=os.path.expanduser('~/.local/bin/nearup'),
-                   watcher=True):
+                   keep_watcher=True):
     logging.warning("Restarting nearup...")
 
     if not os.path.exists(path):
@@ -281,7 +281,7 @@ def restart_nearup(net,
         sys.exit(1)
 
     logging.warning("Stopping nearup...")
-    stop_nearup()
+    stop_nearup(keep_watcher=keep_watcher)
 
     logging.warning("Starting nearup...")
     setup_and_run(binary_path='',
@@ -289,7 +289,7 @@ def restart_nearup(net,
                   init_flags=[f'--chain-id={net}'],
                   boot_nodes='',
                   verbose=True,
-                  no_watcher=not watcher)
+                  no_watcher=keep_watcher)
 
     logging.info("Nearup has been restarted...")
 

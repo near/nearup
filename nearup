@@ -6,7 +6,7 @@ import click
 
 from nearuplib.constants import LOGS_FOLDER
 from nearuplib.localnet import entry
-from nearuplib.nodelib import setup_and_run, stop_nearup
+from nearuplib.nodelib import restart_nearup, setup_and_run, stop_nearup
 from nearuplib.tailer import show_logs
 
 if not os.path.exists(LOGS_FOLDER):
@@ -94,6 +94,17 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose, num_nodes,
 @cli.command()
 def stop(keep_watcher):
     stop_nearup(keep_watcher)
+
+
+@click.argument('network',
+                type=click.Choice({'mainnet', 'testnet', 'betanet',
+                                   'localnet'}))
+@click.option('--restart-watcher',
+              is_flag=True,
+              help='Restart the watcher as well')
+@cli.command()
+def restart(network, restart_watcher):
+    restart_nearup(network, keep_watcher=not restart_watcher)
 
 
 @click.option('--follow', '-f', is_flag=True, help='Follow the logs.')

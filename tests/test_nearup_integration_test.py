@@ -61,7 +61,7 @@ def test_nearup_still_runnable():
     with pytest.raises(requests.exceptions.ConnectionError):
         requests.get('http://localhost:3030/status')
 
-    restart_nearup('betanet', NEARUP_PATH, watcher=False)
+    restart_nearup('betanet', NEARUP_PATH, keep_watcher=False)
 
     resp = http.get('http://localhost:3030/status')
     assert resp.status_code == 200
