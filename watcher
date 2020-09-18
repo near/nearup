@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Watch for genesis change, re-nearup when that happens
+# Watch for genesis change, restart nearup when that happens
 # This tool is launched by main.py as a background process
 
 import logging
@@ -48,6 +48,7 @@ def run(network):
                     network, current_release_commit):
                 logging.info(
                     f"New release has been published. Restarting nearup")
+
                 restart_nearup(net)
         except:
             traceback.print_exc()

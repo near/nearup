@@ -1,5 +1,6 @@
 import os
 
+VERSION = open('VERSION', 'r').read().strip()
 LOGS_FOLDER = os.path.expanduser('~/.nearup/logs')
 LOCALNET_LOGS_FOLDER = os.path.expanduser("~/.nearup/logs/localnet")
 NODE_PID_FILE = os.path.expanduser('~/.nearup/node.pid')

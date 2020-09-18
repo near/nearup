@@ -4,7 +4,7 @@ import os
 
 import click
 
-from nearuplib.constants import LOGS_FOLDER
+from nearuplib.constants import LOGS_FOLDER, VERSION
 from nearuplib.localnet import entry
 from nearuplib.nodelib import restart_nearup, setup_and_run, stop_nearup
 from nearuplib.tailer import show_logs
@@ -112,6 +112,11 @@ def restart(network, restart_watcher):
 @cli.command()
 def logs(follow, lines):
     show_logs(follow, lines)
+
+
+@cli.command()
+def version():
+    print(VERSION)
 
 
 if __name__ == '__main__':
