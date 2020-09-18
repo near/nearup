@@ -2,14 +2,10 @@ import json
 import os
 import shutil
 
-import pytest
-
-from nearuplib.util import generate_node_key, generate_validator_key, initialize_keys
-from nearuplib.nodelib import download_binaries
+from nearuplib.nodelib import download_binaries, init_near
 
 HOME = os.path.expanduser('~/.near/betanet')
 BINARY_PATH = os.path.expanduser('~/.nearup/near/betanet')
-WRONG_BINARY_PATH = os.path.expanduser('~/.nearup/near/testnet')
 NEARUP_PATH = os.path.expanduser('~/.nearup/')
 ACCOUNT_ID = 'mock.nearup.account'
 
@@ -49,34 +45,7 @@ def assert_validator_key():
         assert 'secret_key' in data
 
 
-@pytest.mark.run(order=0)
-def test_generate_node_key():
-    generate_node_key(HOME, BINARY_PATH)
-    assert_node_key()
-
-    with pytest.raises(SystemExit) as err:
-        generate_node_key(HOME, WRONG_BINARY_PATH)
-    assert err.value.code == 1
-
-
-@pytest.mark.run(order=1)
-def test_generate_validator_key():
-    generate_validator_key(HOME, BINARY_PATH, ACCOUNT_ID)
-    assert_validator_key()
-
-    with pytest.raises(SystemExit) as err:
-        generate_validator_key(HOME, WRONG_BINARY_PATH, ACCOUNT_ID)
-    assert err.value.code == 1
-
-
-@pytest.mark.run(order=2)
-def test_initialize_keys_no_validator():
-    initialize_keys(HOME, BINARY_PATH)
-    assert_node_key()
-
-
-@pytest.mark.run(order=3)
-def test_initialize_keys_validator():
-    initialize_keys(HOME, BINARY_PATH, ACCOUNT_ID)
+def test_init_near():
+    init_near(HOME, BINARY_PATH, 'betanet', ['--chain-id=betanet', f'--account-id={ACCOUNT_ID}'])
     assert_node_key()
     assert_validator_key()
