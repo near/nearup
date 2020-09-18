@@ -15,26 +15,27 @@ from nearuplib.util import (
     download_binaries,
     download_config,
     download_genesis,
-    initialize_keys,
     latest_genesis_md5sum,
 )
 from nearuplib.watcher import run_watcher, stop_watcher
 
 
-def init(home_dir, binary_path, init_flags):
+def init_near(home_dir, binary_path, chain_id, init_flags):
     logging.info("Initializing the node configuration using near binary...")
-    target = f'{binary_path}/near'
-    subprocess.call([target, '--home=%s' % home_dir, 'init'] + init_flags)
+
+    cmd = [f'{binary_path}/near', f'--home={home_dir}', 'init'] + init_flags
+    if chain_id in ['betanet', 'testnet']:
+        # force download genesis
+        cmd.append('--download-genesis')
+
+    subprocess.call(cmd)
 
 
-def init_official(chain_id, binary_path, home_dir, account_id):
-    logging.info("Initializing the keys...")
-    initialize_keys(home_dir, binary_path, account_id)
+def init(home_dir, binary_path, chain_id, init_flags):
+    # initialize near
+    init_near(home_dir, binary_path, chain_id, init_flags)
 
-    logging.info("Downloading the genesis file...")
-    download_genesis(chain_id, home_dir)
-
-    logging.info("Downloading the config file...")
+    # download config.json for bootnodes, etc
     download_config(chain_id, home_dir)
 
 
@@ -107,19 +108,7 @@ def check_and_setup(binary_path, home_dir, init_flags):
         return
 
     logging.info("Setting up network configuration.")
-    account_id = [x for x in init_flags if x.startswith('--account-id')]
-    if not account_id:
-        logging.warning(
-            "To be a validator please specify the --account-id flag with the validator id."
-        )
-        account_id = ""
-    else:
-        account_id = account_id[0].split('=')[-1]
-
-    if chain_id in ['betanet', 'testnet']:
-        init_official(chain_id, binary_path, home_dir, account_id)
-    else:
-        init(home_dir, binary_path, init_flags)
+    init(home_dir, binary_path, chain_id, init_flags)
 
     if chain_id not in ['betanet', 'testnet']:
         filename = os.path.join(home_dir, 'genesis.json')
