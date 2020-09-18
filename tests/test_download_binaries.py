@@ -22,7 +22,7 @@ def setup_module(module):  # pylint: disable=W0613
 def test_download_binaries():
     download_binaries('betanet', 'Linux')
 
-    expected_binaries = ['near', 'keypair-generator', 'genesis-csv-to-json']
+    expected_binaries = ['near', 'genesis-csv-to-json']
     for binary in expected_binaries:
         path = os.path.join(NEARUP_BINARY_DIR, binary)
         # check if the binary exists
