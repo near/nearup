@@ -48,10 +48,9 @@ def run(network):
                     network, current_release_commit):
                 logging.info(
                     f"New release has been published. Restarting nearup")
-                restart_nearup(net)
-        except:
-            traceback.print_exc()
-            pass
+                restart_nearup(network)
+        except Exception as e:
+            logging.error(e)
 
 
 if __name__ == '__main__':
