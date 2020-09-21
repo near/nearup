@@ -291,13 +291,22 @@ def stop_native(timeout=DEFAULT_WAIT_TIMEOUT):
                     pid, proc_name, _ = line.strip().split("|")
                     pid = int(pid)
                     process = psutil.Process(pid)
-                    logging.info(
-                        f"Near procces is {proc_name} with pid: {pid}...")
+                    logging.info(f"Near procces is {proc_name} with pid: {pid}...")
+
                     if proc_name in proc_name_from_pid(pid):
-                        logging.info(
-                            f"Stopping process {proc_name} with pid {pid}...")
-                        process.kill()
-                        process.wait(timeout=timeout)
+                        logging.info(f"Stopping process {proc_name} with pid {pid}...")
+                        try:
+                            process.terminate()
+                            process.wait(timeout=timeout)
+                        except psutil.TimeoutExpired:
+                            logging.warning(
+                                f"Process {proc_name} with pid {pid} is taking a long time to terminate..."
+                            )
+                            logging.warning(
+                                f"Killing process {pid}"
+                            )
+                            process.kill()
+
             os.remove(NODE_PID_FILE)
         else:
             logging.info("Near deamon is not running...")
