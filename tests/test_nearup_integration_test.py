@@ -9,7 +9,7 @@ from urllib3.util.retry import Retry
 from nearuplib.nodelib import restart_nearup, setup_and_run, stop_nearup
 from nearuplib.constants import LOGS_FOLDER
 
-NEAR_DIR = '~/.near'
+NEAR_DIR = os.path.expanduser('~/.near/betanet')
 NEARUP_DIR = '~/.nearup'
 
 NEARUP_PATH = os.path.join(
@@ -42,11 +42,11 @@ def teardown_module(module):  # pylint: disable=W0613
 
 def test_nearup_still_runnable():
     setup_and_run(binary_path='',
-                  home_dir='',
+                  home_dir=NEAR_DIR,
                   init_flags=['--chain-id=betanet'],
                   boot_nodes='',
                   verbose=True,
-                  no_watcher=True)
+                  watcher=False)
 
     retry_strategy = Retry(total=5, backoff_factor=5)
     http = requests.Session()
@@ -61,7 +61,7 @@ def test_nearup_still_runnable():
     with pytest.raises(requests.exceptions.ConnectionError):
         requests.get('http://localhost:3030/status')
 
-    restart_nearup('betanet', NEARUP_PATH, keep_watcher=True)
+    restart_nearup('betanet', NEARUP_PATH, NEAR_DIR, keep_watcher=True)
 
     resp = http.get('http://localhost:3030/status')
     assert resp.status_code == 200
