@@ -33,10 +33,16 @@ def stop_watcher(timeout=DEFAULT_WAIT_TIMEOUT):
             with open(WATCHER_PID_FILE) as pid_file:
                 pid = int(pid_file.read())
                 process = psutil.Process(pid)
-                logging.info(
-                    f'Stopping near watcher {process.name()} with pid {pid}...')
-                process.kill()
-                process.wait(timeout=timeout)
+                logging.info(f'Stopping near watcher {process.name()} with pid {pid}...')
+
+                try:
+                    process.terminate()
+                    process.wait(timeout=timeout)
+                except psutil.TimeoutExpired:
+                    logging.warning('Watcher taking a long time to terminate...')
+                    logging.warning('Killing watcher with pid {pid}')
+                    process.kill()
+
                 os.remove(WATCHER_PID_FILE)
         else:
             logging.info("Nearup watcher is not running...")
