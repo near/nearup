@@ -87,7 +87,7 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose, num_nodes,
             init_flags.append(f'--account-id={account_id}')
 
         setup_and_run(binary_path, home, init_flags, boot_nodes, verbose,
-                      no_watcher)
+                      not no_watcher)
 
 
 @click.option('--keep-watcher', is_flag=True, help='Keep the watcher running.')

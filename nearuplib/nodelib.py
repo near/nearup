@@ -209,7 +209,7 @@ def setup_and_run(binary_path,
                   init_flags,
                   boot_nodes,
                   verbose=False,
-                  watcher=False):
+                  watcher=True):
     check_exist_neard()
     chain_id = get_chain_id_from_flags(init_flags)
 
