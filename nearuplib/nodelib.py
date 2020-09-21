@@ -300,10 +300,7 @@ def stop_native(timeout=DEFAULT_WAIT_TIMEOUT):
                             process.wait(timeout=timeout)
                         except psutil.TimeoutExpired:
                             logging.warning(
-                                f"Process {proc_name} with pid {pid} is taking a long time to terminate..."
-                            )
-                            logging.warning(
-                                f"Killing process {pid}"
+                                f"Timeout expired. Killing process {pid}"
                             )
                             process.kill()
 
