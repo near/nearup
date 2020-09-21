@@ -35,7 +35,7 @@ def stop_watcher(timeout=DEFAULT_WAIT_TIMEOUT):
                 process = psutil.Process(pid)
                 logging.info(
                     f'Stopping near watcher {process.name()} with pid {pid}...')
-                process.terminate()
+                process.kill()
                 process.wait(timeout=timeout)
                 os.remove(WATCHER_PID_FILE)
         else:
