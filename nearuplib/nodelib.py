@@ -209,10 +209,9 @@ def setup_and_run(binary_path,
                   init_flags,
                   boot_nodes,
                   verbose=False,
-                  no_watcher=False):
+                  watcher=True):
     check_exist_neard()
     chain_id = get_chain_id_from_flags(init_flags)
-    watch = False
 
     if binary_path == '':
         logging.info('Using officially compiled binary')
@@ -230,18 +229,14 @@ def setup_and_run(binary_path,
             os.makedirs(binary_path)
 
         download_binaries(chain_id, uname)
-        watch = True
     else:
         logging.info(f'Using local binary at {binary_path}')
+        watcher = False # ensure watcher doesn't run and try to download official binaries
 
     check_and_setup(binary_path, home_dir, init_flags)
 
     print_staking_key(home_dir)
-
-    if no_watcher:
-        watch = False
-
-    run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=watch)
+    run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=watcher)
 
 
 def stop_nearup(keep_watcher=False):
@@ -257,6 +252,7 @@ def stop_nearup(keep_watcher=False):
 
 def restart_nearup(net,
                    path=os.path.expanduser('~/.local/bin/nearup'),
+                   home_dir='',
                    keep_watcher=True):
     logging.warning("Restarting nearup...")
 
@@ -274,11 +270,11 @@ def restart_nearup(net,
 
     logging.warning("Starting nearup...")
     setup_and_run(binary_path='',
-                  home_dir='',
+                  home_dir=home_dir,
                   init_flags=[f'--chain-id={net}'],
                   boot_nodes='',
                   verbose=True,
-                  no_watcher=keep_watcher)
+                  watcher=not keep_watcher)
 
     logging.info("Nearup has been restarted...")
 
