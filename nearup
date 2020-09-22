@@ -87,7 +87,7 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose, num_nodes,
             init_flags.append(f'--account-id={account_id}')
 
         setup_and_run(binary_path, home, init_flags, boot_nodes, verbose,
-                      no_watcher)
+                      not no_watcher)
 
 
 @click.option('--keep-watcher', is_flag=True, help='Keep the watcher running.')
@@ -99,12 +99,23 @@ def stop(keep_watcher):
 @click.argument('network',
                 type=click.Choice({'mainnet', 'testnet', 'betanet',
                                    'localnet'}))
+@click.option(
+    '--home',
+    type=str,
+    help=
+    'Home path for storing configs, keys and chain data (Default: ~/.near/testnet)'
+)
 @click.option('--restart-watcher',
               is_flag=True,
               help='Restart the watcher as well')
 @cli.command()
 def restart(network, restart_watcher):
-    restart_nearup(network, keep_watcher=not restart_watcher)
+    if home:
+        home = os.path.abspath(home)
+    else:
+        home = os.path.expanduser(f'~/.near/{network}')
+
+    restart_nearup(network, home_dir=home, keep_watcher=not restart_watcher)
 
 
 @click.option('--follow', '-f', is_flag=True, help='Follow the logs.')
