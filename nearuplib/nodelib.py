@@ -231,6 +231,7 @@ def setup_and_run(binary_path,
         download_binaries(chain_id, uname)
     else:
         logging.info(f'Using local binary at {binary_path}')
+        watcher = False # ensure watcher doesn't run and try to download official binaries
 
     check_and_setup(binary_path, home_dir, init_flags)
 
