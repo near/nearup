@@ -4,6 +4,7 @@ import os
 
 import click
 
+import nearuplib
 from nearuplib.constants import LOGS_FOLDER
 from nearuplib.localnet import entry
 from nearuplib.nodelib import restart_nearup, setup_and_run, stop_nearup
@@ -127,7 +128,8 @@ def logs(follow, lines):
 
 @cli.command()
 def version():
-    with open('VERSION', 'r') as version_file:
+    version_path = os.path.join(os.path.dirname(nearuplib.__file__), 'VERSION')
+    with open(version_path, 'r') as version_file:
         print(version_file.read().strip())
 
 
