@@ -1,13 +1,14 @@
 from ubuntu:18.04
 
+COPY ./VERSION /root/VERSION
 RUN apt-get update && \
     apt-get install -y python3 python3-pip && \
     pip3 install --upgrade pip && \
     pip3 install --user tox && \
-    pip3 install --user nearup==0.5.2
+    pip3 install --user nearup==$(echo -n $(cat /root/VERSION))
 
-ENV LANG C.UTF-8  
-ENV LC_ALL C.UTF-8     
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
 ENV PATH="/root/.local/bin:$PATH"
 ENV HOME="/root"
 COPY ./start.sh /root/start.sh
