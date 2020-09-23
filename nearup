@@ -125,5 +125,11 @@ def logs(follow, lines):
     show_logs(follow, lines)
 
 
+@cli.command()
+def version():
+    with open('VERSION', 'r') as version_file:
+        print(version_file.read().strip())
+
+
 if __name__ == '__main__':
     cli()

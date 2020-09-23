@@ -3,9 +3,12 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+with open("VERSION", "r") as fh:
+    version = fh.read().strip()
+
 setuptools.setup(
     name="nearup",  # Replace with your own username
-    version="0.5.3",
+    version=version,
     author="Near Inc",
     author_email="hello@near.org",
     description="Public scripts to launch near blockchain nodes",
