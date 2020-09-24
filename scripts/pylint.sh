@@ -1,2 +1,2 @@
 #!/bin/bash
-pylint --rcfile=tox.ini nearup ./**/*.py 
+pylint --rcfile=tox.ini nearup ./**/*.py watcher
