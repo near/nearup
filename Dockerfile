@@ -1,6 +1,6 @@
 from ubuntu:18.04
 
-COPY ./VERSION /root/VERSION
+COPY ./nearuplib/VERSION /root/VERSION
 RUN apt-get update && \
     apt-get install -y python3 python3-pip && \
     pip3 install --upgrade pip && \
