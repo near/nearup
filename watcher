@@ -4,10 +4,7 @@
 
 import logging
 import os
-import subprocess
-import sys
 import time
-import traceback
 
 import click
 
@@ -47,10 +44,10 @@ def run(network):
             if latest_deployed_release_commit_has_changed(
                     network, current_release_commit):
                 logging.info(
-                    f"New release has been published. Restarting nearup")
+                    "New release has been published. Restarting nearup")
                 restart_nearup(network)
-        except Exception as e:
-            logging.error(e)
+        except Exception as ex:
+            logging.error(ex)
 
 
 if __name__ == '__main__':
