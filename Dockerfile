@@ -7,8 +7,7 @@ ENV HOME="/root"
 
 RUN apt-get update && \
     apt-get install -y python3 python3-pip && \
-    pip3 install --upgrade pip && \
-    pip3 install --user tox
+    pip3 install --upgrade pip
 
 COPY . /root/nearup/
 RUN cd /root/nearup && pip3 install --user .
