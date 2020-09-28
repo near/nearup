@@ -46,6 +46,7 @@ def run(network):
                 logging.info(
                     "New release has been published. Restarting nearup")
                 restart_nearup(network)
+                current_release_commit = latest_deployed_release_commit(network)
         except Exception as ex:
             logging.error(ex)
 
