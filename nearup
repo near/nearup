@@ -110,7 +110,7 @@ def stop(keep_watcher):
               is_flag=True,
               help='Restart the watcher as well')
 @cli.command()
-def restart(network, restart_watcher):
+def restart(network, home, restart_watcher):
     if home:
         home = os.path.abspath(home)
     else:
