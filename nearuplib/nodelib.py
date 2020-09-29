@@ -16,6 +16,7 @@ from nearuplib.util import (
     download_config,
     download_genesis,
     latest_genesis_md5sum,
+    new_release_ready,
 )
 from nearuplib.watcher import is_watcher_running, run_watcher, stop_watcher
 
@@ -66,11 +67,15 @@ def check_and_update_genesis(chain_id, home_dir):
     if genesis_changed(chain_id, home_dir):
         logging.info(
             f'Update genesis config and remove stale data for {chain_id}')
+
         os.remove(os.path.join(home_dir, 'genesis.json'))
         download_genesis(chain_id, home_dir)
+
         if os.path.exists(os.path.join(home_dir, 'data')):
             shutil.rmtree(os.path.join(home_dir, 'data'))
+
         return True
+
     return False
 
 
@@ -82,6 +87,7 @@ def check_and_setup(binary_path, home_dir, init_flags):
         for file in ['node_key.json', 'config.json', 'genesis.json']:
             if not os.path.exists(os.path.join(home_dir, file)):
                 missing.append(file)
+
         if missing:
             logging.error(
                 f'Missing files {", ".join(missing)} in {home_dir}. Maybe last init was failed.'
@@ -93,6 +99,7 @@ def check_and_setup(binary_path, home_dir, init_flags):
 
         genesis_config = json.loads(
             open(os.path.join(os.path.join(home_dir, 'genesis.json'))).read())
+
         if genesis_config['chain_id'] != chain_id:
             logging.error(
                 f"Folder {home_dir} has network configuration for {genesis_config['chain_id']}"
@@ -105,6 +112,7 @@ def check_and_setup(binary_path, home_dir, init_flags):
         else:
             logging.info("Using existing node configuration from %s for %s",
                          home_dir, genesis_config['chain_id'])
+
         return
 
     logging.info("Setting up network configuration.")
@@ -112,10 +120,11 @@ def check_and_setup(binary_path, home_dir, init_flags):
 
     if chain_id not in ['betanet', 'testnet']:
         filename = os.path.join(home_dir, 'genesis.json')
-        genesis_config = json.load(open(filename))
-        genesis_config['gas_price'] = 0
-        genesis_config['min_gas_price'] = 0
-        json.dump(genesis_config, open(filename, 'w'))
+        with open(filename, 'r+') as genesis_fh:
+            genesis_config = json.load(genesis_fh)
+            genesis_config['gas_price'] = 0
+            genesis_config['min_gas_price'] = 0
+            json.dump(genesis_config, genesis_fh)
 
 
 def print_staking_key(home_dir):
@@ -226,8 +235,8 @@ def setup_and_run(binary_path,
             logging.error(
                 'Compile a local binary and set --binary-path when running')
             sys.exit(1)
-        binary_path = os.path.expanduser(f'~/.nearup/near/{chain_id}')
 
+        binary_path = os.path.expanduser(f'~/.nearup/near/{chain_id}')
         if not os.path.exists(binary_path):
             os.makedirs(binary_path)
 
@@ -267,6 +276,11 @@ def restart_nearup(net,
             "For local development use: `pip3 install --user .` from root directory"
         )
         sys.exit(1)
+
+    uname = os.uname()[0]
+    if not new_release_ready(net, uname):
+        logging.warning(f'Latest release for {net} is not ready. Skipping restart.')
+        return
 
     logging.warning("Stopping nearup...")
     stop_nearup(keep_watcher=keep_watcher)

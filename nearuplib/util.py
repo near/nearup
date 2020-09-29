@@ -1,3 +1,4 @@
+import functools
 import logging
 import os
 import stat
@@ -9,15 +10,63 @@ from botocore.client import Config
 from nearuplib.constants import S3_BUCKET
 
 
+class NetworkError(Exception):
+    """Designates a non-fatal networking error"""
+
+
+def capture_and_raise(exception):
+    """Capture any exception raised by the wrapped function and re-raise as the given exception."""
+    def wrap(func):
+        @functools.wraps(func)
+        def wrapped(*args, **kwargs):
+            try:
+                func(*args, **kwargs)
+            except Exception as ex:
+                raise exception() from ex
+
+        return wrapped
+    return wrap
+
+
+@capture_and_raise(NetworkError)
 def download_from_s3(path, filepath=None):
     s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
     s3_client.download_file(S3_BUCKET, path, filepath)
 
 
+@capture_and_raise(NetworkError)
+def exists_on_s3(path):
+    s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    try:
+        s3_client.head_object(Bucket=S3_BUCKET, Key=path)
+    except s3_client.exceptions.NoSuchKey:
+        return False
+
+    return True
+
+
+@capture_and_raise(NetworkError)
 def read_from_s3(path):
     s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
     response = s3_client.get_object(Bucket=S3_BUCKET, Key=path)
     return response['Body'].read().decode('utf-8')
+
+
+def new_release_ready(net, uname):
+    """Sanity check that a new release is ready for download."""
+    commit = latest_deployed_release_commit(net)
+    branch = latest_deployed_release_branch(net)
+
+    if not commit:
+        return False
+
+    binaries = ['near', 'genesis-csv-to-json']
+    for binary in binaries:
+        path = f'nearcore/{uname}/{branch}/{commit}/{binary}'
+        if not exists_on_s3(path):
+            return False
+
+    return True
 
 
 def download_config(net, home_dir):
