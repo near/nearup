@@ -32,8 +32,7 @@ def cli():
 
 @cli.command()
 @click.argument('network',
-                type=click.Choice({'mainnet', 'testnet', 'betanet',
-                                   'localnet'}))
+                type=click.Choice({'testnet', 'betanet', 'localnet'}))
 @click.option(
     '--binary-path',
     type=str,
@@ -78,10 +77,6 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose, num_nodes,
 
     if network == 'localnet':
         entry(binary_path, home, num_nodes, num_shards, override, verbose)
-    elif network == 'mainnet':
-        logging.error('Sorry mainnet is now internal nodes only!!!')
-        logging.error(
-            'Please use https://rpc.mainnet.near.org to reach mainnet rpc')
     else:
         init_flags = [f'--chain-id={network}']
         if account_id:
@@ -98,8 +93,7 @@ def stop(keep_watcher):
 
 
 @click.argument('network',
-                type=click.Choice({'mainnet', 'testnet', 'betanet',
-                                   'localnet'}))
+                type=click.Choice({'testnet', 'betanet', 'localnet'}))
 @click.option(
     '--home',
     type=str,
