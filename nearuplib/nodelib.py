@@ -28,7 +28,7 @@ def init_near(home_dir, binary_path, chain_id, init_flags):
         # force download genesis
         cmd.append('--download-genesis')
 
-    subprocess.call(cmd)
+    subprocess.check_call(cmd)
 
 
 def init(home_dir, binary_path, chain_id, init_flags):
@@ -201,7 +201,7 @@ def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
 
     if watch:
         logging.info("Watcher is enabled. Starting watcher...")
-        run_watcher(chain_id)
+        run_watcher(chain_id, home=home_dir)
 
 
 def setup_and_run(binary_path,
@@ -231,7 +231,7 @@ def setup_and_run(binary_path,
         download_binaries(chain_id, uname)
     else:
         logging.info(f'Using local binary at {binary_path}')
-        watcher = False # ensure watcher doesn't run and try to download official binaries
+        watcher = False  # ensure watcher doesn't run and try to download official binaries
 
     check_and_setup(binary_path, home_dir, init_flags)
 
@@ -287,17 +287,18 @@ def stop_native(timeout=DEFAULT_WAIT_TIMEOUT):
                     pid, proc_name, _ = line.strip().split("|")
                     pid = int(pid)
                     process = psutil.Process(pid)
-                    logging.info(f"Near procces is {proc_name} with pid: {pid}...")
+                    logging.info(
+                        f"Near procces is {proc_name} with pid: {pid}...")
 
                     if proc_name in proc_name_from_pid(pid):
-                        logging.info(f"Stopping process {proc_name} with pid {pid}...")
+                        logging.info(
+                            f"Stopping process {proc_name} with pid {pid}...")
                         try:
                             process.terminate()
                             process.wait(timeout=timeout)
                         except psutil.TimeoutExpired:
                             logging.warning(
-                                f"Timeout expired. Killing process {pid}"
-                            )
+                                f"Timeout expired. Killing process {pid}")
                             process.kill()
 
             os.remove(NODE_PID_FILE)
