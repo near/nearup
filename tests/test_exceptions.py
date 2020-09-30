@@ -1,6 +1,6 @@
 import pytest
 
-from nearuplib.util import NetworkError, capture_and_raise
+from nearuplib.exceptions import NetworkError, capture_and_raise
 
 
 def test_capture_and_raise():

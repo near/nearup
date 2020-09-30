@@ -1,4 +1,3 @@
-import functools
 import logging
 import os
 import stat
@@ -8,24 +7,7 @@ from botocore import UNSIGNED
 from botocore.client import Config
 
 from nearuplib.constants import S3_BUCKET
-
-
-class NetworkError(Exception):
-    """Designates a non-fatal networking error"""
-
-
-def capture_and_raise(exception):
-    """Capture any exception raised by the wrapped function and re-raise as the given exception."""
-    def wrap(func):
-        @functools.wraps(func)
-        def wrapped(*args, **kwargs):
-            try:
-                func(*args, **kwargs)
-            except Exception as ex:
-                raise exception() from ex
-
-        return wrapped
-    return wrap
+from nearuplib.exceptions import NetworkError, capture_and_raise
 
 
 @capture_and_raise(NetworkError)
