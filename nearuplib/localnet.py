@@ -45,18 +45,17 @@ def run(binary_path, home, num_nodes, num_shards, override, verbose=True):
     os.mkdir(LOCALNET_LOGS_FOLDER)
 
     # Spawn network
-    pid_fd = open(NODE_PID_FILE, 'w')
-    for i in range(0, num_nodes):
-        proc = run_binary(
-            binary_path,
-            os.path.join(home, f'node{i}'),
-            'run',
-            verbose=verbose,
-            boot_nodes=f'{public_key}@127.0.0.1:24567' if i > 0 else None,
-            output=os.path.join(LOCALNET_LOGS_FOLDER, f'node{i}'))
-        proc_name = proc_name_from_pid(proc.pid)
-        pid_fd.write(f"{proc.pid}|{proc_name}|localnet\n")
-    pid_fd.close()
+    with open(NODE_PID_FILE, 'w') as pid_fd:
+        for i in range(0, num_nodes):
+            proc = run_binary(
+                binary_path,
+                os.path.join(home, f'node{i}'),
+                'run',
+                verbose=verbose,
+                boot_nodes=f'{public_key}@127.0.0.1:24567' if i > 0 else None,
+                output=os.path.join(LOCALNET_LOGS_FOLDER, f'node{i}'))
+            proc_name = proc_name_from_pid(proc.pid)
+            pid_fd.write(f"{proc.pid}|{proc_name}|localnet\n")
 
     logging.info("Localnet was spawned successfully...")
     logging.info(f"Localnet logs written in: {LOCALNET_LOGS_FOLDER}")
