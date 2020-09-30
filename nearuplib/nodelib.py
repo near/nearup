@@ -180,6 +180,8 @@ def is_neard_running():
 
 def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
     os.environ['RUST_BACKTRACE'] = '1'
+    os.environ['RUST_LOG'] = 'actix_web'
+
     # convert verbose = True to --verbose '' command line argument
     if verbose:
         verbose = ''
