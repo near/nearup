@@ -9,8 +9,20 @@ import psutil
 from nearuplib.constants import DEFAULT_WAIT_TIMEOUT, WATCHER_PID_FILE
 
 
+def is_watcher_running():
+    if os.path.exists(WATCHER_PID_FILE):
+        logging.error("Nearup watcher is running.")
+        logging.error("Run nearup stop or kill the process manually!")
+        logging.warning(f"If this is a mistake, remove {WATCHER_PID_FILE}")
+        return True
+    return False
+
+
 def run_watcher(net, path=os.path.expanduser('~/.local/bin/watcher'), home=''):
     logging.info("Starting the nearup watcher...")
+
+    if is_watcher_running():
+        sys.exit(1)
 
     if not os.path.exists(path):
         logging.error(
