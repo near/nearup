@@ -1,11 +1,12 @@
 import json
 import logging
 import os
+import sys
 
 from shutil import rmtree
 
 from nearuplib.constants import NODE_PID_FILE, LOCALNET_LOGS_FOLDER
-from nearuplib.nodelib import run_binary, proc_name_from_pid, check_exist_neard
+from nearuplib.nodelib import run_binary, proc_name_from_pid, is_neard_running
 
 
 def run(binary_path, home, num_nodes, num_shards, override, verbose=True):
@@ -66,6 +67,7 @@ def entry(binary_path, home, num_nodes, num_shards, override, verbose):
     if binary_path:
         binary_path = os.path.join(binary_path, 'neard')
 
-    check_exist_neard()
+    if is_neard_running():
+        sys.exit(1)
 
     run(binary_path, home, num_nodes, num_shards, override, verbose)
