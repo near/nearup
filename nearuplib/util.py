@@ -7,16 +7,16 @@ from botocore import UNSIGNED
 from botocore.client import Config
 
 from nearuplib.constants import S3_BUCKET
-from nearuplib.exceptions import NetworkError, capture_and_raise
+from nearuplib.exceptions import NetworkError, capture_as
 
 
-@capture_and_raise(NetworkError)
+@capture_as(NetworkError)
 def download_from_s3(path, filepath=None):
     s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
     s3_client.download_file(S3_BUCKET, path, filepath)
 
 
-@capture_and_raise(NetworkError)
+@capture_as(NetworkError)
 def exists_on_s3(path):
     s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
     try:
@@ -27,7 +27,7 @@ def exists_on_s3(path):
     return True
 
 
-@capture_and_raise(NetworkError)
+@capture_as(NetworkError)
 def read_from_s3(path):
     s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
     response = s3_client.get_object(Bucket=S3_BUCKET, Key=path)
