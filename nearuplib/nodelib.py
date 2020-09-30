@@ -17,7 +17,7 @@ from nearuplib.util import (
     download_genesis,
     latest_genesis_md5sum,
 )
-from nearuplib.watcher import run_watcher, stop_watcher
+from nearuplib.watcher import is_watcher_running, run_watcher, stop_watcher
 
 
 def init_near(home_dir, binary_path, chain_id, init_flags):
@@ -169,12 +169,13 @@ def proc_name_from_pid(pid):
     return process.name()
 
 
-def check_exist_neard():
+def is_neard_running():
     if os.path.exists(NODE_PID_FILE):
-        logging.warning(
-            "There is already binary nodes running. Stop it using: nearup stop")
+        logging.error("There is already binary nodes running.")
+        logging.error("Either run nearup stop or by kill the process manually.")
         logging.warning(f"If this is a mistake, remove {NODE_PID_FILE}")
-        sys.exit(1)
+        return True
+    return False
 
 
 def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
@@ -210,7 +211,9 @@ def setup_and_run(binary_path,
                   boot_nodes,
                   verbose=False,
                   watcher=True):
-    check_exist_neard()
+    if is_neard_running() or is_watcher_running():
+        sys.exit(1)
+
     chain_id = get_chain_id_from_flags(init_flags)
 
     if binary_path == '':
