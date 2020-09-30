@@ -11,7 +11,9 @@ def show_logs(follow, number_lines):
         logging.info('Node is not running')
         sys.exit(1)
 
-    pid_info = open(NODE_PID_FILE).readline()
+    with open(NODE_PID_FILE) as pid_file:
+        pid_info = pid_file.readline()
+
     logging.info(pid_info)
     _, _, network = pid_info.strip().split("|")
 
