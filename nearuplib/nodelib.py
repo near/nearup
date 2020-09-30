@@ -49,9 +49,10 @@ def get_chain_id_from_flags(flags):
 
 def genesis_changed(chain_id, home_dir):
     genesis_md5sum = latest_genesis_md5sum(chain_id)
-    local_genesis_md5sum = hashlib.md5(
-        open(os.path.join(os.path.join(home_dir, 'genesis.json')),
-             'rb').read()).hexdigest()
+
+    with open(os.path.join(os.path.join(home_dir, 'genesis.json')), 'rb') as genesis_fd:
+        local_genesis_md5sum = hashlib.md5(genesis_fd.read()).hexdigest()
+
     if genesis_md5sum == local_genesis_md5sum:
         logging.info('The genesis version is up to date')
         return False
@@ -91,8 +92,9 @@ def check_and_setup(binary_path, home_dir, init_flags):
             )
             sys.exit(1)
 
-        genesis_config = json.loads(
-            open(os.path.join(os.path.join(home_dir, 'genesis.json'))).read())
+        with open(os.path.join(os.path.join(home_dir, 'genesis.json'))) as genesis_fd:
+            genesis_config = json.loads(genesis_fd.read())
+
         if genesis_config['chain_id'] != chain_id:
             logging.error(
                 f"Folder {home_dir} has network configuration for {genesis_config['chain_id']}"
@@ -111,11 +113,11 @@ def check_and_setup(binary_path, home_dir, init_flags):
     init(home_dir, binary_path, chain_id, init_flags)
 
     if chain_id not in ['betanet', 'testnet']:
-        filename = os.path.join(home_dir, 'genesis.json')
-        genesis_config = json.load(open(filename))
-        genesis_config['gas_price'] = 0
-        genesis_config['min_gas_price'] = 0
-        json.dump(genesis_config, open(filename, 'w'))
+        with open(os.path.join(home_dir, 'genesis.json'), 'r+') as genesis_fd:
+            genesis_config = json.load(genesis_fd)
+            genesis_config['gas_price'] = 0
+            genesis_config['min_gas_price'] = 0
+            json.dump(genesis_config, genesis_fd)
 
 
 def print_staking_key(home_dir):
@@ -123,13 +125,15 @@ def print_staking_key(home_dir):
     if not os.path.exists(key_path):
         return
 
-    key_file = json.loads(open(key_path).read())
-    if not key_file['account_id']:
+    with open(key_path) as key_file:
+        key_data = json.loads(key_file.read())
+
+    if not key_data['account_id']:
         logging.warning(
             "Node is not staking. Re-run init to specify staking account.")
         return
-    logging.info("Stake for user '%s' with '%s'", key_file['account_id'],
-                 key_file['public_key'])
+    logging.info("Stake for user '%s' with '%s'", key_data['account_id'],
+                 key_data['public_key'])
 
 
 def run_binary(path,
