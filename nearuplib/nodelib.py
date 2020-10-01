@@ -146,7 +146,7 @@ def print_staking_key(home_dir):
 def run_binary(path,
                home,
                action,
-               verbose=None,
+               verbose=False,
                shards=None,
                validators=None,
                non_validators=None,
@@ -154,8 +154,11 @@ def run_binary(path,
                output=None):
     command = [path, '--home', home]
 
-    if verbose or verbose == '':
-        command.extend(['--verbose', verbose])
+    env = os.environ.copy()
+    if verbose:
+        command.extend(['--verbose', ''])
+        env['RUST_BACKTRACE'] = '1'
+        env['RUST_LOG'] = 'actix_web'
 
     command.append(action)
 
@@ -171,7 +174,7 @@ def run_binary(path,
     if output:
         output = open(f'{output}.log', 'a')
 
-    near = Popen(command, stderr=output, stdout=output)
+    near = Popen(command, stderr=output, stdout=output, env=env)
     return near
 
 
@@ -190,14 +193,6 @@ def is_neard_running():
 
 
 def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
-    os.environ['RUST_BACKTRACE'] = '1'
-    os.environ['RUST_LOG'] = 'actix_web'
-
-    # convert verbose = True to --verbose '' command line argument
-    if verbose:
-        verbose = ''
-    else:
-        verbose = None
     proc = run_binary(os.path.join(binary_path, 'near'),
                       home_dir,
                       'run',
