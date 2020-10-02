@@ -52,6 +52,11 @@ def cli():
               help='Specify the nodes to boot from',
               default='')
 @click.option('--verbose', is_flag=True, help='If set, prints verbose logs')
+@click.option(
+    '--neard-log',
+    type=str,
+    help='Comma-separated module=level values passed to neard --verbose flag',
+    default='')
 @click.option('--num-nodes',
               type=int,
               help='Specifies the number of localnet nodes to create',
@@ -66,8 +71,8 @@ def cli():
 @click.option('--no-watcher',
               is_flag=True,
               help='Disable nearup watcher, mostly used for tests.')
-def run(network, binary_path, home, account_id, boot_nodes, verbose, num_nodes,
-        num_shards, override, no_watcher):
+def run(network, binary_path, home, account_id, boot_nodes, verbose, neard_log,
+        num_nodes, num_shards, override, no_watcher):
     if home:
         home = os.path.abspath(home)
     else:
@@ -82,8 +87,13 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose, num_nodes,
         if account_id:
             init_flags.append(f'--account-id={account_id}')
 
-        setup_and_run(binary_path, home, init_flags, boot_nodes, verbose,
-                      not no_watcher)
+        setup_and_run(binary_path,
+                      home,
+                      init_flags,
+                      boot_nodes,
+                      verbose=verbose,
+                      neard_log=neard_log,
+                      watcher=not no_watcher)
 
 
 @click.option('--keep-watcher', is_flag=True, help='Keep the watcher running.')
