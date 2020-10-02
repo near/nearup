@@ -1,0 +1,12 @@
+steps:
+  - command: "pip3 install --user tox && ~/.local/bin/tox -e coverage"
+    label: "tests & coverage"
+    
+  - command: "pip3 install --user tox && ~/.local/bin/tox -e style"
+    label: "style"
+    
+  - command: "pip3 install --user tox && ~/.local/bin/tox -e lint"
+    label: "lint"
+    
+  - command: "bash scripts/test_download.sh"
+    label: "watcher integration test"
