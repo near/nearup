@@ -146,7 +146,8 @@ def print_staking_key(home_dir):
 def run_binary(path,
                home,
                action,
-               verbose=None,
+               neard_log=None,
+               verbose=False,
                shards=None,
                validators=None,
                non_validators=None,
@@ -154,8 +155,16 @@ def run_binary(path,
                output=None):
     command = [path, '--home', home]
 
-    if verbose or verbose == '':
-        command.extend(['--verbose', verbose])
+    env = os.environ.copy()
+    env['RUST_BACKTRACE'] = '1'
+
+    # Note, we need to make these options mutually exclusive
+    # for backwards capability reasons, until v1.0.0
+    if verbose:
+        command.extend(['--verbose', ''])
+        env['RUST_LOG'] = 'actix_web'
+    elif neard_log:
+        command.extend(['--verbose', neard_log])
 
     command.append(action)
 
@@ -171,7 +180,7 @@ def run_binary(path,
     if output:
         output = open(f'{output}.log', 'a')
 
-    near = Popen(command, stderr=output, stdout=output)
+    near = Popen(command, stderr=output, stdout=output, env=env)
     return near
 
 
@@ -189,18 +198,11 @@ def is_neard_running():
     return False
 
 
-def run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=False):
-    os.environ['RUST_BACKTRACE'] = '1'
-    os.environ['RUST_LOG'] = 'actix_web'
-
-    # convert verbose = True to --verbose '' command line argument
-    if verbose:
-        verbose = ''
-    else:
-        verbose = None
+def run(home_dir, binary_path, boot_nodes, neard_log, verbose, chain_id, watch=False):
     proc = run_binary(os.path.join(binary_path, 'near'),
                       home_dir,
                       'run',
+                      neard_log=neard_log,
                       verbose=verbose,
                       boot_nodes=boot_nodes,
                       output=os.path.join(LOGS_FOLDER, chain_id))
@@ -223,6 +225,7 @@ def setup_and_run(binary_path,
                   init_flags,
                   boot_nodes,
                   verbose=False,
+                  neard_log='',
                   watcher=True):
     if is_neard_running() or is_watcher_running():
         sys.exit(1)
@@ -252,7 +255,7 @@ def setup_and_run(binary_path,
     check_and_setup(binary_path, home_dir, init_flags)
 
     print_staking_key(home_dir)
-    run(home_dir, binary_path, boot_nodes, verbose, chain_id, watch=watcher)
+    run(home_dir, binary_path, boot_nodes, neard_log, verbose, chain_id, watch=watcher)
 
 
 def stop_nearup(keep_watcher=False):
