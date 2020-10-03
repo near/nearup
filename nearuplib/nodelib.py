@@ -25,7 +25,7 @@ def init_near(home_dir, binary_path, chain_id, init_flags):
     logging.info("Initializing the node configuration using near binary...")
 
     cmd = [f'{binary_path}/near', f'--home={home_dir}', 'init'] + init_flags
-    if chain_id in ['betanet', 'testnet']:
+    if chain_id in ['crashnet', 'betanet', 'testnet']:
         # force download genesis
         cmd.append('--download-genesis')
 
@@ -51,7 +51,8 @@ def get_chain_id_from_flags(flags):
 def genesis_changed(chain_id, home_dir):
     genesis_md5sum = latest_genesis_md5sum(chain_id)
 
-    with open(os.path.join(os.path.join(home_dir, 'genesis.json')), 'rb') as genesis_fd:
+    with open(os.path.join(os.path.join(home_dir, 'genesis.json')),
+              'rb') as genesis_fd:
         local_genesis_md5sum = hashlib.md5(genesis_fd.read()).hexdigest()
 
     if genesis_md5sum == local_genesis_md5sum:
@@ -108,7 +109,7 @@ def check_and_setup(binary_path, home_dir, init_flags):
             )
             sys.exit(1)
 
-        if chain_id in ['betanet', 'testnet']:
+        if chain_id in ['crashnet', 'betanet', 'testnet']:
             check_and_update_genesis(chain_id, home_dir)
         else:
             logging.info("Using existing node configuration from %s for %s",
@@ -119,7 +120,7 @@ def check_and_setup(binary_path, home_dir, init_flags):
     logging.info("Setting up network configuration.")
     init(home_dir, binary_path, chain_id, init_flags)
 
-    if chain_id not in ['betanet', 'testnet']:
+    if chain_id not in ['crashnet', 'betanet', 'testnet']:
         with open(os.path.join(home_dir, 'genesis.json'), 'r+') as genesis_fd:
             genesis_config = json.load(genesis_fd)
             genesis_config['gas_price'] = 0
@@ -198,7 +199,13 @@ def is_neard_running():
     return False
 
 
-def run(home_dir, binary_path, boot_nodes, neard_log, verbose, chain_id, watch=False):
+def run(home_dir,
+        binary_path,
+        boot_nodes,
+        neard_log,
+        verbose,
+        chain_id,
+        watch=False):
     proc = run_binary(os.path.join(binary_path, 'near'),
                       home_dir,
                       'run',
@@ -255,7 +262,13 @@ def setup_and_run(binary_path,
     check_and_setup(binary_path, home_dir, init_flags)
 
     print_staking_key(home_dir)
-    run(home_dir, binary_path, boot_nodes, neard_log, verbose, chain_id, watch=watcher)
+    run(home_dir,
+        binary_path,
+        boot_nodes,
+        neard_log,
+        verbose,
+        chain_id,
+        watch=watcher)
 
 
 def stop_nearup(keep_watcher=False):
@@ -286,7 +299,8 @@ def restart_nearup(net,
 
     uname = os.uname()[0]
     if not new_release_ready(net, uname):
-        logging.warning(f'Latest release for {net} is not ready. Skipping restart.')
+        logging.warning(
+            f'Latest release for {net} is not ready. Skipping restart.')
         return
 
     logging.warning("Stopping nearup...")
