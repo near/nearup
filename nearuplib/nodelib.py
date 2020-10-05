@@ -234,7 +234,10 @@ def setup_and_run(binary_path,
                   verbose=False,
                   neard_log='',
                   watcher=True):
-    if is_neard_running() or is_watcher_running():
+    if is_neard_running():
+        sys.exit(1)
+
+    if watcher and is_watcher_running():
         sys.exit(1)
 
     chain_id = get_chain_id_from_flags(init_flags)
