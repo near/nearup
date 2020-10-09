@@ -7,6 +7,8 @@ import os
 import sys
 import time
 
+from logging import handlers
+
 import click
 
 from nearuplib.exceptions import NetworkError
@@ -22,7 +24,11 @@ logging.basicConfig(
     '%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
     handlers=[
-        logging.FileHandler(os.path.expanduser('~/.nearup/logs/watcher.log')),
+        handlers.RotatingFileHandler(
+            os.path.expanduser('~/.nearup/logs/watcher.log'),
+            maxBytes=1024 * 1024,
+            backupCount=10,
+        ),
     ],
 )
 
