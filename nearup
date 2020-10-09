@@ -2,6 +2,8 @@
 import logging
 import os
 
+from logging import handlers
+
 import click
 
 import nearuplib
@@ -19,7 +21,11 @@ logging.basicConfig(
     '%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
     handlers=[
-        logging.FileHandler(os.path.expanduser('~/.nearup/logs/nearup.log')),
+        handlers.RotatingFileHandler(
+            os.path.expanduser('~/.nearup/logs/nearup.log'),
+            maxBytes=1024 * 1024,
+            backupCount=10,
+        ),
         logging.StreamHandler()
     ],
 )

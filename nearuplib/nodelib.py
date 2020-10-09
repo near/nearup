@@ -19,6 +19,7 @@ from nearuplib.util import (
     new_release_ready,
 )
 from nearuplib.watcher import is_watcher_running, run_watcher, stop_watcher
+from nearuplib.tailer import next_logname
 
 
 def init_near(home_dir, binary_path, chain_id, init_flags):
@@ -179,7 +180,10 @@ def run_binary(path,
         command.extend(['--boot-nodes', boot_nodes])
 
     if output:
-        output = open(f'{output}.log', 'a')
+        logname = f'{output}.log'
+        if logname != next_logname(logname):
+            shutil.move(logname, next_logname(logname))
+        output = open(logname, 'w')
 
     near = Popen(command, stderr=output, stdout=output, env=env)
     return near

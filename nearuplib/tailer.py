@@ -1,9 +1,21 @@
+import glob
 import logging
 import os
 import subprocess
 import sys
 
 from nearuplib.constants import NODE_PID_FILE
+
+
+def next_logname(logname):
+    files = glob.glob(f'{logname}.*')
+
+    if not os.path.exists(logname):
+        return logname
+
+    highest_index = max([1] + [int(f.split('.')[-1]) for f in files])
+
+    return f'{logname}.{highest_index}'
 
 
 def show_logs(follow, number_lines):
@@ -28,7 +40,7 @@ def show_logs(follow, number_lines):
         'tail',
         '-n',
         str(number_lines),
-        '-f' if follow else '',
+        '-F' if follow else '',
         os.path.expanduser(f'~/.nearup/logs/{network}.log'),
     ]
 
