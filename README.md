@@ -34,7 +34,7 @@ On ubuntu, you can install with,
 
 ```
 sudo apt update
-sudo apt install python3 python3-pip python3-devel
+sudo apt install python3 python3-pip python3-dev
 ```
 
 :warning: Upgrade pip if needed you are getting a Permission Denied error or version of pip (pip3 --version) is below 20.
