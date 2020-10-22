@@ -86,42 +86,30 @@ def check_and_setup(binary_path, home_dir, init_flags):
     """Checks if there is already everything setup on this machine, otherwise sets up NEAR node."""
     chain_id = get_chain_id_from_flags(init_flags)
     if os.path.exists(os.path.join(home_dir)):
-        missing = []
-        for file in ['node_key.json', 'config.json', 'genesis.json']:
-            if not os.path.exists(os.path.join(home_dir, file)):
-                missing.append(file)
 
-        if missing:
-            logging.error(
-                f'Missing files {", ".join(missing)} in {home_dir}. Maybe last init was failed.'
-            )
-            logging.error(
-                'Either specify different --home or remove {home_dir} to start from scratch.'
-            )
-            sys.exit(1)
-
-        with open(os.path.join(home_dir, 'genesis.json')) as genesis_fd:
-            genesis_config = json.loads(genesis_fd.read())
-
-        if genesis_config['chain_id'] != chain_id:
-            logging.error(
-                f"Folder {home_dir} has network configuration for {genesis_config['chain_id']}"
-                f"Either specify different --home or remove {home_dir} to start from scratch.",
-            )
-            sys.exit(1)
+        if chain_id != 'localnet':
+            with open(os.path.join(home_dir, 'genesis.json')) as genesis_fd:
+                genesis_config = json.loads(genesis_fd.read())
+                if genesis_config['chain_id'] != chain_id:
+                    logging.error(
+                        f"{home_dir} has wrong network configuration in genesis."
+                        f"Specify different --home or specify the correct genesis.",
+                    )
+                    sys.exit(1)
 
         if chain_id in ['crashnet', 'betanet', 'testnet']:
             check_and_update_genesis(chain_id, home_dir)
+        elif chain_id == 'mainnet':
+            logging.info("Using the mainnet genesis...")
         else:
             logging.info("Using existing node configuration from %s for %s",
-                         home_dir, genesis_config['chain_id'])
-
+                         home_dir, chain_id)
         return
 
     logging.info("Setting up network configuration.")
     init(home_dir, binary_path, chain_id, init_flags)
 
-    if chain_id not in ['crashnet', 'betanet', 'testnet']:
+    if chain_id not in ['mainnet', 'crashnet', 'betanet', 'testnet']:
         with open(os.path.join(home_dir, 'genesis.json'), 'r+') as genesis_fd:
             genesis_config = json.load(genesis_fd)
             genesis_config['gas_price'] = 0

@@ -39,7 +39,7 @@ def cli():
 @cli.command()
 @click.argument('network',
                 type=click.Choice(
-                    {'testnet', 'betanet', 'crashnet', 'localnet'}))
+                    {'mainnet', 'testnet', 'betanet', 'crashnet', 'localnet'}))
 @click.option(
     '--binary-path',
     type=str,
