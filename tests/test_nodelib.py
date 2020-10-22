@@ -45,32 +45,14 @@ def write_genesis(home, chain_id):
         json.dump({'chain_id': chain_id}, genesis)
 
 
-def test_check_and_setup_localnet_missing_files():
-    """Home directory exists, but missing key files"""
-    with pytest.raises(SystemExit) as err:
-        check_and_setup(LOCALNET_BINARY_PATH, LOCALNET_HOME, LOCALNET_INIT_FLAGS)
-
-    assert err.value.code == 1
-
-
-def test_check_and_setup_localnet_bad_chain_id():
-    """Home directory genesis.json has different chain_id"""
-    write_config_files(LOCALNET_HOME)
-    write_genesis(LOCALNET_HOME, 'not_localnet')
-
-    with pytest.raises(SystemExit) as err:
-        check_and_setup(LOCALNET_BINARY_PATH, LOCALNET_HOME, LOCALNET_INIT_FLAGS)
-
-    assert err.value.code == 1
-
-
 def test_check_and_setup_localnet_existing_config():
     """Home directory exists with config"""
     write_config_files(LOCALNET_HOME)
     write_genesis(LOCALNET_HOME, 'localnet')
 
     try:
-        check_and_setup(LOCALNET_BINARY_PATH, LOCALNET_HOME, LOCALNET_INIT_FLAGS)
+        check_and_setup(LOCALNET_BINARY_PATH, LOCALNET_HOME,
+                        LOCALNET_INIT_FLAGS)
     except Exception as ex:
         pytest.fail(f'unexpected expection {ex}')
 

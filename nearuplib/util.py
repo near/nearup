@@ -68,20 +68,18 @@ def download_binaries(net, uname):
     if commit:
         logging.info(f'Downloading latest deployed version for {net}')
 
-        binaries = ['near', 'genesis-csv-to-json']
-        for binary in binaries:
-            download_url = f'nearcore/{uname}/{branch}/{commit}/{binary}'
-            download_path = os.path.expanduser(f'~/.nearup/near/{net}/{binary}')
+        binary = 'near'
+        download_url = f'nearcore/{uname}/{branch}/{commit}/{binary}'
+        download_path = os.path.expanduser(f'~/.nearup/near/{net}/{binary}')
 
-            logging.info(
-                f"Downloading {binary} to {download_path} from {download_url}..."
-            )
-            download_from_s3(download_url, download_path)
-            logging.info(f"Downloaded {binary} to {download_path}...")
+        logging.info(
+            f"Downloading {binary} to {download_path} from {download_url}...")
+        download_from_s3(download_url, download_path)
+        logging.info(f"Downloaded {binary} to {download_path}...")
 
-            logging.info(f"Making the {binary} executable...")
-            status = os.stat(download_path)
-            os.chmod(download_path, status.st_mode | stat.S_IEXEC)
+        logging.info(f"Making the {binary} executable...")
+        status = os.stat(download_path)
+        os.chmod(download_path, status.st_mode | stat.S_IEXEC)
 
         # TODO: seperate into download_metadata function with missing metadata
         with open(os.path.expanduser(f'~/.nearup/near/{net}/version'),

@@ -22,13 +22,14 @@ def setup_module(module):  # pylint: disable=W0613
 def test_download_binaries():
     download_binaries('betanet', 'Linux')
 
-    expected_binaries = ['near', 'genesis-csv-to-json']
-    for binary in expected_binaries:
-        path = os.path.join(NEARUP_BINARY_DIR, binary)
-        # check if the binary exists
-        assert os.path.exists(path)
-        # check if the binary is executable
-        assert os.access(path, os.X_OK)
+    expected_binary = 'near'
+    path = os.path.join(NEARUP_BINARY_DIR, expected_binary)
+
+    # check if the binary exists
+    assert os.path.exists(path)
+
+    # check if the binary is executable
+    assert os.access(path, os.X_OK)
 
 
 def test_download_config():
