@@ -166,6 +166,7 @@ def run_binary(path,
         command.extend(['--n', str(non_validators)])
     if boot_nodes:
         command.extend(['--boot-nodes', boot_nodes])
+    command.extend(['--color=never'])
 
     if output:
         logname = f'{output}.log'
