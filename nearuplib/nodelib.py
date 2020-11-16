@@ -249,7 +249,7 @@ def setup_and_run(binary_path,
         if not os.path.exists(binary_path):
             os.makedirs(binary_path)
 
-        download_binaries(chain_id, uname)
+        download_binaries(chain_id, uname, chain_id == 'betanet')
     else:
         logging.info(f'Using local binary at {binary_path}')
         watcher = False  # ensure watcher doesn't run and try to download official binaries
