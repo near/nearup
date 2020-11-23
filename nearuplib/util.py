@@ -42,7 +42,7 @@ def new_release_ready(net, uname):
     if not commit:
         return False
 
-    binaries = ['near', 'genesis-csv-to-json']
+    binaries = ['neard']
     for binary in binaries:
         path = f'nearcore/{uname}/{branch}/{commit}/{binary}'
         if not exists_on_s3(path):
@@ -68,7 +68,7 @@ def download_binaries(net, uname, nightly=False):
     if commit:
         logging.info(f'Downloading latest deployed version for {net}')
 
-        binary = 'near'
+        binary = 'neard'
 
         download_url = f'nearcore/{uname}/{branch}/{commit}/{binary}'
         if nightly:
