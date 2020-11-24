@@ -25,7 +25,7 @@ from nearuplib.tailer import next_logname
 def init_near(home_dir, binary_path, chain_id, init_flags):
     logging.info("Initializing the node configuration using near binary...")
 
-    cmd = [f'{binary_path}/near', f'--home={home_dir}', 'init'] + init_flags
+    cmd = [f'{binary_path}/neard', f'--home={home_dir}', 'init'] + init_flags
     if chain_id in ['crashnet', 'betanet', 'testnet']:
         # force download genesis
         cmd.append('--download-genesis')
@@ -173,8 +173,8 @@ def run_binary(path,
             shutil.move(logname, next_logname(logname))
         output = open(logname, 'w')
 
-    near = Popen(command, stderr=output, stdout=output, env=env)
-    return near
+    neard = Popen(command, stderr=output, stdout=output, env=env)
+    return neard
 
 
 def proc_name_from_pid(pid):
@@ -198,7 +198,7 @@ def run(home_dir,
         verbose,
         chain_id,
         watch=False):
-    proc = run_binary(os.path.join(binary_path, 'near'),
+    proc = run_binary(os.path.join(binary_path, 'neard'),
                       home_dir,
                       'run',
                       neard_log=neard_log,
