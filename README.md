@@ -51,16 +51,18 @@ pip3 install --upgrade pip
 pip3 install --user nearup
 ```
 
-Verify that you local installation is in `~/.local/bin/nearup` by running:
+Verify that you local installation is in `python3 -m site --user-base` by running:
 
 ```
+python3 -m site --user-base
 which nearup
 ```
 
 :warning: If the above returns nothing, add `nearup` to your `$PATH` in `~/.profile`, `~/.bashrc`, or appropriate shell config.
 
 ```
-export PATH="$HOME/.local/bin:$PATH"
+USER_BASE=$(python3 -m site --user-base)
+export PATH="$USER_BASE:$PATH"
 ```
 
 ### Upgrade
@@ -77,7 +79,7 @@ pip3 install --user --upgrade nearup
 
 **This is recommended for running on servers**
 
-Currently, officially compiled binaries are available for Linux. You can start your node with,
+You can start your node with:
 
 ```
 nearup run betanet
@@ -213,11 +215,7 @@ docker kill nearup
 
 ## Development
 
-Currently, `nearup` expects the test environment to be run on Linux.
-
-For macOS, you can simulate a Linux environment with docker.
-
-To build a development image,
+To build a development image:
 
 ```
 docker build . -t nearprotocol/nearup:dev
