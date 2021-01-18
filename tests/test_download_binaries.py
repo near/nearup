@@ -20,7 +20,8 @@ def setup_module(module):  # pylint: disable=W0613
 
 
 def test_download_binaries():
-    download_binaries('betanet', 'Linux')
+    uname = os.uname()[0]
+    download_binaries('betanet', uname)
 
     expected_binary = 'neard'
     path = os.path.join(NEARUP_BINARY_DIR, expected_binary)
