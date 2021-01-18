@@ -2,6 +2,7 @@ import hashlib
 import json
 import logging
 import os
+import site
 import shutil
 import subprocess
 import sys
@@ -278,7 +279,7 @@ def stop_nearup(keep_watcher=False):
 
 
 def restart_nearup(net,
-                   path=os.path.expanduser('~/.local/bin/nearup'),
+                   path=os.path.join(site.USER_BASE, 'nearup'),
                    home_dir='',
                    keep_watcher=True):
     logging.warning("Restarting nearup...")
