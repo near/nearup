@@ -42,7 +42,7 @@ def new_release_ready(net, uname):
     if not commit:
         return False
 
-    path = f'nearcore/{uname}/{branch}/{commit}/neard'
+    path = f'nearcore/{uname}/{branch}/{commit}/near'
     if not exists_on_s3(path):
         return False
 
