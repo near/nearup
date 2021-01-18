@@ -117,3 +117,12 @@ def latest_deployed_release_time(net):
 
 def latest_genesis_md5sum(net):
     return read_from_s3(f'nearcore-deploy/{net}/genesis_md5sum').strip()
+
+
+def latest_genesis_md5sum_has_changed(net, md5_sum):
+    latest_md5sum = latest_genesis_md5sum(net)
+
+    logging.info("Current genesis md5sum is {md5_sum}")
+    logging.info("Latest genesis md5sum is {latest_md5sum}")
+
+    return latest_md5sum != md5_sum

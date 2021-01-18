@@ -16,6 +16,8 @@ from nearuplib.nodelib import restart_nearup
 from nearuplib.util import (
     latest_deployed_release_commit,
     latest_deployed_release_commit_has_changed,
+    latest_genesis_md5sum,
+    latest_genesis_md5sum_has_changed,
 )
 
 logging.basicConfig(
@@ -48,6 +50,7 @@ def main():
               help='Force restart nearup in a loop, USED ONLY FOR TESTING')
 def run(network, home, force_restart):
     current_release_commit = latest_deployed_release_commit(network)
+    current_genesis_md5sum = latest_genesis_md5sum(network)
     logging.info(
         f"Starting watcher for chain: {network} with commit: {current_release_commit}"
     )
@@ -56,7 +59,9 @@ def run(network, home, force_restart):
         time.sleep(60)
         try:
             if latest_deployed_release_commit_has_changed(
-                    network, current_release_commit) or force_restart:
+                    network, current_release_commit
+            ) or latest_genesis_md5sum_has_changed(
+                    network, current_genesis_md5sum) or force_restart:
                 logging.info(
                     "New release has been published. Restarting nearup")
 
