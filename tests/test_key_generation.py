@@ -20,7 +20,8 @@ def setup_module(module):  # pylint: disable=W0613
     os.makedirs(BINARY_PATH)
     os.makedirs(HOME)
 
-    download_binaries('betanet', 'Linux')
+    uname = os.uname()[0]
+    download_binaries('betanet', uname)
 
 
 def assert_node_key():
@@ -46,6 +47,7 @@ def assert_validator_key():
 
 
 def test_init_near():
-    init_near(HOME, BINARY_PATH, 'betanet', ['--chain-id=betanet', f'--account-id={ACCOUNT_ID}'])
+    init_near(HOME, BINARY_PATH, 'betanet',
+              ['--chain-id=betanet', f'--account-id={ACCOUNT_ID}'])
     assert_node_key()
     assert_validator_key()
