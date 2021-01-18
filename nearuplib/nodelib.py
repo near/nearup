@@ -238,7 +238,7 @@ def setup_and_run(binary_path,
     if binary_path == '':
         logging.info('Using officially compiled binary')
         uname = os.uname()[0]
-        if uname not in ['Linux']:
+        if uname not in ['Darwin', 'Linux']:
             logging.error(
                 'Sorry your Operating System does not have officially compiled binary now.'
             )
