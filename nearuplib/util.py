@@ -42,13 +42,9 @@ def new_release_ready(net, uname):
     if not commit:
         return False
 
-    binaries = ['neard']
-    for binary in binaries:
-        path = f'nearcore/{uname}/{branch}/{commit}/{binary}'
-        if not exists_on_s3(path):
-            return False
+    path = f'nearcore/{uname}/{branch}/{commit}/neard'
 
-    return True
+    return exists_on_s3(path)
 
 
 def download_config(net, home_dir):
