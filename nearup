@@ -58,7 +58,10 @@ def cli():
               type=str,
               help='Specify the nodes to boot from',
               default='')
-@click.option('--verbose', is_flag=True, help='If set, prints verbose logs')
+@click.option(
+    '--verbose',
+    is_flag=True,
+    help='If set, prints verbose logs. Betanet always prints verbose logs.')
 @click.option(
     '--neard-log',
     type=str,
@@ -86,6 +89,9 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose, neard_log,
         home = os.path.expanduser(f'~/.near/{network}')
 
     logging.info(f"Home directory is {home}...")
+
+    if network == 'betanet':
+        verbose = True
 
     if network == 'localnet':
         entry(binary_path, home, num_nodes, num_shards, override, verbose)
