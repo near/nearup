@@ -1,0 +1,19 @@
+name: MacOS binary test
+
+on:
+  push:
+    branches:
+    - '*'
+
+jobs:
+  build_binary:
+    runs-on: macOS-latest
+
+    steps:
+    - uses: hecrj/setup-rust-action@v1
+      with:
+        rust-version: nightly-2020-03-19
+    - uses: actions/checkout@master
+    - uses: isbang/setup-awscli@v0.1.0
+    - run: pip3 install --user tox && $(python3 -m site --user-base)/bin/tox -e coverage
+    - run: chmod +x scripts/test_run_binary.sh && scripts/test_run_binary.sh

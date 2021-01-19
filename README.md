@@ -51,18 +51,17 @@ pip3 install --upgrade pip
 pip3 install --user nearup
 ```
 
-Verify that you local installation is in `python3 -m site --user-base` by running:
+Verify that you local installation is in `python3 -m site --user-base` under bin directory by running:
 
 ```
-python3 -m site --user-base
 which nearup
 ```
 
 :warning: If the above returns nothing, add `nearup` to your `$PATH` in `~/.profile`, `~/.bashrc`, or appropriate shell config.
 
 ```
-USER_BASE=$(python3 -m site --user-base)
-export PATH="$USER_BASE:$PATH"
+USER_BASE_BIN=$(python3 -m site --user-base)/bin
+export PATH="$USER_BASE_BIN:$PATH"
 ```
 
 ### Upgrade
