@@ -8,5 +8,5 @@ steps:
   - command: "pip3 install --user tox && ~/.local/bin/tox -e lint"
     label: "lint"
     
-  - command: "bash scripts/test_download.sh"
+  - command: "bash scripts/test_run_binary.sh"
     label: "watcher integration test"

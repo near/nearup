@@ -19,7 +19,7 @@ def is_watcher_running():
     return False
 
 
-def run_watcher(net, path=os.path.join(site.USER_BASE, 'watcher'), home=''):
+def run_watcher(net, path=os.path.join(site.USER_BASE, 'bin/watcher'), home=''):
     logging.info("Starting the nearup watcher...")
 
     if is_watcher_running():

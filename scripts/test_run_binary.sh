@@ -1,8 +1,9 @@
-# TODO: https://github.com/near/nearup/issues/131
+#!/bin/bash
 
 pip3 install --user .
 
-export PATH="$HOME/.local/bin:$PATH"
+USER_BASE_BIN=$(python3 -m site --user-base)/bin
+export PATH="$USER_BASE_BIN:$PATH"
 
 nearup run betanet
 nearup stop
