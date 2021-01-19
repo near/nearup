@@ -34,14 +34,6 @@ def init_near(home_dir, binary_path, chain_id, init_flags):
     subprocess.check_call(cmd)
 
 
-def init(home_dir, binary_path, chain_id, init_flags):
-    # initialize near
-    init_near(home_dir, binary_path, chain_id, init_flags)
-
-    # download config.json for bootnodes, etc
-    download_config(chain_id, home_dir)
-
-
 def get_chain_id_from_flags(flags):
     """Retrieve requested chain id from the flags."""
     chain_id_flags = [flag for flag in flags if flag.startswith('--chain-id=')]
@@ -86,8 +78,8 @@ def check_and_update_genesis(chain_id, home_dir):
 def check_and_setup(binary_path, home_dir, init_flags):
     """Checks if there is already everything setup on this machine, otherwise sets up NEAR node."""
     chain_id = get_chain_id_from_flags(init_flags)
-    if os.path.exists(os.path.join(home_dir)):
 
+    if os.path.exists(os.path.join(home_dir)):
         if chain_id != 'localnet':
             with open(os.path.join(home_dir, 'genesis.json')) as genesis_fd:
                 genesis_config = json.loads(genesis_fd.read())
@@ -100,7 +92,9 @@ def check_and_setup(binary_path, home_dir, init_flags):
 
         if chain_id in ['crashnet', 'betanet', 'testnet']:
             check_and_update_genesis(chain_id, home_dir)
+            download_config(chain_id, home_dir)
         elif chain_id == 'mainnet':
+            download_config(chain_id, home_dir)
             logging.info("Using the mainnet genesis...")
         else:
             logging.info("Using existing node configuration from %s for %s",
@@ -108,7 +102,8 @@ def check_and_setup(binary_path, home_dir, init_flags):
         return
 
     logging.info("Setting up network configuration.")
-    init(home_dir, binary_path, chain_id, init_flags)
+    init_near(home_dir, binary_path, chain_id, init_flags)
+    download_config(chain_id, home_dir)
 
     if chain_id not in ['mainnet', 'crashnet', 'betanet', 'testnet']:
         with open(os.path.join(home_dir, 'genesis.json'), 'r+') as genesis_fd:
