@@ -118,7 +118,7 @@ def latest_genesis_md5sum(net):
 def latest_genesis_md5sum_has_changed(net, md5_sum):
     latest_md5sum = latest_genesis_md5sum(net)
 
-    logging.info("Current genesis md5sum is {md5_sum}")
-    logging.info("Latest genesis md5sum is {latest_md5sum}")
+    logging.info(f"Current genesis md5sum is {md5_sum}")
+    logging.info(f"Latest genesis md5sum is {latest_md5sum}")
 
     return latest_md5sum != md5_sum
