@@ -10,9 +10,30 @@ import psutil
 from nearuplib.constants import DEFAULT_WAIT_TIMEOUT, WATCHER_PID_FILE
 
 
+def check_watcher_file():
+    if not os.path.exists(WATCHER_PID_FILE):
+        return False
+
+    with open(WATCHER_PID_FILE) as pid_file:
+        try:
+            pid = int(pid_file.readline().strip())
+        except Exception:
+            logging.error(f"Nearup watcher PID file {WATCHER_PID_FILE} has unexpected content.")
+            return True
+
+        logging.warning(f"Old Nearup watcher PID file {WATCHER_PID_FILE} found.")
+
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            return False
+        else:
+            logging.error("Nearup watcher is running.")
+            return True
+
+
 def is_watcher_running():
-    if os.path.exists(WATCHER_PID_FILE):
-        logging.error("Nearup watcher is running.")
+    if check_watcher_file():
         logging.error("Run nearup stop or kill the process manually!")
         logging.warning(f"If this is a mistake, remove {WATCHER_PID_FILE}")
         return True
