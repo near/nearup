@@ -10,3 +10,6 @@ steps:
     
   - command: "bash scripts/test_run_binary.sh"
     label: "watcher integration test"
+
+  - command: "fossa init && fossa analyze --server-scan && fossa test"
+    label: "Fossa"
