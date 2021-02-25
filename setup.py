@@ -1,5 +1,8 @@
 import setuptools
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
@@ -28,7 +31,7 @@ setuptools.setup(
         "Topic :: System :: Systems Administration",
         "Topic :: System :: Networking"
     ],
-    install_requires=['boto3', 'click', 'psutil'],
+    install_requires=required,
     python_requires='>=3.6',
     include_package_data=True,
     scripts=['nearup', 'watcher'],
