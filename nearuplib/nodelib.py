@@ -92,9 +92,7 @@ def check_and_setup(binary_path, home_dir, init_flags):
 
         if chain_id in ['crashnet', 'betanet', 'testnet']:
             check_and_update_genesis(chain_id, home_dir)
-            download_config(chain_id, home_dir)
         elif chain_id == 'mainnet':
-            download_config(chain_id, home_dir)
             logging.info("Using the mainnet genesis...")
         else:
             logging.info("Using existing node configuration from %s for %s",
