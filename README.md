@@ -152,7 +152,7 @@ docker pull nearprotocol/nearup
 To run the `nearup` docker image run:
 
 ```
-docker run -v $HOME/.near:/root/.near --name nearup nearprotocol/nearup run betanet
+docker run -v $HOME/.near:/root/.near -p 3030:3030 --name nearup nearprotocol/nearup run betanet
 ```
 
 #### Running in detached mode
@@ -160,7 +160,7 @@ docker run -v $HOME/.near:/root/.near --name nearup nearprotocol/nearup run beta
 To run `nearup` in docker's detached (non-blocking) mode, you can add `-d` to the `docker run` command,
 
 ```
-docker run -v $HOME/.near:/root/.near -d --name nearup nearprotocol/nearup run betanet
+docker run -v $HOME/.near:/root/.near -p 3030:3030 -d --name nearup nearprotocol/nearup run betanet
 ```
 
 ### Check if the container is running
