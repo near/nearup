@@ -18,10 +18,13 @@ def check_watcher_file():
         try:
             pid = int(pid_file.readline().strip())
         except Exception:
-            logging.error(f"Nearup watcher PID file {WATCHER_PID_FILE} has unexpected content.")
+            logging.error(
+                f"Nearup watcher PID file {WATCHER_PID_FILE} has unexpected content."
+            )
             return True
 
-        logging.warning(f"Old Nearup watcher PID file {WATCHER_PID_FILE} found.")
+        logging.warning(
+            f"Old Nearup watcher PID file {WATCHER_PID_FILE} found.")
 
         try:
             os.kill(pid, 0)
