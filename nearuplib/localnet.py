@@ -5,8 +5,9 @@ import sys
 
 from shutil import rmtree
 
-from nearuplib.constants import NODE_PID_FILE, LOCALNET_LOGS_FOLDER
+from nearuplib.constants import NODE_PID_FILE, LOCALNET_FOLDER, LOCALNET_LOGS_FOLDER
 from nearuplib.nodelib import run_binary, proc_name_from_pid, is_neard_running
+from nearuplib.util import download_binaries
 
 
 def run(binary_path, home, num_nodes, num_shards, override, verbose=True):
@@ -65,6 +66,12 @@ def run(binary_path, home, num_nodes, num_shards, override, verbose=True):
 def entry(binary_path, home, num_nodes, num_shards, override, verbose):
     if binary_path:
         binary_path = os.path.join(binary_path, 'neard')
+    else:
+        uname = os.uname()[0]
+        binary_path = os.path.join(LOCALNET_FOLDER, "neard")
+        if not os.path.exists(LOCALNET_FOLDER):
+            os.makedirs(LOCALNET_FOLDER)
+        download_binaries('localnet', uname)
 
     if is_neard_running():
         sys.exit(1)

@@ -58,8 +58,12 @@ def download_genesis(net, home_dir):
 
 
 def download_binaries(net, uname, nightly=False):
-    commit = latest_deployed_release_commit(net)
-    branch = latest_deployed_release_branch(net)
+    if net != "localnet":
+        commit = latest_deployed_release_commit(net)
+        branch = latest_deployed_release_branch(net)
+    else:
+        commit = latest_deployed_release_commit("testnet")
+        branch = latest_deployed_release_branch("testnet")
 
     if commit:
         logging.info(f'Downloading latest deployed version for {net}')
