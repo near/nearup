@@ -145,7 +145,6 @@ def run_binary(path,
     # Note, we need to make these options mutually exclusive
     # for backwards capability reasons, until v1.0.0
     if verbose:
-        command.extend(['--verbose', ''])
         env['RUST_LOG'] = 'actix_web'
     elif neard_log:
         command.extend(['--verbose', neard_log])
