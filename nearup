@@ -65,7 +65,7 @@ def cli():
 @click.option(
     '--neard-log',
     type=str,
-    help='Comma-separated module=level values passed to neard --verbose flag',
+    help='Comma-separated module=level values used to replace the ENV_LOG environment variable',
     default='')
 @click.option('--num-nodes',
               type=int,
