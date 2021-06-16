@@ -145,7 +145,7 @@ def run_binary(path,
     # Note, we need to make these options mutually exclusive
     # for backwards capability reasons, until v1.0.0
     if verbose:
-        env['RUST_LOG'] = 'debug'
+        env['RUST_LOG'] = 'debug,actix_web=info'
     elif neard_log:
         env['RUST_LOG'] = neard_log
 
