@@ -29,7 +29,7 @@ def show_logs(follow, number_lines):
     logging.info(pid_info)
     _, _, network = pid_info.strip().split("|")
 
-    if not network in ['crashnet', 'betanet', 'testnet', 'mainnet']:
+    if network == "localnet":
         # TODO: localnet could have several logs, not showing them all but list log files here
         # Maybe better to support `nearup logs node0` usage.
         logging.info(
