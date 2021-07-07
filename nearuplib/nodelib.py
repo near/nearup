@@ -27,8 +27,7 @@ def init_near(home_dir, binary_path, chain_id, init_flags):
     logging.info("Initializing the node configuration using near binary...")
 
     cmd = [f'{binary_path}/neard', f'--home={home_dir}', 'init'] + init_flags
-    if chain_id in ['crashnet', 'betanet', 'testnet']:
-        # force download genesis
+    if chain_id in ['betanet', 'testnet']:
         cmd.append('--download-genesis')
 
     subprocess.check_call(cmd)
@@ -90,7 +89,7 @@ def check_and_setup(binary_path, home_dir, init_flags):
                     )
                     sys.exit(1)
 
-        if chain_id in ['crashnet', 'betanet', 'testnet']:
+        if chain_id in ['guildnet', 'betanet', 'testnet']:
             check_and_update_genesis(chain_id, home_dir)
         elif chain_id == 'mainnet':
             logging.info("Using the mainnet genesis...")
@@ -103,7 +102,7 @@ def check_and_setup(binary_path, home_dir, init_flags):
     init_near(home_dir, binary_path, chain_id, init_flags)
     download_config(chain_id, home_dir)
 
-    if chain_id not in ['mainnet', 'crashnet', 'betanet', 'testnet']:
+    if chain_id not in ['mainnet', 'guildnet', 'betanet', 'testnet']:
         with open(os.path.join(home_dir, 'genesis.json'), 'r+') as genesis_fd:
             genesis_config = json.load(genesis_fd)
             genesis_config['gas_price'] = 0
