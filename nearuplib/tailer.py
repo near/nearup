@@ -33,7 +33,7 @@ def show_logs(follow, number_lines):
         # TODO: localnet could have several logs, not showing them all but list log files here
         # Maybe better to support `nearup logs node0` usage.
         logging.info(
-            'You are running local net. Logs are in: ~/.nearup/localnet-logs/')
+            'You are running local net. Logs are in: ~/.nearup/logs/localnet/')
         sys.exit(0)
 
     command = [
