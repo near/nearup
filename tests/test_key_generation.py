@@ -30,7 +30,7 @@ def assert_node_key():
 
     with open(node_key_path) as node_key:
         data = json.loads(node_key.read())
-        assert data['account_id'] == ''
+        assert data['account_id'] == 'node'
         assert 'public_key' in data
         assert 'secret_key' in data
 

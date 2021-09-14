@@ -128,9 +128,12 @@ def latest_deployed_release_time(net):
 
 
 def latest_genesis_md5sum(net):
-    if net in ["localnet", "guildnet"]:
+    if net == "localnet":
         return read_from_s3(S3_BUCKETS['default'],
                             'nearcore-deploy/testnet/genesis_md5sum').strip()
+    if net == "guildnet":
+        return read_from_s3(S3_BUCKETS['guildnet'],
+                            'nearcore-deploy/guildnet/genesis_md5sum').strip()
     return read_from_s3(S3_BUCKETS['default'],
                         f'nearcore-deploy/{net}/genesis_md5sum').strip()
 
@@ -138,7 +141,7 @@ def latest_genesis_md5sum(net):
 def latest_genesis_md5sum_has_changed(net, md5_sum):
     latest_md5sum = latest_genesis_md5sum(net)
 
-    if net in ["localnet", "guildnet"]:
+    if net == "localnet":
         latest_md5sum = latest_genesis_md5sum("testnet")
 
     logging.info(f"Current genesis md5sum is {md5_sum}")
