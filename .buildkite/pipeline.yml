@@ -1,15 +1,25 @@
 steps:
   - command: "pip3 install --user tox && ~/.local/bin/tox -e coverage"
     label: "tests & coverage"
+    agents:
+      - "queue=cheap"
     
   - command: "pip3 install --user tox && ~/.local/bin/tox -e style"
     label: "style"
+    agents:
+      - "queue=cheap"
     
   - command: "pip3 install --user tox && ~/.local/bin/tox -e lint"
     label: "lint"
+    agents:
+      - "queue=cheap"
     
   - command: "bash scripts/test_run_binary.sh"
     label: "watcher integration test"
+    agents:
+      - "queue=cheap"
 
   - command: "fossa init && fossa analyze --server-scan && fossa test"
     label: "Fossa"
+    agents:
+      - "queue=cheap"
