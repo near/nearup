@@ -78,19 +78,13 @@ pip3 install --user --upgrade nearup
 
 **This is recommended for running on servers**
 
-You can start your node with:
+You can start your node with (remove the `--interactive` flag if you don't want to be prompted):
 
 ```
-nearup run betanet
+nearup run betanet --interactive
 ```
 
-To run a validator node with validator keys, please specify the account id:
-
-```
-nearup run betanet --account-id testing.account
-```
-
-Replace `betanet` with `testnet` if you want to use a different network.
+Replace `betanet` if you want to use a different network.
 
 ### Using a locally compiled binary
 

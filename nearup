@@ -59,6 +59,11 @@ def cli():
               help='Specify the nodes to boot from',
               default='')
 @click.option(
+    '--interactive',
+    is_flag=True,
+    help='If true, the user will be prompted for what to do interactively'
+)
+@click.option(
     '--verbose',
     is_flag=True,
     help='If set, prints verbose logs. Betanet always prints verbose logs.')
@@ -70,20 +75,18 @@ def cli():
     default='')
 @click.option('--num-nodes',
               type=int,
-              help='Specifies the number of localnet nodes to create',
-              default=4)
+              help='Specifies the number of localnet nodes to create')
 @click.option('--num-shards',
               type=int,
-              help='Specifies the number of localnet shards to create',
-              default=1)
+              help='Specifies the number of localnet shards to create')
 @click.option('--override',
               is_flag=True,
               help='Override previous localnet node data if exists')
 @click.option('--no-watcher',
               is_flag=True,
               help='Disable nearup watcher, mostly used for tests.')
-def run(network, binary_path, home, account_id, boot_nodes, verbose, neard_log,
-        num_nodes, num_shards, override, no_watcher):
+def run(network, binary_path, home, account_id, boot_nodes, interactive, verbose,
+        neard_log, num_nodes, num_shards, override, no_watcher):
     if home:
         home = os.path.abspath(home)
     else:
@@ -95,7 +98,7 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose, neard_log,
         verbose = True
 
     if network == 'localnet':
-        entry(binary_path, home, num_nodes, num_shards, override, verbose)
+        entry(binary_path, home, num_nodes, num_shards, override, verbose, interactive)
     else:
         setup_and_run(binary_path,
                       home,
@@ -103,6 +106,7 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose, neard_log,
                       chain_id=network,
                       account_id=account_id,
                       verbose=verbose,
+                      interactive=interactive,
                       neard_log=neard_log,
                       watcher=not no_watcher)
 
