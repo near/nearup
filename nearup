@@ -97,14 +97,11 @@ def run(network, binary_path, home, account_id, boot_nodes, verbose, neard_log,
     if network == 'localnet':
         entry(binary_path, home, num_nodes, num_shards, override, verbose)
     else:
-        init_flags = [f'--chain-id={network}']
-        if account_id:
-            init_flags.append(f'--account-id={account_id}')
-
         setup_and_run(binary_path,
                       home,
-                      init_flags,
                       boot_nodes,
+                      chain_id=network,
+                      account_id=account_id,
                       verbose=verbose,
                       neard_log=neard_log,
                       watcher=not no_watcher)

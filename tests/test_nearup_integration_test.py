@@ -43,7 +43,7 @@ def teardown_module(module):  # pylint: disable=W0613
 def test_nearup_still_runnable():
     setup_and_run(binary_path='',
                   home_dir=NEAR_DIR,
-                  init_flags=['--chain-id=betanet'],
+                  chain_id='betanet',
                   boot_nodes='',
                   verbose=True,
                   watcher=False)
