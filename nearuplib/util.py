@@ -1,3 +1,4 @@
+import click
 import logging
 import os
 import stat
@@ -148,3 +149,24 @@ def latest_genesis_md5sum_has_changed(net, md5_sum):
     logging.info(f"Latest genesis md5sum is {latest_md5sum}")
 
     return latest_md5sum != md5_sum
+
+
+def prompt_bool_flag(msg, flag_name, flag_value):
+    if not flag_value:
+        return click.confirm(msg)
+    return click.confirm(msg + '\nYou gave the {} flag, which without --interactive means \'yes\' here'.format(flag_name))
+
+
+def prompt_flag(msg, flag_name, flag_value, default_value, interactive, type=str):
+    if not interactive:
+        if flag_value is None:
+            return default_value
+        else:
+            return flag_value
+
+    if flag_value is None:
+        if default_value is None:
+            return click.prompt(msg, type=type)
+        else:
+            return click.prompt(msg + '\ndefault is {}'.format(default_value), type=type)
+    return click.prompt(msg + '\nYou gave {}={}'.format(flag_name, flag_value), type=type)
