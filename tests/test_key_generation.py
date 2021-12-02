@@ -47,7 +47,6 @@ def assert_validator_key():
 
 
 def test_init_near():
-    init_near(HOME, BINARY_PATH, 'betanet',
-              ['--chain-id=betanet', f'--account-id={ACCOUNT_ID}'])
+    init_near(HOME, BINARY_PATH, 'betanet', ACCOUNT_ID)
     assert_node_key()
     assert_validator_key()

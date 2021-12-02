@@ -10,10 +10,8 @@ from nearuplib.nodelib import check_and_setup
 ACCOUNT_ID = 'mock.nearup.account'
 BETANET_HOME = os.path.expanduser('~/.near/betanet')
 BETANET_BINARY_PATH = os.path.expanduser('~/.near/near/betanet')
-BETANET_INIT_FLAGS = ['--chain-id=betanet', f'--account-id={ACCOUNT_ID}']
 LOCALNET_HOME = os.path.expanduser('~/.near/localnet')
 LOCALNET_BINARY_PATH = os.path.expanduser('~/.near/near/localnet')
-LOCALNET_INIT_FLAGS = ['--chain-id=localnet']
 
 
 def cleanup():
@@ -52,7 +50,7 @@ def test_check_and_setup_localnet_existing_config():
 
     try:
         check_and_setup(LOCALNET_BINARY_PATH, LOCALNET_HOME,
-                        LOCALNET_INIT_FLAGS)
+                        'localnet', None)
     except Exception as ex:
         pytest.fail(f'unexpected expection {ex}')
 
@@ -63,6 +61,6 @@ def test_check_and_setup_betanet_existing_config():
     write_genesis(BETANET_HOME, 'betanet')
 
     try:
-        check_and_setup(BETANET_BINARY_PATH, BETANET_HOME, BETANET_INIT_FLAGS)
+        check_and_setup(BETANET_BINARY_PATH, BETANET_HOME, 'betanet', ACCOUNT_ID)
     except Exception as ex:
         pytest.fail(f'unexpected exception {ex}')

@@ -23,22 +23,16 @@ from nearuplib.watcher import is_watcher_running, run_watcher, stop_watcher
 from nearuplib.tailer import next_logname
 
 
-def init_near(home_dir, binary_path, chain_id, init_flags):
+def init_near(home_dir, binary_path, chain_id, account_id):
     logging.info("Initializing the node configuration using near binary...")
 
-    cmd = [f'{binary_path}/neard', f'--home={home_dir}', 'init'] + init_flags
+    cmd = [f'{binary_path}/neard', f'--home={home_dir}', 'init', f'--chain-id={chain_id}']
+    if account_id:
+        cmd.append(f'--account-id={account_id}')
     if chain_id in ['betanet', 'testnet']:
         cmd.append('--download-genesis')
 
     subprocess.check_call(cmd)
-
-
-def get_chain_id_from_flags(flags):
-    """Retrieve requested chain id from the flags."""
-    chain_id_flags = [flag for flag in flags if flag.startswith('--chain-id=')]
-    if len(chain_id_flags) == 1:
-        return chain_id_flags[0][len('--chain-id='):]
-    return ''
 
 
 def genesis_changed(chain_id, home_dir):
@@ -74,10 +68,8 @@ def check_and_update_genesis(chain_id, home_dir):
     return False
 
 
-def check_and_setup(binary_path, home_dir, init_flags):
+def check_and_setup(binary_path, home_dir, chain_id, account_id):
     """Checks if there is already everything setup on this machine, otherwise sets up NEAR node."""
-    chain_id = get_chain_id_from_flags(init_flags)
-
     if os.path.exists(os.path.join(home_dir)):
         if chain_id != 'localnet':
             with open(os.path.join(home_dir, 'genesis.json')) as genesis_fd:
@@ -99,7 +91,7 @@ def check_and_setup(binary_path, home_dir, init_flags):
         return
 
     logging.info("Setting up network configuration.")
-    init_near(home_dir, binary_path, chain_id, init_flags)
+    init_near(home_dir, binary_path, chain_id, account_id)
     download_config(chain_id, home_dir)
 
     if chain_id not in ['mainnet', 'guildnet', 'betanet', 'testnet']:
@@ -213,8 +205,9 @@ def run(home_dir,
 
 def setup_and_run(binary_path,
                   home_dir,
-                  init_flags,
                   boot_nodes,
+                  chain_id,
+                  account_id=None,
                   verbose=False,
                   neard_log='',
                   watcher=True):
@@ -223,8 +216,6 @@ def setup_and_run(binary_path,
 
     if watcher and is_watcher_running():
         sys.exit(1)
-
-    chain_id = get_chain_id_from_flags(init_flags)
 
     if binary_path == '':
         logging.info('Using officially compiled binary')
@@ -246,7 +237,7 @@ def setup_and_run(binary_path,
         logging.info(f'Using local binary at {binary_path}')
         watcher = False  # ensure watcher doesn't run and try to download official binaries
 
-    check_and_setup(binary_path, home_dir, init_flags)
+    check_and_setup(binary_path, home_dir, chain_id, account_id)
 
     print_staking_key(home_dir)
     run(home_dir,
@@ -296,7 +287,7 @@ def restart_nearup(net,
     logging.warning("Starting nearup...")
     setup_and_run(binary_path='',
                   home_dir=home_dir,
-                  init_flags=[f'--chain-id={net}'],
+                  chain_id=net,
                   boot_nodes='',
                   verbose=True,
                   watcher=not keep_watcher)
