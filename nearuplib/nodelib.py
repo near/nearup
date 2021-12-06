@@ -28,11 +28,11 @@ from nearuplib.tailer import next_logname
 
 def read_validator_key(home_dir):
     key_path = os.path.join(home_dir, 'validator_key.json')
-    if not os.path.exists(key_path):
+    try:
+        with open(key_path) as key_file:
+            return json.load(key_file)
+    except FileNotFoundError:
         return None
-
-    with open(key_path) as key_file:
-        return json.loads(key_file.read())
 
 
 def print_validator_info(home_dir):
@@ -43,15 +43,15 @@ def print_validator_info(home_dir):
 
     print('The validator\'s public key is {}'.format(key_data['public_key']))
     print(textwrap.fill(textwrap.dedent("""\
-        The node will now run and will sync with the network, but this
-        will not automatically initiate staking. In order to do that,
-        you need to send a transaction to the network indicating your
-        intent to stake. Please see
-        https://docs.near.org/docs/develop/node/validator/staking-and-delegation.
+    The node will now run and will sync with the network, but this
+    will not automatically initiate staking. In order to do that,
+    you need to send a transaction to the network indicating your
+    intent to stake. Please see
+    https://docs.near.org/docs/develop/node/validator/staking-and-delegation.
 
-        If you have near-cli (https://github.com/near/near-cli) installed, you
-        can do this with the following command:
-"""), width=80, break_on_hyphens=False, break_long_words=False))
+    If you have near-cli (https://github.com/near/near-cli) installed, you
+    can do this with the following command:
+    """), width=80, break_on_hyphens=False, break_long_words=False))
     print('\"near stake {} {} <amount>\"'.format(
         key_data['account_id'], key_data['public_key']))
 
@@ -63,7 +63,7 @@ def init_near(home_dir, binary_path, chain_id, account_id, interactive=False):
     this will generate an extra key pair you\'ll be able to use to
     stake NEAR as a validator, which is distinct from the keys you'd
     use in normal transactions.
-"""))):
+    """))):
         # TODO: check that the account exists and warn if not
         account_id = prompt_flag(
             textwrap.fill(textwrap.dedent("""\

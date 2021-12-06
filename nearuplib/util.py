@@ -165,8 +165,6 @@ def prompt_flag(msg, flag_name, flag_value, default_value, interactive, type=str
             return flag_value
 
     if flag_value is None:
-        if default_value is None:
-            return click.prompt(msg, type=type)
-        else:
-            return click.prompt(msg + '\ndefault is {}'.format(default_value), type=type)
-    return click.prompt(msg + '\nYou gave {}={}'.format(flag_name, flag_value), type=type)
+        return click.prompt(msg, type=type, default=default_value)
+    return click.prompt(msg + '\nYou gave {}={}.'.format(flag_name, flag_value),
+                        type=type, default=default_value)
