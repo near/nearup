@@ -30,7 +30,7 @@ def run(binary_path, home, num_nodes, num_shards, override, verbose=True, intera
         with each other on localhost, producing blocks on top
         of a genesis block generated locally.
         """)))
-        print('')
+        print()
 
     if not os.path.exists(home):
         num_nodes = prompt_flag(
