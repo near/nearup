@@ -349,7 +349,7 @@ def restart_nearup(net,
                   home_dir=home_dir,
                   chain_id=net,
                   boot_nodes='',
-                  verbose=True,
+                  verbose=False,
                   watcher=not keep_watcher)
 
     logging.info("Nearup has been restarted...")
