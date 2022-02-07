@@ -68,7 +68,7 @@ def cli():
     is_flag=True,
     help=('If set, prints verbose logs. Betanet always prints verbose logs.  '
           'If specified, overrides --neard-log and RUST_LOG environment '
-          'variable.')
+          'variable.'))
 # TODO(mina86): --neard-log has been deprecated in Feb 2022.  Add a warning when
 # it’s used in half a year or so, and then half a year later remove the flag all
 # together.
