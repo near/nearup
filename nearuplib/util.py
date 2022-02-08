@@ -1,4 +1,3 @@
-import click
 import logging
 import os
 import stat
@@ -6,6 +5,7 @@ import stat
 import boto3
 from botocore import UNSIGNED
 from botocore.client import Config
+import click
 
 from nearuplib.constants import S3_BUCKETS
 from nearuplib.exceptions import NetworkError, capture_as
@@ -154,17 +154,15 @@ def latest_genesis_md5sum_has_changed(net, md5_sum):
 def prompt_bool_flag(msg, flag_name, flag_value):
     if not flag_value:
         return click.confirm(msg)
-    return click.confirm(msg + '\nYou gave the {} flag, which without --interactive means \'yes\' here'.format(flag_name))
+    return click.confirm(f'{msg}\nYou gave the {flag_name} flag, which without '
+                         '--interactive means ‘yes’ here')
 
 
-def prompt_flag(msg, flag_name, flag_value, default_value, interactive, type=str):
+def prompt_flag(msg, flag_name, flag_value, default_value, interactive, type=str): # pylint: disable=redefined-builtin
     if not interactive:
         if flag_value is None:
             return default_value
-        else:
-            return flag_value
-
-    if flag_value is None:
-        return click.prompt(msg, type=type, default=default_value)
-    return click.prompt(msg + '\nYou gave {}={}.'.format(flag_name, flag_value),
-                        type=type, default=default_value)
+        return flag_value
+    if flag_value is not None:
+        msg = f'{msg}\nYou gave {flag_name}={flag_value}.'
+    return click.prompt(msg, type=type, default=default_value)
