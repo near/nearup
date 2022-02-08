@@ -61,17 +61,22 @@ def cli():
 @click.option(
     '--interactive',
     is_flag=True,
-    help='If true, the user will be prompted for what to do interactively'
-)
+    help='If true, the user will be prompted for what to do interactively')
 @click.option(
     '--verbose',
     is_flag=True,
-    help='If set, prints verbose logs. Betanet always prints verbose logs.')
+    help=('If set, prints verbose logs. Betanet always prints verbose logs.  '
+          'If specified, overrides --neard-log and RUST_LOG environment '
+          'variable.'))
+# TODO(mina86): --neard-log has been deprecated in Feb 2022.  Add a warning when
+# it’s used in half a year or so, and then half a year later remove the flag all
+# together.
 @click.option(
     '--neard-log',
     type=str,
-    help=
-    'Comma-separated module=level values used to replace the RUST_LOG environment variable',
+    help=('Comma-separated module=level values configuring neard logging '
+          'verbosity.  Deprecated: Prefer setting RUST_LOG environment '
+          'variable instead.'),
     default='')
 @click.option('--num-nodes',
               type=int,
@@ -85,8 +90,8 @@ def cli():
 @click.option('--no-watcher',
               is_flag=True,
               help='Disable nearup watcher, mostly used for tests.')
-def run(network, binary_path, home, account_id, boot_nodes, interactive, verbose,
-        neard_log, num_nodes, num_shards, override, no_watcher):
+def run(network, binary_path, home, account_id, boot_nodes, interactive,
+        verbose, neard_log, num_nodes, num_shards, override, no_watcher):
     if home:
         home = os.path.abspath(home)
     else:
@@ -98,7 +103,8 @@ def run(network, binary_path, home, account_id, boot_nodes, interactive, verbose
         verbose = True
 
     if network == 'localnet':
-        entry(binary_path, home, num_nodes, num_shards, override, verbose, interactive)
+        entry(binary_path, home, num_nodes, num_shards, override, verbose,
+              interactive)
     else:
         setup_and_run(binary_path,
                       home,
