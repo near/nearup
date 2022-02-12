@@ -129,14 +129,18 @@ def stop(keep_watcher):
 @click.option('--restart-watcher',
               is_flag=True,
               help='Restart the watcher as well')
+@click.option(
+    '--verbose',
+    is_flag=True,
+    help='If set, prints verbose logs. Betanet always prints verbose logs.')
 @cli.command()
-def restart(network, home, restart_watcher):
+def restart(network, home, restart_watcher, verbose):
     if home:
         home = os.path.abspath(home)
     else:
         home = os.path.expanduser(f'~/.near/{network}')
 
-    restart_nearup(network, home_dir=home, keep_watcher=not restart_watcher)
+    restart_nearup(network, home_dir=home, keep_watcher=not restart_watcher, verbose)
 
 
 @click.option('--follow', '-f', is_flag=True, help='Follow the logs.')
