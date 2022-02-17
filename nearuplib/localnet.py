@@ -65,13 +65,13 @@ def run(binary_path, home, num_nodes, num_shards, override, verbose=True, intera
             break
         num_nodes += 1
 
-        data = json.load(path.read_text())
+        data = json.loads(path.read_text())
         data['rpc']['addr'] = f'0.0.0.0:{3030 + num_nodes}'
         data['network']['addr'] = f'0.0.0.0:{24567 + num_nodes}'
         path.write_text(json.dumps(data, indent=2))
 
     # Load public key from first node
-    data = json.loads(open(home / 'node0' / 'node_key.json').read_text())
+    data = json.loads((home / 'node0' / 'node_key.json').read_text())
     public_key = data['public_key']
 
     # Recreate log folder
