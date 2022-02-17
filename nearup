@@ -147,7 +147,10 @@ def restart(network, home, restart_watcher, verbose):
         home = os.path.expanduser(f'~/.near/{network}')
     if network == 'betanet':
         verbose = True
-    restart_nearup(network, home_dir=home, keep_watcher=not restart_watcher, verbose)
+    restart_nearup(network,
+                   home_dir=home,
+                   keep_watcher=not restart_watcher,
+                   verbose=verbose)
 
 
 @click.option('--follow', '-f', is_flag=True, help='Follow the logs.')
