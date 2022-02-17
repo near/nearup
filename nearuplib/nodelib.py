@@ -181,7 +181,7 @@ def run_binary(path,
                boot_nodes=None,
                output=None,
                print_command=False):
-    command = [path, '--home', home]
+    command = [path, '--home', str(home)]
 
     env = os.environ.copy()
     env['RUST_BACKTRACE'] = '1'
