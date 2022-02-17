@@ -73,8 +73,8 @@ def init_near(home_dir, binary_path, chain_id, account_id, interactive=False):
             https://docs.near.org/docs/develop/basics/create-account"""),
                           width=80, break_on_hyphens=False, break_long_words=False),
             account_id,
-            None,
-            interactive,
+            default=None,
+            interactive=interactive,
             type=str)
     cmd = [f'{binary_path}/neard', f'--home={home_dir}', 'init', f'--chain-id={chain_id}']
     if account_id:
