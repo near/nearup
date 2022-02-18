@@ -8,46 +8,40 @@ import textwrap
 
 from nearuplib.constants import NODE_PID_FILE, LOCALNET_FOLDER, LOCALNET_LOGS_FOLDER
 from nearuplib.nodelib import run_binary, proc_name_from_pid, is_neard_running
-from nearuplib.util import download_binaries, prompt_flag, prompt_bool_flag
+from nearuplib import util
 
 
 def run(binary_path, home, num_nodes, num_shards, override, verbose=True, interactive=False):
     home = pathlib.Path(home)
 
     if home.exists():
-        if interactive:
-            override = prompt_bool_flag(
+        if util.prompt_bool_flag(
                 'Would you like to remove data from the previous localnet run?',
-                '--override',
-                override)
-        if override:
-            logging.info('Removing old data.')
-            shutil.rmtree(home)
+                override, interactive=interactive):
+            logging.info("Removing old data.")
+            rmtree(home)
     elif interactive:
-        print(textwrap.fill(textwrap.dedent('''\
-        Starting localnet NEAR nodes. This is a
-        testnet entirely local to this machine.  Validators and
-        non-validating nodes will be started, and will communicate
-        with each other on localhost, producing blocks on top
-        of a genesis block generated locally.''')))
+        print(textwrap.fill(textwrap.dedent("""\
+        Starting localnet NEAR nodes.  This is a test network entirely local to
+        this machine.  Validators and non-validating nodes will be started, and
+        will communicate with each other on localhost, producing blocks on top
+        of a genesis block generated locally.""")))
         print()
 
     if not home.exists():
-        num_nodes = prompt_flag(
+        num_nodes = util.prompt_flag(
             'How many validator nodes would you like to initialize this localnet with?',
-            '--num-nodes',
             num_nodes,
-            4,
-            interactive,
+            default=4,
+            interactive=interactive,
             type=int,
         )
-        num_shards = prompt_flag(
+        num_shards = util.prompt_flag(
             'How many shards would you like to initialize this localnet with?'
             '\nSee https://near.org/papers/nightshade/#sharding-basics',
-            '--num-shards',
             num_shards,
-            1,
-            interactive,
+            default=1,
+            interactive=interactive,
             type=int,
         )
         run_binary(binary_path,
@@ -105,7 +99,7 @@ def entry(binary_path, home, num_nodes, num_shards, override, verbose, interacti
         binary_path = os.path.join(LOCALNET_FOLDER, 'neard')
         if not os.path.exists(LOCALNET_FOLDER):
             os.makedirs(LOCALNET_FOLDER)
-        download_binaries('localnet', uname)
+        util.download_binaries('localnet', uname)
 
     if is_neard_running():
         sys.exit(1)

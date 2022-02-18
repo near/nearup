@@ -151,18 +151,16 @@ def latest_genesis_md5sum_has_changed(net, md5_sum):
     return latest_md5sum != md5_sum
 
 
-def prompt_bool_flag(msg, flag_name, flag_value):
-    if not flag_value:
-        return click.confirm(msg)
-    return click.confirm(f'{msg}\nYou gave the {flag_name} flag, which without '
-                         '--interactive means ‘yes’ here')
+def prompt_bool_flag(msg, value, *, interactive):
+    if interactive:
+        value = click.confirm(msg, default=bool(value))
+    return bool(value)
 
 
-def prompt_flag(msg, flag_name, flag_value, default_value, interactive, type=str): # pylint: disable=redefined-builtin
-    if not interactive:
-        if flag_value is None:
-            return default_value
-        return flag_value
+def prompt_flag(msg, flag_value, *, default, interactive, type=str):  # pylint: disable=redefined-builtin
+    value = default
     if flag_value is not None:
-        msg = f'{msg}\nYou gave {flag_name}={flag_value}.'
-    return click.prompt(msg, type=type, default=default_value)
+        value = flag_value
+    if interactive:
+        value = click.prompt(msg, type=type, default=value)
+    return value
