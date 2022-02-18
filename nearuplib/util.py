@@ -1,7 +1,9 @@
 import click
 import logging
 import os
+import re
 import stat
+import textwrap
 
 import boto3
 from botocore import UNSIGNED
@@ -151,9 +153,16 @@ def latest_genesis_md5sum_has_changed(net, md5_sum):
     return latest_md5sum != md5_sum
 
 
+_WRAPPER = textwrap.TextWrapper(break_long_words=False, break_on_hyphens=False)
+
+def wraptext(msg: str) -> str:
+    msg = '\n'.join(line.lstrip() for line in msg.strip().splitlines())
+    return '\n\n'.join(_WRAPPER.fill(para) for para in re.split('\n{2,}', msg))
+
+
 def prompt_bool_flag(msg, value, *, interactive):
     if interactive:
-        value = click.confirm(msg, default=bool(value))
+        value = click.confirm(wraptext(msg), default=bool(value))
     return bool(value)
 
 
@@ -162,5 +171,5 @@ def prompt_flag(msg, flag_value, *, default, interactive, type=str):
     if flag_value is not None:
         value = flag_value
     if interactive:
-        value = click.prompt(msg, type=type, default=value)
+        value = click.prompt(wraptext(msg), type=type, default=value)
     return value

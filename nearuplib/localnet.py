@@ -20,11 +20,12 @@ def run(binary_path, home, num_nodes, num_shards, override, verbose=True, intera
             logging.info("Removing old data.")
             rmtree(home)
     elif interactive:
-        print(textwrap.fill(textwrap.dedent("""\
-        Starting localnet NEAR nodes.  This is a test network entirely local to
-        this machine.  Validators and non-validating nodes will be started, and
-        will communicate with each other on localhost, producing blocks on top
-        of a genesis block generated locally.""")))
+        print(util.wraptext('''
+            Starting localnet NEAR nodes.  This is a test network entirely local
+            to this machine.  Validators and non-validating nodes will be
+            started, and will communicate with each other on localhost,
+            producing blocks on top of a genesis block generated locally.
+        '''))
         print()
 
     if not os.path.exists(home):
