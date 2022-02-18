@@ -1,5 +1,4 @@
 import click
-import textwrap
 import json
 import logging
 import os
