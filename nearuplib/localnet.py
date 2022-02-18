@@ -19,7 +19,7 @@ def run(binary_path, home, num_nodes, num_shards, override, verbose=True, intera
                 'Would you like to remove data from the previous localnet run?',
                 override, interactive=interactive):
             logging.info("Removing old data.")
-            rmtree(home)
+            shutil.rmtree(home)
     elif interactive:
         print(textwrap.fill(textwrap.dedent("""\
         Starting localnet NEAR nodes.  This is a test network entirely local to
