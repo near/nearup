@@ -7,8 +7,6 @@ import shutil
 import subprocess
 import sys
 
-import click
-
 import psutil
 
 from nearuplib.constants import DEFAULT_WAIT_TIMEOUT, LOGS_FOLDER, NODE_PID_FILE

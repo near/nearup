@@ -4,7 +4,6 @@ import os
 import pathlib
 import shutil
 import sys
-import textwrap
 
 from nearuplib.constants import NODE_PID_FILE, LOCALNET_FOLDER, LOCALNET_LOGS_FOLDER
 from nearuplib.nodelib import run_binary, proc_name_from_pid, is_neard_running
