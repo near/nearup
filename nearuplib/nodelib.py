@@ -1,4 +1,3 @@
-import click
 import hashlib
 import json
 import logging
@@ -19,6 +18,7 @@ from nearuplib.util import (
     download_genesis,
     latest_genesis_md5sum,
     new_release_ready,
+    prompt_bool_flag,
     prompt_flag,
     wraptext
 )
@@ -69,7 +69,7 @@ def init_near(home_dir, binary_path, chain_id, account_id, interactive=False):
         a validator, which is distinct from the keys you'd use in normal
         transactions.
     ''')
-    if interactive and account_id is None and click.confirm(msg):
+    if prompt_bool_flag(msg, bool(account_id), interactive=interactive):
         # TODO: check that the account exists and warn if not
         msg = '''
             Enter an account ID. This should be an existing account you’d like
@@ -79,6 +79,9 @@ def init_near(home_dir, binary_path, chain_id, account_id, interactive=False):
         '''
         account_id = prompt_flag(msg, account_id, default=None,
                                  interactive=interactive, type=str)
+    else:
+        account_id = None
+
     cmd = [f'{binary_path}/neard', f'--home={home_dir}', 'init', f'--chain-id={chain_id}']
     if account_id:
         cmd.append(f'--account-id={account_id}')
