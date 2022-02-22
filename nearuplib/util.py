@@ -1,4 +1,3 @@
-import click
 import logging
 import os
 import re
@@ -8,6 +7,7 @@ import textwrap
 import boto3
 from botocore import UNSIGNED
 from botocore.client import Config
+import click
 
 from nearuplib.constants import S3_BUCKETS
 from nearuplib.exceptions import NetworkError, capture_as
@@ -166,7 +166,7 @@ def prompt_bool_flag(msg, value, *, interactive):
     return bool(value)
 
 
-def prompt_flag(msg, flag_value, *, default, interactive, type=str):
+def prompt_flag(msg, flag_value, *, default, interactive, type=str):  # pylint: disable=redefined-builtin
     value = default
     if flag_value is not None:
         value = flag_value

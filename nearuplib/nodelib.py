@@ -7,8 +7,6 @@ import shutil
 import subprocess
 import sys
 
-from subprocess import Popen
-
 import psutil
 
 from nearuplib.constants import DEFAULT_WAIT_TIMEOUT, LOGS_FOLDER, NODE_PID_FILE
@@ -89,7 +87,7 @@ def init_near(home_dir, binary_path, chain_id, account_id, interactive=False):
         cmd.append('--download-genesis')
 
     if interactive:
-        print('Running \"{}\"'.format(' '.join(cmd)))
+        print(f'Running "{" ".join(cmd)}"')
     subprocess.check_call(cmd)
 
     if interactive:
@@ -187,7 +185,7 @@ def run_binary(path,
                boot_nodes=None,
                output=None,
                print_command=False):
-    command = [path, '--home', home]
+    command = [path, '--home', str(home)]
 
     env = os.environ.copy()
     env['RUST_BACKTRACE'] = '1'
@@ -217,8 +215,8 @@ def run_binary(path,
         output = open(logname, 'w')
 
     if print_command:
-        print('Running \"{}\"'.format(' '.join(command)))
-    neard = Popen(command, stderr=output, stdout=output, env=env)
+        print(f'Running "{" ".join(command)}"')
+    neard = subprocess.Popen(command, stderr=output, stdout=output, env=env)
     return neard
 
 
