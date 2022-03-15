@@ -10,17 +10,25 @@ from nearuplib.nodelib import run_binary, proc_name_from_pid, is_neard_running
 from nearuplib import util
 
 
-def run(binary_path, home, num_nodes, num_shards, override, verbose=True, interactive=False):
+def run(binary_path,
+        home,
+        num_nodes,
+        num_shards,
+        override,
+        verbose=True,
+        interactive=False):
     home = pathlib.Path(home)
 
     if home.exists():
         if util.prompt_bool_flag(
                 'Would you like to remove data from the previous localnet run?',
-                override, interactive=interactive):
+                override,
+                interactive=interactive):
             logging.info("Removing old data.")
             shutil.rmtree(home)
     elif interactive:
-        print(util.wraptext('''
+        print(
+            util.wraptext('''
             Starting localnet NEAR nodes.  This is a test network entirely local
             to this machine.  Validators and non-validating nodes will be
             started, and will communicate with each other on localhost,
@@ -57,12 +65,12 @@ def run(binary_path, home, num_nodes, num_shards, override, verbose=True, intera
         path = home / f'node{num_nodes}' / 'config.json'
         if not path.exists():
             break
-        num_nodes += 1
 
         data = json.loads(path.read_text())
         data['rpc']['addr'] = f'0.0.0.0:{3030 + num_nodes}'
         data['network']['addr'] = f'0.0.0.0:{24567 + num_nodes}'
         path.write_text(json.dumps(data, indent=2))
+        num_nodes += 1
 
     # Load public key from first node
     data = json.loads((home / 'node0' / 'node_key.json').read_text())
@@ -91,7 +99,8 @@ def run(binary_path, home, num_nodes, num_shards, override, verbose=True, intera
     logging.info('Check localnet status at http://127.0.0.1:3030/status')
 
 
-def entry(binary_path, home, num_nodes, num_shards, override, verbose, interactive):
+def entry(binary_path, home, num_nodes, num_shards, override, verbose,
+          interactive):
     if binary_path:
         binary_path = os.path.join(binary_path, 'neard')
     else:
@@ -104,4 +113,5 @@ def entry(binary_path, home, num_nodes, num_shards, override, verbose, interacti
     if is_neard_running():
         sys.exit(1)
 
-    run(binary_path, home, num_nodes, num_shards, override, verbose, interactive)
+    run(binary_path, home, num_nodes, num_shards, override, verbose,
+        interactive)
