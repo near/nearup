@@ -55,7 +55,7 @@ def run(binary_path,
         fixed_shards = False
         if num_shards > 1:
             fixed_shards = util.prompt_bool_flag(
-                'Would you like to setup fixed accounts per each shard (shard0.test.near, shard1.test.near etc)?',
+                'Would you like to setup fixed accounts per each shard (shard0, shard1)?',
                 False,
                 interactive=interactive,
             )
