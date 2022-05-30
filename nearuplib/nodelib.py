@@ -215,9 +215,9 @@ def run_binary(path,
     if boot_nodes:
         command.extend(['--boot-nodes', boot_nodes])
     if fixed_shards:
-        command.extend(['--fixed-shards'])
+        command.append('--fixed-shards')
     if archival_nodes:
-        command.extend(['--archival-nodes'])
+        command.append('--archival-nodes')
 
     if output:
         logname = f'{output}.log'
