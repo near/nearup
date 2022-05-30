@@ -52,11 +52,25 @@ def run(binary_path,
             interactive=interactive,
             type=int,
         )
+        fixed_shards = False
+        if num_shards > 1:
+            fixed_shards = util.prompt_bool_flag(
+                'Would you like to setup fixed accounts per each shard (shard0, shard1)?',
+                False,
+                interactive=interactive,
+            )
+        archival_nodes = util.prompt_bool_flag(
+            "Should these nodes be archival nodes (keep full history)?",
+            False,
+            interactive=interactive)
+
         run_binary(binary_path,
                    home,
-                   'testnet',
+                   'localnet',
                    shards=num_shards,
                    validators=num_nodes,
+                   fixed_shards=fixed_shards,
+                   archival_nodes=archival_nodes,
                    print_command=interactive).wait()
 
     # Edit args files

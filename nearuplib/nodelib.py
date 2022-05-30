@@ -10,16 +10,10 @@ import sys
 import psutil
 
 from nearuplib.constants import DEFAULT_WAIT_TIMEOUT, LOGS_FOLDER, NODE_PID_FILE
-from nearuplib.util import (
-    download_binaries,
-    download_config,
-    download_genesis,
-    latest_genesis_md5sum,
-    new_release_ready,
-    prompt_bool_flag,
-    prompt_flag,
-    wraptext
-)
+from nearuplib.util import (download_binaries, download_config,
+                            download_genesis, latest_genesis_md5sum,
+                            new_release_ready, prompt_bool_flag, prompt_flag,
+                            wraptext)
 from nearuplib.watcher import is_watcher_running, run_watcher, stop_watcher
 from nearuplib.tailer import next_logname
 
@@ -40,7 +34,8 @@ def print_validator_info(home_dir):
         return
 
     print()
-    print(wraptext(f'''
+    print(
+        wraptext(f'''
         The validator’s public key is {key_data["public_key"]}
 
         The node will now run and will sync with the network, but this will not
@@ -75,12 +70,18 @@ def init_near(home_dir, binary_path, chain_id, account_id, interactive=False):
             account, please see
             https://docs.near.org/docs/develop/basics/create-account
         '''
-        account_id = prompt_flag(msg, account_id, default=None,
-                                 interactive=interactive, type=str)
+        account_id = prompt_flag(msg,
+                                 account_id,
+                                 default=None,
+                                 interactive=interactive,
+                                 type=str)
     else:
         account_id = None
 
-    cmd = [f'{binary_path}/neard', f'--home={home_dir}', 'init', f'--chain-id={chain_id}']
+    cmd = [
+        f'{binary_path}/neard', f'--home={home_dir}', 'init',
+        f'--chain-id={chain_id}'
+    ]
     if account_id:
         cmd.append(f'--account-id={account_id}')
     if chain_id in ['betanet', 'testnet']:
@@ -127,7 +128,11 @@ def check_and_update_genesis(chain_id, home_dir):
     return False
 
 
-def check_and_setup(binary_path, home_dir, chain_id, account_id, interactive=False):
+def check_and_setup(binary_path,
+                    home_dir,
+                    chain_id,
+                    account_id,
+                    interactive=False):
     """Checks if there is already everything setup on this machine, otherwise sets up NEAR node."""
     if os.path.exists(os.path.join(home_dir)):
         if chain_id != 'localnet':
@@ -184,7 +189,9 @@ def run_binary(path,
                non_validators=None,
                boot_nodes=None,
                output=None,
-               print_command=False):
+               print_command=False,
+               fixed_shards=False,
+               archival_nodes=False):
     command = [path, '--home', str(home)]
 
     env = os.environ.copy()
@@ -207,6 +214,10 @@ def run_binary(path,
         command.extend(['--n', str(non_validators)])
     if boot_nodes:
         command.extend(['--boot-nodes', boot_nodes])
+    if fixed_shards:
+        command.append('--fixed-shards')
+    if archival_nodes:
+        command.append('--archival-nodes')
 
     if output:
         logname = f'{output}.log'
