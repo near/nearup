@@ -158,7 +158,9 @@ def check_and_setup(binary_path,
     init_near(home_dir, binary_path, chain_id, account_id, interactive)
     download_config(chain_id, home_dir)
 
-    if chain_id not in ['mainnet', 'guildnet', 'betanet', 'testnet', 'shardnet']:
+    if chain_id not in [
+            'mainnet', 'guildnet', 'betanet', 'testnet', 'shardnet'
+    ]:
         with open(os.path.join(home_dir, 'genesis.json'), 'r+') as genesis_fd:
             genesis_config = json.load(genesis_fd)
             genesis_config['gas_price'] = 0

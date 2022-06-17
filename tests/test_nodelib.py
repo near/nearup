@@ -49,8 +49,7 @@ def test_check_and_setup_localnet_existing_config():
     write_genesis(LOCALNET_HOME, 'localnet')
 
     try:
-        check_and_setup(LOCALNET_BINARY_PATH, LOCALNET_HOME,
-                        'localnet', None)
+        check_and_setup(LOCALNET_BINARY_PATH, LOCALNET_HOME, 'localnet', None)
     except Exception as ex:
         pytest.fail(f'unexpected expection {ex}')
 
@@ -61,6 +60,7 @@ def test_check_and_setup_betanet_existing_config():
     write_genesis(BETANET_HOME, 'betanet')
 
     try:
-        check_and_setup(BETANET_BINARY_PATH, BETANET_HOME, 'betanet', ACCOUNT_ID)
+        check_and_setup(BETANET_BINARY_PATH, BETANET_HOME, 'betanet',
+                        ACCOUNT_ID)
     except Exception as ex:
         pytest.fail(f'unexpected exception {ex}')

@@ -4,6 +4,7 @@ from nearuplib.exceptions import NetworkError, capture_as
 
 
 def test_capture_as():
+
     @capture_as(NetworkError)
     def raises_exception():
         raise Exception("oops")
