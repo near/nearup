@@ -39,7 +39,7 @@ def cli():
 @cli.command()
 @click.argument('network',
                 type=click.Choice(
-                    {'mainnet', 'testnet', 'betanet', 'guildnet', 'localnet'}))
+                    {'mainnet', 'testnet', 'betanet', 'guildnet', 'localnet', 'shardnet'}))
 @click.option(
     '--binary-path',
     type=str,
@@ -125,7 +125,7 @@ def stop(keep_watcher):
 
 @click.argument('network',
                 type=click.Choice(
-                    {'mainnet', 'testnet', 'betanet', 'guildnet', 'localnet'}))
+                    {'mainnet', 'testnet', 'betanet', 'guildnet', 'localnet', 'shardnet'}))
 @click.option(
     '--home',
     type=str,

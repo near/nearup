@@ -13,4 +13,5 @@ S3_BUCKETS = {
     'testnet': 'build.nearprotocol.com',
     'betanet': 'build.nearprotocol.com',
     'guildnet': 'build.openshards.io',
+    'shardnet': 'build.nearprotocol.com',
 }
