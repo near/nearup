@@ -155,6 +155,7 @@ def latest_genesis_md5sum_has_changed(net, md5_sum):
 
 _WRAPPER = textwrap.TextWrapper(break_long_words=False, break_on_hyphens=False)
 
+
 def wraptext(msg: str) -> str:
     msg = '\n'.join(line.lstrip() for line in msg.strip().splitlines())
     return '\n\n'.join(_WRAPPER.fill(para) for para in re.split('\n{2,}', msg))

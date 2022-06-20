@@ -42,8 +42,8 @@ def main():
 
 @main.command()
 @click.argument('network',
-                type=click.Choice({'guildnet', 'betanet', 'testnet',
-                                   'mainnet'}))
+                type=click.Choice(
+                    {'guildnet', 'betanet', 'testnet', 'mainnet', 'shardnet'}))
 @click.argument('home', type=str)
 @click.option('--force-restart',
               is_flag=True,

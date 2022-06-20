@@ -84,7 +84,7 @@ def init_near(home_dir, binary_path, chain_id, account_id, interactive=False):
     ]
     if account_id:
         cmd.append(f'--account-id={account_id}')
-    if chain_id in ['betanet', 'testnet']:
+    if chain_id in ['betanet', 'testnet', 'shardnet']:
         cmd.append('--download-genesis')
 
     if interactive:
@@ -145,7 +145,7 @@ def check_and_setup(binary_path,
                     )
                     sys.exit(1)
 
-        if chain_id in ['guildnet', 'betanet', 'testnet']:
+        if chain_id in ['guildnet', 'betanet', 'testnet', 'shardnet']:
             check_and_update_genesis(chain_id, home_dir)
         elif chain_id == 'mainnet':
             logging.info("Using the mainnet genesis...")
@@ -158,7 +158,9 @@ def check_and_setup(binary_path,
     init_near(home_dir, binary_path, chain_id, account_id, interactive)
     download_config(chain_id, home_dir)
 
-    if chain_id not in ['mainnet', 'guildnet', 'betanet', 'testnet']:
+    if chain_id not in [
+            'mainnet', 'guildnet', 'betanet', 'testnet', 'shardnet'
+    ]:
         with open(os.path.join(home_dir, 'genesis.json'), 'r+') as genesis_fd:
             genesis_config = json.load(genesis_fd)
             genesis_config['gas_price'] = 0
