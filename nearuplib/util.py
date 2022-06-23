@@ -15,7 +15,6 @@ from nearuplib.exceptions import NetworkError, capture_as
 
 @capture_as(NetworkError)
 def download_from_s3(bucket, path, filepath=None):
-    print('download_from_s3',bucket,path,filepath)
     s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
     s3_client.download_file(bucket, path, filepath)
 
@@ -33,7 +32,6 @@ def exists_on_s3(bucket, path):
 
 @capture_as(NetworkError)
 def read_from_s3(bucket, path):
-    print('read_from_s3',bucket,path)
     s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
     response = s3_client.get_object(Bucket=bucket, Key=path)
     return response['Body'].read().decode('utf-8')
@@ -83,12 +81,6 @@ def download_binaries(net, uname):
 
         download_path = os.path.expanduser(f'~/.nearup/near/{net}/{binary}')
 
-        print('uname: ', uname)
-        print('branch: ', branch)
-        print('commit: ', commit)
-        print('binary: ', binary)
-        print('download_url: ', download_url)
-        print('download_path: ', download_path)
         logging.info(
             f"Downloading {binary} to {download_path} from {download_url}...")
         download_from_s3(S3_BUCKETS['default'], download_url, download_path)
@@ -108,7 +100,6 @@ def latest_deployed_release_commit(net):
     if net in ["localnet", "guildnet"]:
         return read_from_s3(S3_BUCKETS['default'],
                             'nearcore-deploy/testnet/latest_deploy').strip()
-    print('latest_deployed_release_commit',net)
     return read_from_s3(S3_BUCKETS['default'],
                         f'nearcore-deploy/{net}/latest_deploy').strip()
 
