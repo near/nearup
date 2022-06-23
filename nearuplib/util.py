@@ -64,7 +64,7 @@ def download_genesis(net, home_dir):
                      os.path.join(home_dir, 'genesis.json'))
 
 
-def download_binaries(net, uname, nightly=False):
+def download_binaries(net, uname):
     commit = latest_deployed_release_commit(net)
     branch = latest_deployed_release_branch(net)
 
@@ -74,8 +74,10 @@ def download_binaries(net, uname, nightly=False):
         binary = 'neard'
 
         download_url = f'nearcore/{uname}/{branch}/{commit}/{binary}'
-        if nightly:
+        if net == 'betanet':
             download_url = f'nearcore/{uname}/{branch}/{commit}/nightly/{binary}'
+        elif net == 'shardnet':
+            download_url = f'nearcore/{uname}/{branch}/{commit}/shardnet/{binary}'
 
         download_path = os.path.expanduser(f'~/.nearup/near/{net}/{binary}')
 
