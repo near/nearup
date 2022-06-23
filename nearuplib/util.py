@@ -37,6 +37,15 @@ def read_from_s3(bucket, path):
     return response['Body'].read().decode('utf-8')
 
 
+def binary_download_url(net, uname, branch, commit, binary):
+    if net == 'betanet':
+        return f'nearcore/{uname}/{branch}/{commit}/nightly/{binary}'
+    elif net == 'shardnet':
+        return f'nearcore/{uname}/{branch}/{commit}/shardnet/{binary}'
+    else:
+        return f'nearcore/{uname}/{branch}/{commit}/{binary}'
+
+
 def new_release_ready(net, uname):
     """Sanity check that a new release is ready for download."""
     if net in ["localnet", "guildnet"]:
@@ -49,7 +58,7 @@ def new_release_ready(net, uname):
     if not commit:
         return False
 
-    path = f'nearcore/{uname}/{branch}/{commit}/neard'
+    path = binary_download_url(net, uname, branch, commit, 'neard')
 
     return exists_on_s3(S3_BUCKETS["default"], path)
 
@@ -72,6 +81,7 @@ def download_binaries(net, uname):
         logging.info(f'Downloading latest deployed version for {net}')
 
         binary = 'neard'
+        download_url = binary_download_url(net, uname, branch, commit, binary)
 
         download_url = f'nearcore/{uname}/{branch}/{commit}/{binary}'
         if net == 'betanet':
