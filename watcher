@@ -53,7 +53,7 @@ def run(network, home, force_restart):
     current_release_commit = latest_deployed_release_commit(network)
     # Don't assume that the node has an up-to-date version of genesis.
     # Instead get hash of the local genesis.
-    with open(os.path.join(os.path.join(home, 'genesis.json')), 'rb') as genesis_fd:
+    with open(os.path.join(home, 'genesis.json'), 'rb') as genesis_fd:
         current_genesis_md5sum = hashlib.md5(genesis_fd.read()).hexdigest()
     logging.info(
         f"Starting watcher for chain: {network} with commit: {current_release_commit}"
