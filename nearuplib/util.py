@@ -134,14 +134,6 @@ def latest_deployed_release_branch(net):
                         f'nearcore-deploy/{net}/latest_release').strip()
 
 
-def latest_deployed_release_time(net):
-    if net in ["localnet", "guildnet"]:
-        return read_from_s3(S3_BUCKETS['default'],
-                            'nearcore-deploy/testnet/latest_deploy_at').strip()
-    return read_from_s3(S3_BUCKETS['default'],
-                        f'nearcore-deploy/{net}/latest_deploy_at').strip()
-
-
 def latest_genesis_md5sum(net):
     if net == "localnet":
         return read_from_s3(S3_BUCKETS['default'],
