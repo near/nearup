@@ -15,6 +15,7 @@ def run(binary_path,
         num_nodes,
         num_shards,
         override,
+        fix_accounts,
         verbose=True,
         interactive=False):
     home = pathlib.Path(home)
@@ -55,8 +56,8 @@ def run(binary_path,
         fixed_shards = False
         if num_shards > 1:
             fixed_shards = util.prompt_bool_flag(
-                'Would you like to setup fixed accounts per each shard (shard0, shard1)?',
-                False,
+                'Would you like to setup fixed accounts for first (N-1) shards (shard0, shard1, ...)?',
+                fix_accounts,
                 interactive=interactive,
             )
         archival_nodes = util.prompt_bool_flag(
@@ -113,7 +114,7 @@ def run(binary_path,
     logging.info('Check localnet status at http://127.0.0.1:3030/status')
 
 
-def entry(binary_path, home, num_nodes, num_shards, override, verbose,
+def entry(binary_path, home, num_nodes, num_shards, override, fix_accounts, verbose,
           interactive):
     if binary_path:
         binary_path = os.path.join(binary_path, 'neard')
@@ -127,5 +128,5 @@ def entry(binary_path, home, num_nodes, num_shards, override, verbose,
     if is_neard_running():
         sys.exit(1)
 
-    run(binary_path, home, num_nodes, num_shards, override, verbose,
+    run(binary_path, home, num_nodes, num_shards, override, fix_accounts, verbose,
         interactive)
