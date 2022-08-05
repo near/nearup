@@ -13,7 +13,7 @@ from logging import handlers
 import click
 
 from nearuplib.exceptions import NetworkError
-from nearuplib.nodelib import restart_nearup, is_neard_crashed
+from nearuplib.nodelib import restart_nearup, is_neard_zombie
 from nearuplib.util import (
     latest_deployed_release_commit,
     latest_deployed_release_commit_has_changed,
@@ -59,7 +59,7 @@ def run(network, home, force_restart):
         f"Starting watcher for chain: {network} with commit: {current_release_commit}"
     )
 
-    if is_neard_crashed():
+    if is_neard_zombie():
         restart_nearup(network, home_dir=home, restart_only_new_version=False)
 
     while True:
@@ -77,7 +77,7 @@ def run(network, home, force_restart):
                                restart_only_new_version=False)
                 current_release_commit = latest_deployed_release_commit(network)
                 current_genesis_md5sum = latest_genesis_md5sum(network)
-            elif is_neard_crashed():
+            elif is_neard_zombie():
                 restart_nearup(network,
                                home_dir=home,
                                restart_only_new_version=False)

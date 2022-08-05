@@ -310,7 +310,7 @@ def setup_and_run(binary_path,
         download_binaries(chain_id, uname)
     else:
         logging.info(f'Using local binary at {binary_path}')
-        # watcher = False  # ensure watcher doesn't run and try to download official binaries
+        watcher = False  # ensure watcher doesn't run and try to download official binaries
 
     check_and_setup(binary_path, home_dir, chain_id, account_id, interactive)
 
@@ -404,7 +404,7 @@ def stop_native(timeout=DEFAULT_WAIT_TIMEOUT):
             os.remove(NODE_PID_FILE)
 
 
-def is_neard_crashed():
+def is_neard_zombie():
     if not is_neard_running():
         return False
     with open(NODE_PID_FILE) as pid_file:
