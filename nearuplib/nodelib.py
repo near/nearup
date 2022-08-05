@@ -416,6 +416,8 @@ def is_neard_crashed():
                 logging.info(f"Near procces is {proc_name} with pid: {pid}...")
                 if proc_name not in process.name():
                     return True
+                if process.status() in [psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD]:
+                    return True
             except psutil.NoSuchProcess:
                 return True
     return False
