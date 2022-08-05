@@ -13,7 +13,7 @@ from logging import handlers
 import click
 
 from nearuplib.exceptions import NetworkError
-from nearuplib.nodelib import restart_nearup
+from nearuplib.nodelib import restart_nearup, is_neard_crashed
 from nearuplib.util import (
     latest_deployed_release_commit,
     latest_deployed_release_commit_has_changed,
@@ -59,6 +59,9 @@ def run(network, home, force_restart):
         f"Starting watcher for chain: {network} with commit: {current_release_commit}"
     )
 
+    if is_neard_crashed():
+        restart_nearup(network, home_dir=home, restart_only_new_version=False)
+
     while True:
         time.sleep(60)
         try:
@@ -69,9 +72,15 @@ def run(network, home, force_restart):
                 logging.info(
                     "New release has been published. Restarting nearup")
 
-                restart_nearup(network, home_dir=home)
+                restart_nearup(network,
+                               home_dir=home,
+                               restart_only_new_version=False)
                 current_release_commit = latest_deployed_release_commit(network)
                 current_genesis_md5sum = latest_genesis_md5sum(network)
+            elif is_neard_crashed():
+                restart_nearup(network,
+                               home_dir=home,
+                               restart_only_new_version=False)
 
         except NetworkError as ex:
             logging.warning(f'caught networking error {ex} - will try again')
