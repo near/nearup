@@ -60,6 +60,7 @@ def run(network, home, force_restart):
     )
 
     if is_neard_zombie():
+        logging.warning("Detected that neard is dead when starting watcher. Restarting neard.")
         restart_nearup(network, home_dir=home, restart_only_new_version=False)
 
     while True:
@@ -78,6 +79,7 @@ def run(network, home, force_restart):
                 current_release_commit = latest_deployed_release_commit(network)
                 current_genesis_md5sum = latest_genesis_md5sum(network)
             elif is_neard_zombie():
+                logging.warning("Detected that neard has died. Restarting neard.")
                 restart_nearup(network,
                                home_dir=home,
                                restart_only_new_version=False)
