@@ -340,7 +340,8 @@ def restart_nearup(net,
                    path=os.path.join(site.USER_BASE, 'bin/nearup'),
                    home_dir='',
                    keep_watcher=True,
-                   verbose=False):
+                   verbose=False,
+                   restart_only_new_version=True):
     logging.warning("Restarting nearup...")
 
     if not os.path.exists(path):
@@ -353,7 +354,7 @@ def restart_nearup(net,
         sys.exit(1)
 
     uname = os.uname()[0]
-    if not new_release_ready(net, uname):
+    if restart_only_new_version and not new_release_ready(net, uname):
         logging.warning(
             f'Latest release for {net} is not ready. Skipping restart.')
         return
@@ -401,3 +402,22 @@ def stop_native(timeout=DEFAULT_WAIT_TIMEOUT):
         logging.error(f"There was an error while stopping watcher: {ex}")
         if os.path.exists(NODE_PID_FILE):
             os.remove(NODE_PID_FILE)
+
+
+def is_neard_zombie():
+    if not is_neard_running():
+        return False
+    with open(NODE_PID_FILE) as pid_file:
+        for line in pid_file.readlines():
+            pid, proc_name, _ = line.strip().split("|")
+            pid = int(pid)
+            try:
+                process = psutil.Process(pid)
+                logging.info(f"Near procces is {proc_name} with pid: {pid}...")
+                if proc_name not in process.name():
+                    return True
+                if process.status() in [psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD]:
+                    return True
+            except psutil.NoSuchProcess:
+                return True
+    return False
