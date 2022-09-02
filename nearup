@@ -89,11 +89,14 @@ def cli():
 @click.option('--override',
               is_flag=True,
               help='Override previous localnet node data if exists')
+@click.option('--fix-accounts',
+              is_flag=True,
+              help='Setup fixed accounts for first (N-1) shards (shard0, shard1, ...)')
 @click.option('--no-watcher',
               is_flag=True,
               help='Disable nearup watcher, mostly used for tests.')
 def run(network, binary_path, home, account_id, boot_nodes, interactive,
-        verbose, neard_log, num_nodes, num_shards, override, no_watcher):
+        verbose, neard_log, num_nodes, num_shards, override, fix_accounts, no_watcher):
     if home:
         home = os.path.abspath(home)
     else:
@@ -105,7 +108,7 @@ def run(network, binary_path, home, account_id, boot_nodes, interactive,
         verbose = True
 
     if network == 'localnet':
-        entry(binary_path, home, num_nodes, num_shards, override, verbose,
+        entry(binary_path, home, num_nodes, num_shards, override, fix_accounts, verbose,
               interactive)
     else:
         setup_and_run(binary_path,
