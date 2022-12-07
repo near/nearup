@@ -241,7 +241,8 @@ def proc_name_from_pid(pid):
 def is_neard_running():
     if os.path.exists(NODE_PID_FILE):
         logging.error("There is already binary nodes running.")
-        logging.error("Either run nearup stop or by kill the process manually.")
+        logging.error(
+            "Either run nearup stop or by kill the process manually.")
         logging.warning(f"If this is a mistake, remove {NODE_PID_FILE}")
         return True
     return False
