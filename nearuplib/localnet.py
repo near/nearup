@@ -84,6 +84,15 @@ def run(binary_path,
         data = json.loads(path.read_text())
         data['rpc']['addr'] = f'0.0.0.0:{3030 + num_nodes}'
         data['network']['addr'] = f'0.0.0.0:{24567 + num_nodes}'
+
+        # Enable TIER1 connections and configure the node as its own proxy
+        node_key_data = json.loads((home / f'node{num_nodes}' / 'node_key.json').read_text())
+        public_key = node_key_data['public_key']
+        public_addr = f'{public_key}@127.0.0.1:{24567 + num_nodes}'
+        data['network']['public_addrs'] = [public_addr]
+        data['network']['allow_private_ip_in_public_addrs'] = True
+        data['network']['experimental']['tier1_enable_outbound'] = True
+
         path.write_text(json.dumps(data, indent=2))
         num_nodes += 1
 
