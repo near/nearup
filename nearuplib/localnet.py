@@ -17,6 +17,7 @@ def run(binary_path,
         override,
         fix_accounts,
         archival_nodes,
+        tracked_shards,
         verbose=True,
         interactive=False):
     home = pathlib.Path(home)
@@ -65,6 +66,11 @@ def run(binary_path,
             "Should these nodes be archival nodes (keep full history)?",
             archival_nodes,
             interactive=interactive)
+        tracked_shards = util.prompt_flag(
+            "What shards should be tracked? Comma separated list of shards to track, the word \'all\' to track all shards or the word \'none\' to track no shards.",
+            tracked_shards,
+            interactive=interactive,
+            default="all")
 
         run_binary(binary_path,
                    home,
@@ -73,6 +79,7 @@ def run(binary_path,
                    validators=num_nodes,
                    fixed_shards=fixed_shards,
                    archival_nodes=archival_nodes,
+                   tracked_shards=tracked_shards,
                    print_command=interactive).wait()
 
     # Edit args files
@@ -115,8 +122,8 @@ def run(binary_path,
     logging.info('Check localnet status at http://127.0.0.1:3030/status')
 
 
-def entry(binary_path, home, num_nodes, num_shards, override, fix_accounts, archival_nodes,
-          verbose, interactive):
+def entry(binary_path, home, num_nodes, num_shards, override, fix_accounts,
+          archival_nodes, tracked_shards, verbose, interactive):
     if binary_path:
         binary_path = os.path.join(binary_path, 'neard')
     else:
@@ -129,5 +136,5 @@ def entry(binary_path, home, num_nodes, num_shards, override, fix_accounts, arch
     if is_neard_running():
         sys.exit(1)
 
-    run(binary_path, home, num_nodes, num_shards, override, fix_accounts, archival_nodes,
-        verbose, interactive)
+    run(binary_path, home, num_nodes, num_shards, override, fix_accounts,
+        archival_nodes, tracked_shards, verbose, interactive)

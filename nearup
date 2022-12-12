@@ -110,12 +110,18 @@ def cli():
     help=
     'Setup the nodes to be archival (keep full history). Only applicable to localnet. Will be ignored if --interactive is used.'
 )
+@click.option(
+    '--tracked-shards',
+    type=str,
+    help=
+    'Comma separated list of shards to track, the word \'all\' to track all shards or the word \'none\' to track no shards.'
+    'Only applicable to localnet. Will be ignored if --interactive is used.')
 @click.option('--no-watcher',
               is_flag=True,
               help='Disable nearup watcher, mostly used for tests.')
 def run(network, binary_path, home, account_id, boot_nodes, interactive,
         verbose, neard_log, override, num_nodes, num_shards, fix_accounts,
-        archival_nodes, no_watcher):
+        archival_nodes, tracked_shards, no_watcher):
     if home:
         home = os.path.abspath(home)
     else:
@@ -128,7 +134,7 @@ def run(network, binary_path, home, account_id, boot_nodes, interactive,
 
     if network == 'localnet':
         entry(binary_path, home, num_nodes, num_shards, override, fix_accounts,
-              archival_nodes, verbose, interactive)
+              archival_nodes, tracked_shards, verbose, interactive)
     else:
         setup_and_run(binary_path,
                       home,

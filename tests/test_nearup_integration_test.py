@@ -1,9 +1,10 @@
 import os
 import shutil
 import json
-
+import logging
 import pytest
 import requests
+
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -24,7 +25,7 @@ NEARUP_PATH = os.path.join(
 
 
 def cleanup():
-    print("cleanup")
+    logging.info("running cleanup")
     if os.path.exists(BETANET_NEAR_DIR):
         shutil.rmtree(BETANET_NEAR_DIR)
 
@@ -39,8 +40,7 @@ def cleanup():
 
 
 def setup_module(module):  # pylint: disable=W0613
-    print()
-    print("setup")
+    logging.info("running setup module")
     cleanup()
 
     if not os.path.exists(LOGS_FOLDER):
@@ -48,10 +48,13 @@ def setup_module(module):  # pylint: disable=W0613
 
 
 def teardown_module(module):  # pylint: disable=W0613
+    logging.info("running teardown module")
     cleanup()
 
 
 def download_betanet_binary(dir):
+    logging.info("running download_betanet_binary")
+
     uname = os.uname()[0]
     download_binaries('betanet', uname)
 
@@ -77,21 +80,26 @@ def test_nearup_still_runnable_betanet():
     http = requests.Session()
     http.mount("http://", HTTPAdapter(max_retries=retry_strategy))
 
+    logging.info("checking status")
     resp = http.get('http://localhost:3030/status')
     assert resp.status_code == 200
     assert resp.text
 
+    logging.info("stopping nearup")
     stop_nearup(keep_watcher=True)
 
     with pytest.raises(requests.exceptions.ConnectionError):
         requests.get('http://localhost:3030/status')
 
+    logging.info("restarting nearup")
     restart_nearup('betanet', NEARUP_PATH, BETANET_NEAR_DIR, keep_watcher=True)
 
+    logging.info("checking status")
     resp = http.get('http://localhost:3030/status')
     assert resp.status_code == 200
     assert resp.text
 
+    logging.info("stopping nearup")
     stop_nearup(keep_watcher=True)
 
     with pytest.raises(requests.exceptions.ConnectionError):
@@ -110,6 +118,7 @@ def test_nearup_still_runnable_localnet():
           override=True,
           fix_accounts=True,
           archival_nodes=True,
+          tracked_shards="all",
           verbose=True,
           interactive=False)
 
