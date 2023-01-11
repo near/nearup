@@ -193,7 +193,8 @@ def run_binary(path,
                output=None,
                print_command=False,
                fixed_shards=False,
-               archival_nodes=False):
+               archival_nodes=False,
+               tracked_shards=False):
     command = [path, '--home', str(home)]
 
     env = os.environ.copy()
@@ -220,6 +221,8 @@ def run_binary(path,
         command.append('--fixed-shards')
     if archival_nodes:
         command.append('--archival-nodes')
+    if tracked_shards:
+        command.extend(['--tracked-shards', tracked_shards])
 
     if output:
         logname = f'{output}.log'
@@ -286,6 +289,9 @@ def setup_and_run(binary_path,
                   interactive=False,
                   neard_log='',
                   watcher=True):
+    logging.info(
+        f'setup and run, chain_id: {chain_id} binary_path: {binary_path}')
+
     if is_neard_running():
         sys.exit(1)
 
@@ -416,7 +422,9 @@ def is_neard_zombie():
                 logging.info(f"Near procces is {proc_name} with pid: {pid}...")
                 if proc_name not in process.name():
                     return True
-                if process.status() in [psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD]:
+                if process.status() in [
+                        psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD
+                ]:
                     return True
             except psutil.NoSuchProcess:
                 return True
