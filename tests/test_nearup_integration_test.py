@@ -127,7 +127,7 @@ def test_nearup_still_runnable_localnet():
     http.mount("http://", HTTPAdapter(max_retries=retry_strategy))
 
     for i in range(n):
-        print(f"Checking the config of the {i}th node")
+        logging.info(f"Checking the config of the {i}th node")
         config_path = os.path.join(LOCALNET_NEAR_DIR, f"node{i}", "config.json")
         assert os.path.exists(config_path)
 
@@ -137,7 +137,7 @@ def test_nearup_still_runnable_localnet():
             assert config['archive'] == True
 
     for i in range(n):
-        print(f"Checking the genesis of the {i}th node")
+        logging.info(f"Checking the genesis of the {i}th node")
         genesis_path = os.path.join(LOCALNET_NEAR_DIR, f"node{i}",
                                     "genesis.json")
         assert os.path.exists(genesis_path)
@@ -152,7 +152,7 @@ def test_nearup_still_runnable_localnet():
             ]
 
     for i in range(n):
-        print(f"Checking the status of the {i}th node.")
+        logging.info(f"Checking the status of the {i}th node.")
         port = 3030 + i
         resp = http.get(f'http://localhost:{port}/status')
         assert resp.status_code == 200
