@@ -90,13 +90,13 @@ def cli():
     '--num-nodes',
     type=int,
     help=
-    'Specifies the number of nodes to create. Only applicable to localnet. Will be ignored if --interactive is used.'
+    'The number of nodes to create. Only applicable to localnet. Will be ignored if --interactive is used.'
 )
 @click.option(
     '--num-shards',
     type=int,
     help=
-    'Specifies the number of shards to create. Only applicable to localnet. Will be ignored if --interactive is used.'
+    'The number of shards to create. Only applicable to localnet. Will be ignored if --interactive is used.'
 )
 @click.option(
     '--fix-accounts',
