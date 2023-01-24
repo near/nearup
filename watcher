@@ -18,7 +18,7 @@ from nearuplib.util import (
     latest_deployed_release_commit,
     latest_deployed_release_commit_has_changed,
     latest_genesis_md5sum,
-    latest_genesis_md5sum_has_changed,
+    read_genesis_md5sum,
 )
 
 logging.basicConfig(
@@ -52,24 +52,27 @@ def main():
 def run(network, home, force_restart):
     current_release_commit = latest_deployed_release_commit(network)
     # Don't assume that the node has an up-to-date version of genesis.
-    # Instead get hash of the local genesis.
-    with open(os.path.join(home, 'genesis.json'), 'rb') as genesis_fd:
-        current_genesis_md5sum = hashlib.md5(genesis_fd.read()).hexdigest()
+    # Instead read the md5sum hash of the genesis that existed when we initialized home.
+    current_genesis_md5sum = read_genesis_md5sum(network)
+
     logging.info(
         f"Starting watcher for chain: {network} with commit: {current_release_commit}"
     )
 
     if is_neard_zombie():
-        logging.warning("Detected that neard is dead when starting watcher. Restarting neard.")
+        logging.warning(
+            "Detected that neard is dead when starting watcher. Restarting neard."
+        )
         restart_nearup(network, home_dir=home, restart_only_new_version=False)
 
     while True:
         time.sleep(60)
         try:
+            genesis_md5sum = latest_genesis_md5sum(network)
+
             if latest_deployed_release_commit_has_changed(
                     network, current_release_commit
-            ) or latest_genesis_md5sum_has_changed(
-                    network, current_genesis_md5sum) or force_restart:
+            ) or genesis_md5sum != current_genesis_md5sum or force_restart:
                 logging.info(
                     "New release has been published. Restarting nearup")
 
@@ -77,9 +80,10 @@ def run(network, home, force_restart):
                                home_dir=home,
                                restart_only_new_version=False)
                 current_release_commit = latest_deployed_release_commit(network)
-                current_genesis_md5sum = latest_genesis_md5sum(network)
+                current_genesis_md5sum = genesis_md5sum
             elif is_neard_zombie():
-                logging.warning("Detected that neard has died. Restarting neard.")
+                logging.warning(
+                    "Detected that neard has died. Restarting neard.")
                 restart_nearup(network,
                                home_dir=home,
                                restart_only_new_version=False)

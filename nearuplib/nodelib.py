@@ -6,14 +6,15 @@ import site
 import shutil
 import subprocess
 import sys
+import tempfile
 
 import psutil
 
 from nearuplib.constants import DEFAULT_WAIT_TIMEOUT, LOGS_FOLDER, NODE_PID_FILE
-from nearuplib.util import (download_binaries, download_config,
-                            download_genesis, latest_genesis_md5sum,
-                            new_release_ready, prompt_bool_flag, prompt_flag,
-                            wraptext)
+from nearuplib.util import (download_binaries, download_genesis,
+                            latest_genesis_md5sum, read_genesis_md5sum,
+                            write_genesis_md5sum, new_release_ready,
+                            prompt_bool_flag, prompt_flag, wraptext)
 from nearuplib.watcher import is_watcher_running, run_watcher, stop_watcher
 from nearuplib.tailer import next_logname
 
@@ -86,42 +87,168 @@ def init_near(home_dir, binary_path, chain_id, account_id, interactive=False):
         cmd.append(f'--account-id={account_id}')
     if chain_id in ['betanet', 'testnet', 'shardnet']:
         cmd.append('--download-genesis')
+        cmd.append('--download-config')
+        genesis_md5sum = latest_genesis_md5sum(chain_id)
 
-    if interactive:
-        print(f'Running "{" ".join(cmd)}"')
-    subprocess.check_call(cmd)
+    while True:
+        if interactive:
+            print(f'Running "{" ".join(cmd)}"')
+        subprocess.check_call(cmd)
+
+        if chain_id in ['betanet', 'shardnet', 'testnet']:
+            new_genesis_md5sum = latest_genesis_md5sum(chain_id)
+
+            if new_genesis_md5sum != genesis_md5sum:
+                genesis_md5sum = new_genesis_md5sum
+                logger.info(
+                    f'genesis md5sum changed while neard init was running. reinitializing...'
+                )
+                shutil.rmtree(home_dir)
+                continue
+            else:
+                write_genesis_md5sum(home_dir, genesis_md5sum)
+
+        break
 
     if interactive:
         print_validator_info(home_dir)
 
 
 def genesis_changed(chain_id, home_dir):
-    genesis_md5sum = latest_genesis_md5sum(chain_id)
+    genesis_md5sum, records_md5sum = latest_genesis_md5sum(chain_id)
 
-    with open(os.path.join(os.path.join(home_dir, 'genesis.json')),
-              'rb') as genesis_fd:
-        local_genesis_md5sum = hashlib.md5(genesis_fd.read()).hexdigest()
+    local_genesis_md5sum, local_records_md5sum = read_genesis_md5sum(home_dir)
 
-    if genesis_md5sum == local_genesis_md5sum:
-        logging.info('The genesis version is up to date')
+    if genesis_md5sum != local_genesis_md5sum:
+        logging.info(
+            f'genesis md5sum has changed. ours: {local_genesis_md5sum} remote: {genesis_md5sum}'
+        )
+        return True
+
+    # we assume if remote shows no records but we have a records.json for some reason, with
+    # the same genesis that the remote shows, we probably dont want to redownload stuff
+    if records_md5sum is None:
         return False
 
-    logging.info(
-        f'Remote genesis protocol version md5 {genesis_md5sum}, ours is {local_genesis_md5sum}'
-    )
-    return True
+    ret = records_md5sum != local_records_md5sum
+    if ret:
+        logging.info(
+            f'records md5sum has changed. ours: {local_records_md5sum} remote: {records_md5sum}'
+        )
+    return ret
 
 
-def check_and_update_genesis(chain_id, home_dir):
+# only meant to be called when the old genesis has records in the genesis file, and the new genesis
+# has records in a separate file. returns true if all fields of the genesis are the same as well as the records
+# (without trying to sort them or be clever at all)
+def genesis_files_equivalent(old_genesis_path, new_genesis_path,
+                             new_records_path):
+    with open(old_genesis_path, 'r') as old_genesis, open(
+            new_genesis_path, 'r') as new_genesis, open(new_records_path,
+                                                        'r') as new_records:
+        old_genesis = json.load(old_genesis)
+        new_genesis = json.load(new_genesis)
+
+        seen_keys = set()
+        for key in old_genesis:
+            if key == 'records':
+                continue
+
+            seen_keys.add(key)
+            try:
+                new_value = new_genesis[key]
+            except KeyError:
+                return False
+
+            old_value = old_genesis[key]
+
+            if old_value != new_value:
+                return False
+
+        for key in new_genesis:
+            if key == 'records':
+                continue
+
+            if key not in seen_keys:
+                return False
+
+        h = hashlib.sha256()
+
+        for record in old_genesis['records']:
+            h.update(json.dumps(record).encode('utf-8'))
+        old_records_hash = h.digest()
+
+        # actually del it because it's really big for testnet. would be nice to read thru
+        # these sequentially instead of all at once into a giant object
+        del old_genesis
+        new_records = json.load(new_records)
+
+        h = hashlib.sha256()
+        for record in new_records:
+            h.update(json.dumps(record).encode('utf-8'))
+        new_records_hash = h.digest()
+
+        return new_records_hash == old_records_hash
+
+
+def check_and_update_genesis(chain_id, home_dir, binary_path):
     if genesis_changed(chain_id, home_dir):
         logging.info(
             f'Update genesis config and remove stale data for {chain_id}')
 
-        os.remove(os.path.join(home_dir, 'genesis.json'))
-        download_genesis(chain_id, home_dir)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            init_near(tmp_dir, binary_path, chain_id, None, interactive=False)
 
-        if os.path.exists(os.path.join(home_dir, 'data')):
-            shutil.rmtree(os.path.join(home_dir, 'data'))
+            with open(os.path.join(tmp_dir, 'config.json'), 'r') as config_fd:
+                config = json.load(config_fd)
+                config_has_records = config['genesis_records_file'] is not None
+                records_downloaded = os.path.exists(
+                    os.path.join(tmp_dir, 'records.json'))
+                if config_has_records != records_downloaded:
+                    if config_has_records:
+                        logging.warning(
+                            f'newly downloaded config shows records needed, but neard init did not download records.json'
+                        )
+                    else:
+                        logging.warning(
+                            f'newly downloaded config shows records not needed, but neard init downloaded records.json'
+                        )
+
+            with open(os.path.join(home_dir, 'config.json'), 'r+') as config_fd:
+                config = json.load(config_fd)
+                config_had_records = config['genesis_records_file'] is not None
+                if config_has_records != config_had_records:
+                    config[
+                        'genesis_records_file'] = 'records.json' if config_has_records else None
+                    config_fd.seek(0)
+                    json.dump(config, config_fd, indent=2)
+                    config_fd.truncate()
+
+            if os.path.exists(os.path.join(home_dir, 'data')):
+                # for now the only situation where we try to check if we can avoid deleting the data dir is the case
+                # of moving from no records file to having a records file, since it's best effort anyway and it's the
+                # only likely case for the moment
+                keep_data = not config_had_records and config_has_records and records_downloaded and genesis_files_equivalent(
+                    os.path.join(home_dir, 'genesis.json'),
+                    os.path.join(tmp_dir, 'genesis.json'),
+                    os.path.join(tmp_dir, 'records.json'))
+                if not keep_data:
+                    shutil.rmtree(os.path.join(home_dir, 'data'))
+
+            shutil.move(os.path.join(tmp_dir, 'genesis.json'),
+                        os.path.join(home_dir, 'genesis.json'))
+            if records_downloaded:
+                shutil.move(os.path.join(tmp_dir, 'records.json'),
+                            os.path.join(home_dir, 'records.json'))
+            # TODO: would be sad to get ^C between moving the above files and moving these two.
+            # would be good to handle that somehow
+            shutil.move(os.path.join(tmp_dir, '.nearup/genesis_md5sum'),
+                        os.path.join(home_dir, '.nearup/genesis_md5sum'))
+            try:
+                shutil.move(os.path.join(tmp_dir, '.nearup/records_md5sum'),
+                            os.path.join(home_dir, '.nearup/records_md5sum'))
+            except FileNotFoundError:
+                pass
 
         return True
 
@@ -146,7 +273,7 @@ def check_and_setup(binary_path,
                     sys.exit(1)
 
         if chain_id in ['guildnet', 'betanet', 'testnet', 'shardnet']:
-            check_and_update_genesis(chain_id, home_dir)
+            check_and_update_genesis(chain_id, home_dir, binary_path)
         elif chain_id == 'mainnet':
             logging.info("Using the mainnet genesis...")
         else:
@@ -156,7 +283,6 @@ def check_and_setup(binary_path,
 
     logging.info("Setting up network configuration.")
     init_near(home_dir, binary_path, chain_id, account_id, interactive)
-    download_config(chain_id, home_dir)
 
     if chain_id not in [
             'mainnet', 'guildnet', 'betanet', 'testnet', 'shardnet'

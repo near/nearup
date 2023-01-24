@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import os
 import re
@@ -61,11 +62,6 @@ def new_release_ready(net, uname):
     path = binary_download_url(net, uname, branch, commit, 'neard')
 
     return exists_on_s3(S3_BUCKETS["default"], path)
-
-
-def download_config(net, home_dir):
-    download_from_s3(S3_BUCKETS[net], f'nearcore-deploy/{net}/config.json',
-                     os.path.join(home_dir, 'config.json'))
 
 
 def download_genesis(net, home_dir):
@@ -134,27 +130,64 @@ def latest_deployed_release_branch(net):
                         f'nearcore-deploy/{net}/latest_release').strip()
 
 
-def latest_genesis_md5sum(net):
-    if net == "localnet":
+def write_md5sum_file(home_dir, filename, md5sum):
+    if md5sum is None:
+        return
+
+    home_nearup_dir = os.path.join(home_dir, '.nearup')
+    if not os.path.exists(home_nearup_dir):
+        os.makedirs(home_nearup_dir)
+
+    with open(os.path.join(home_nearup_dir, filename), 'w') as f:
+        f.write(md5sum)
+
+
+# expects genesis_md5sum to be a 2-tuple with genesis and records md5sums
+def write_genesis_md5sum(home_dir, md5sums):
+    (genesis_md5sum, records_md5sum) = md5sums
+    write_md5sum_file(home_dir, 'genesis_md5sum', genesis_md5sum)
+    write_md5sum_file(home_dir, 'records_md5sum', records_md5sum)
+
+
+def read_md5sum_file(home_dir, name):
+    md5sum_path = os.path.join(home_dir, f'.nearup/{name}_md5sum')
+    try:
+        return open(md5sum_path, 'r').read().strip()
+    except FileNotFoundError:
+        try:
+            with open(os.path.join(os.path.join(home_dir, f'{name}.json')),
+                      'rb') as fd:
+                md5sum = hashlib.md5(fd.read()).hexdigest()
+                write_md5sum_file(home_dir, f'{name}_md5sum', md5sum)
+                return md5sum
+        except FileNotFoundError:
+            return None
+
+
+def read_genesis_md5sum(home_dir):
+    return (read_md5sum_file(home_dir,
+                             'genesis'), read_md5sum_file(home_dir, 'records'))
+
+
+def fetch_chain_file(net, filename):
+    try:
+        if net == "localnet":
+            return read_from_s3(S3_BUCKETS['default'],
+                                f'nearcore-deploy/testnet/{filename}').strip()
+        if net == "guildnet":
+            return read_from_s3(S3_BUCKETS['guildnet'],
+                                f'nearcore-deploy/guildnet/{filename}').strip()
         return read_from_s3(S3_BUCKETS['default'],
-                            'nearcore-deploy/testnet/genesis_md5sum').strip()
-    if net == "guildnet":
-        return read_from_s3(S3_BUCKETS['guildnet'],
-                            'nearcore-deploy/guildnet/genesis_md5sum').strip()
-    return read_from_s3(S3_BUCKETS['default'],
-                        f'nearcore-deploy/{net}/genesis_md5sum').strip()
+                            f'nearcore-deploy/{net}/{filename}').strip()
+    except NetworkError:
+        # TODO, NetworkError masks the underlying error, which could have been somethiing
+        # other than 404
+        return None
 
 
-def latest_genesis_md5sum_has_changed(net, md5_sum):
-    latest_md5sum = latest_genesis_md5sum(net)
-
-    if net == "localnet":
-        latest_md5sum = latest_genesis_md5sum("testnet")
-
-    logging.info(f"Current genesis md5sum is {md5_sum}")
-    logging.info(f"Latest genesis md5sum is {latest_md5sum}")
-
-    return latest_md5sum != md5_sum
+def latest_genesis_md5sum(net):
+    return (fetch_chain_file(net, 'genesis_md5sum'),
+            fetch_chain_file(net, 'records_md5sum'))
 
 
 _WRAPPER = textwrap.TextWrapper(break_long_words=False, break_on_hyphens=False)

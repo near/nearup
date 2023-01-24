@@ -2,7 +2,7 @@ import json
 import os
 import shutil
 
-from nearuplib.util import download_binaries, download_config, download_genesis
+from nearuplib.util import download_binaries, download_genesis
 
 HOME_DIR = os.path.expanduser('~/.near/betanet')
 NEARUP_BINARY_DIR = os.path.expanduser('~/.nearup/near/betanet')
@@ -31,15 +31,6 @@ def test_download_binaries():
 
     # check if the binary is executable
     assert os.access(path, os.X_OK)
-
-
-def test_download_config():
-    download_config('betanet', HOME_DIR)
-    path = os.path.join(HOME_DIR, 'config.json')
-
-    assert os.path.exists(path)
-    with open(path) as config:
-        json.loads(config.read())
 
 
 def test_download_genesis():
