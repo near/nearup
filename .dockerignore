@@ -1,0 +1,25 @@
+.idea/
+.vscode/
+
+docker/
+!docker/scripts/
+ops/
+!ops/run.sh
+!ops/tendermint-config.toml
+
+**/target
+storage/
+keystore/
+tmp/
+sandbox/
+
+# Ignore Vim swapfiles
+*.swp
+
+# Docker files shouldn't invalidate the cache because Docker itself will use these appropriately
+.dockerignore
+Dockerfile
+Dockerfile.nightly
+
+# Don't include files from the internals of the git repo
+.git/
