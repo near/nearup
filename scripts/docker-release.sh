@@ -7,7 +7,7 @@ IMAGE=nearprotocol/nearup
 VERSION=$(echo -n $(cat nearuplib/VERSION))
 
 echo "logging into docker..."
-echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+echo "$DOCKER_BUILDKITE_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 echo "building latest version $VERSION..."
 docker build . -t $IMAGE:$VERSION
