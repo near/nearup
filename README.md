@@ -129,7 +129,7 @@ nearup run betanet --help
 ### Building the docker image
 
 ```
-docker build . -t nearprotocol/nearup
+docker build . -t nearup/nearprotocol
 ```
 
 ### Pull the docker image
@@ -137,7 +137,7 @@ docker build . -t nearprotocol/nearup
 If you don't want to build a docker image locally, you can pull the `latest` from Docker Hub,
 
 ```
-docker pull nearprotocol/nearup
+docker pull nearup/nearprotocol
 ```
 
 ### Running `nearup` with Docker
@@ -146,7 +146,7 @@ docker pull nearprotocol/nearup
 To run the `nearup` docker image run:
 
 ```
-docker run -v $HOME/.near:/root/.near -p 3030:3030 --name nearup nearprotocol/nearup run betanet
+docker run -v $HOME/.near:/root/.near -p 3030:3030 --name nearup nearup/nearprotocol run betanet
 ```
 
 #### Running in detached mode
@@ -154,7 +154,7 @@ docker run -v $HOME/.near:/root/.near -p 3030:3030 --name nearup nearprotocol/ne
 To run `nearup` in docker's detached (non-blocking) mode, you can add `-d` to the `docker run` command,
 
 ```
-docker run -v $HOME/.near:/root/.near -p 3030:3030 -d --name nearup nearprotocol/nearup run betanet
+docker run -v $HOME/.near:/root/.near -p 3030:3030 -d --name nearup nearup/nearprotocol run betanet
 ```
 
 ### Check if the container is running
@@ -211,13 +211,13 @@ docker kill nearup
 To build a development image:
 
 ```
-docker build . -t nearprotocol/nearup:dev
+docker build . -t nearup/nearprotocol:dev
 ```
 
 The following will mount your repo directory into the running container and drop you into a shell to run test commands.
 
 ```
-docker run -it --entrypoint "" -v $PWD:/root/nearup -v $HOME/.near:/root/.near -w /root/nearup nearprotocol/nearup:dev bash
+docker run -it --entrypoint "" -v $PWD:/root/nearup -v $HOME/.near:/root/.near -w /root/nearup nearup/nearprotocol:dev bash
 ```
 
 ### Common commands
